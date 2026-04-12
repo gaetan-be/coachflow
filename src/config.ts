@@ -7,7 +7,9 @@ export const config = {
   coachEmail: process.env.COACH_EMAIL || 'coach@brenso.be',
   coachPassword: process.env.COACH_PASSWORD || 'changeme',
 
-  anthropicApiKey: process.env.ANTHROPIC_API_KEY || '',
+  openaiApiKey: process.env.OPENAI_API_KEY || '',
+  openaiBaseUrl: process.env.OPENAI_BASE_URL || 'https://api.openai.com/v1',
+  openaiModel: process.env.OPENAI_MODEL || 'gpt-4o',
 
   smtp: {
     host: process.env.SMTP_HOST || '',

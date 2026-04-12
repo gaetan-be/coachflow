@@ -9,7 +9,7 @@
     "dev": "tsc -w & nodemon dist/index.js"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.39.0",
+    "openai": "^4.73.0",
     "bcrypt": "^5.1.1",
     "connect-pg-simple": "^10.0.0",
     "docxtemplater": "^3.50.0",

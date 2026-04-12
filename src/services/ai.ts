@@ -1,7 +1,7 @@
-import Anthropic from '@anthropic-ai/sdk';
+import OpenAI from 'openai';
 import { config } from '../config';
 
-const client = new Anthropic({ apiKey: config.anthropicApiKey });
+const client = new OpenAI({ apiKey: config.openaiApiKey, baseURL: config.openaiBaseUrl });
 
 interface ProfileData {
   prenom: string;
@@ -13,6 +13,25 @@ interface ProfileData {
   notes_coach?: string;
 }
 
+async function complete(prompt: string): Promise<string> {
+  console.log('[AI] ── Request ──');
+  console.log('[AI] Endpoint:', config.openaiBaseUrl);
+  console.log('[AI] Model:', config.openaiModel);
+  console.log('[AI] Prompt:', prompt);
+
+  const response = await client.chat.completions.create({
+    model: config.openaiModel,
+    max_tokens: 2000,
+    messages: [{ role: 'user', content: prompt }],
+  });
+
+  const content = response.choices[0]?.message?.content || '';
+  console.log('[AI] ── Response ──');
+  console.log('[AI]', content);
+
+  return content;
+}
+
 export async function generateEnneagrammeChapter(
   profile: ProfileData,
   enneaBase: number,
@@ -21,13 +40,7 @@ export async function generateEnneagrammeChapter(
 ): Promise<string> {
   const sousTypeText = enneaSousType ? ` avec un sous-type ${enneaSousType}` : '';
 
-  const response = await client.messages.create({
-    model: 'claude-sonnet-4-20250514',
-    max_tokens: 2000,
-    messages: [
-      {
-        role: 'user',
-        content: `Tu es une coach en orientation scolaire experte en Ennéagramme. Rédige un chapitre de rapport d'orientation pour un jeune.
+  return complete(`Tu es une coach en orientation scolaire experte en Ennéagramme. Rédige un chapitre de rapport d'orientation pour un jeune.
 
 Informations sur le jeune :
 - Prénom : ${profile.prenom}
@@ -46,13 +59,7 @@ Consignes :
 - Ne mentionne pas que tu es une IA
 - Écris directement le contenu du chapitre, sans titre ni introduction méta
 
-Rédige le chapitre Ennéagramme :`
-      }
-    ]
-  });
-
-  const block = response.content[0];
-  return block.type === 'text' ? block.text : '';
+Rédige le chapitre Ennéagramme :`);
 }
 
 export async function generateMbtiChapter(
@@ -60,13 +67,7 @@ export async function generateMbtiChapter(
   mbtiType: string,
   wordCount: number
 ): Promise<string> {
-  const response = await client.messages.create({
-    model: 'claude-sonnet-4-20250514',
-    max_tokens: 2000,
-    messages: [
-      {
-        role: 'user',
-        content: `Tu es une coach en orientation scolaire experte en MBTI. Rédige un chapitre de rapport d'orientation pour un jeune.
+  return complete(`Tu es une coach en orientation scolaire experte en MBTI. Rédige un chapitre de rapport d'orientation pour un jeune.
 
 Informations sur le jeune :
 - Prénom : ${profile.prenom}
@@ -86,13 +87,7 @@ Consignes :
 - Ne mentionne pas que tu es une IA
 - Écris directement le contenu du chapitre, sans titre ni introduction méta
 
-Rédige le chapitre MBTI :`
-      }
-    ]
-  });
-
-  const block = response.content[0];
-  return block.type === 'text' ? block.text : '';
+Rédige le chapitre MBTI :`);
 }
 
 export async function generateRiasecChapter(
@@ -108,13 +103,7 @@ export async function generateRiasecChapter(
     .map((code, i) => `${i + 1}. ${code} (${riasecNames[code] || code})`)
     .join(', ');
 
-  const response = await client.messages.create({
-    model: 'claude-sonnet-4-20250514',
-    max_tokens: 2000,
-    messages: [
-      {
-        role: 'user',
-        content: `Tu es une coach en orientation scolaire experte en RIASEC (modèle de Holland). Rédige un chapitre de rapport d'orientation pour un jeune.
+  return complete(`Tu es une coach en orientation scolaire experte en RIASEC (modèle de Holland). Rédige un chapitre de rapport d'orientation pour un jeune.
 
 Informations sur le jeune :
 - Prénom : ${profile.prenom}
@@ -134,11 +123,5 @@ Consignes :
 - Ne mentionne pas que tu es une IA
 - Écris directement le contenu du chapitre, sans titre ni introduction méta
 
-Rédige le chapitre RIASEC :`
-      }
-    ]
-  });
-
-  const block = response.content[0];
-  return block.type === 'text' ? block.text : '';
+Rédige le chapitre RIASEC :`);
 }
