@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BRENSO &mdash; Backoffice</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/backoffice.css">
+</head>
+<body>
+
+<header class="page-header">
+  <div class="logo">
+    <div class="logo-circle">B</div>
+    <div>
+      <div class="logo-name">BRENSO</div>
+      <div class="logo-sub">BACKOFFICE</div>
+    </div>
+  </div>
+  <div class="header-center">Liste des <span>coachees</span></div>
+  <div class="header-right">
+    <button class="btn-logout" onclick="logout()">D&eacute;connexion</button>
+  </div>
+</header>
+
+<div class="list-wrapper">
+  <div id="list-content"></div>
+</div>
+
+<script>
+function logout() {
+  fetch('/api/logout', { method: 'POST' }).then(function() {
+    window.location.href = '/login';
+  });
+}
+
+function statusLabel(s) {
+  if (!s) return '<span class="status-badge new">Nouveau</span>';
+  var map = {
+    queued:     '<span class="status-badge queued">En attente</span>',
+    processing: '<span class="status-badge processing">En cours</span>',
+    done:       '<span class="status-badge done">Termin&eacute;</span>',
+    error:      '<span class="status-badge error">Erreur</span>'
+  };
+  return map[s] || '<span class="status-badge new">Nouveau</span>';
+}
+
+function formatDate(d) {
+  if (!d) return '&mdash;';
+  return new Date(d).toLocaleDateString('fr-BE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+}
+
+fetch('/api/coachees')
+  .then(function(r) { return r.json(); })
+  .then(function(data) {
+    var el = document.getElementById('list-content');
+    if (data.length === 0) {
+      el.innerHTML = '<div class="empty-state">Aucun coachee pour le moment.<br>Les questionnaires soumis appara&icirc;tront ici.</div>';
+      return;
+    }
+
+    var html = '<table class="coachee-table"><thead><tr>';
+    html += '<th>Nom</th><th>Date de soumission</th><th>Statut rapport</th>';
+    html += '</tr></thead><tbody>';
+
+    data.forEach(function(c) {
+      html += '<tr onclick="window.location.href=\'/backoffice/coachee/' + c.id + '\'">';
+      html += '<td>' + c.prenom + ' ' + c.nom + '</td>';
+      html += '<td>' + formatDate(c.created_at) + '</td>';
+      html += '<td>' + statusLabel(c.report_status) + '</td>';
+      html += '</tr>';
+    });
+
+    html += '</tbody></table>';
+    el.innerHTML = html;
+  });
+</script>
+</body>
+</html>

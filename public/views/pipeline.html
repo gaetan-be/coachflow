@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BRENSO &mdash; Fiche Coach</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/backoffice.css">
+</head>
+<body>
+
+<header class="page-header">
+  <div class="logo">
+    <div class="logo-circle">B</div>
+    <div>
+      <div class="logo-name">BRENSO</div>
+      <div class="logo-sub">BACKOFFICE</div>
+    </div>
+  </div>
+  <div class="header-center">Fiche <span>coach</span> &amp; pipeline</div>
+  <div class="header-right">
+    <a href="/backoffice" class="btn-logout">&larr; Retour &agrave; la liste</a>
+    <button class="btn-logout" onclick="logout()">D&eacute;connexion</button>
+  </div>
+</header>
+
+<div class="form-wrapper" id="pipeline-form">
+
+  <!-- 1. IDENTITE -->
+  <div class="section">
+    <div class="section-header" onclick="toggleSection(this)">
+      <span class="section-tag">01</span>
+      <span class="section-title">Identit&eacute; du jeune</span>
+      <span class="section-toggle">&#9660;</span>
+    </div>
+    <div class="section-body">
+      <div class="identity-grid">
+        <div class="field-group">
+          <label>Pr&eacute;nom</label>
+          <input type="text" id="prenom" placeholder="ex. Sofia">
+        </div>
+        <div class="field-group">
+          <label>Date de s&eacute;ance</label>
+          <input type="date" id="date_seance">
+        </div>
+        <div class="field-group">
+          <label>Nom</label>
+          <input type="text" id="nom" placeholder="ex. Dupont">
+        </div>
+        <div class="field-group">
+          <label>&Eacute;cole / Niveau</label>
+          <input type="text" id="ecole_nom" placeholder="ex. Ath&eacute;n&eacute;e Royal, 5e secondaire">
+        </div>
+        <div class="field-group">
+          <label>Date de naissance</label>
+          <input type="date" id="date_naissance">
+        </div>
+        <div class="field-group">
+          <label>Choix / Orientations envisag&eacute;es</label>
+          <textarea class="multi" id="choix" placeholder="Pistes d&eacute;j&agrave; envisag&eacute;es par le jeune ou sa famille..."></textarea>
+        </div>
+        <div class="field-group">
+          <label>Code postal</label>
+          <input type="text" id="code_postal" placeholder="ex. 1050">
+        </div>
+        <div class="field-group">
+          <label>Loisirs / Centres d'int&eacute;r&ecirc;t</label>
+          <textarea class="multi" id="loisirs" placeholder="Sports, musique, jeux, b&eacute;n&eacute;volat..."></textarea>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. ENNEAGRAMME -->
+  <div class="section">
+    <div class="section-header" onclick="toggleSection(this)">
+      <span class="section-tag">02</span>
+      <span class="section-title">Enneagramme &mdash; Base &amp; Sous-type</span>
+      <span class="section-toggle">&#9660;</span>
+    </div>
+    <div class="section-body">
+      <label style="display:block;margin-bottom:10px;">Type de base (1&ndash;9)</label>
+      <div class="ennea-base" id="ennea-base">
+        <button class="ennea-btn" data-val="1">1</button>
+        <button class="ennea-btn" data-val="2">2</button>
+        <button class="ennea-btn" data-val="3">3</button>
+        <button class="ennea-btn" data-val="4">4</button>
+        <button class="ennea-btn" data-val="5">5</button>
+        <button class="ennea-btn" data-val="6">6</button>
+        <button class="ennea-btn" data-val="7">7</button>
+        <button class="ennea-btn" data-val="8">8</button>
+        <button class="ennea-btn" data-val="9">9</button>
+      </div>
+      <div style="margin-top:20px;padding-top:20px;border-top:1px solid var(--section-sep);">
+        <span class="sub-type-label">Sous-type</span>
+        <div class="sous-type-group" id="sous-type">
+          <button class="sous-type-btn" data-val="Social">Social</button>
+          <button class="sous-type-btn" data-val="Survie">Survie</button>
+          <button class="sous-type-btn" data-val="Tete-a-tete">T&ecirc;te-&agrave;-t&ecirc;te</button>
+        </div>
+      </div>
+      <div class="word-dial">
+        <div class="word-dial-label">Mots condense<small>Chapitre Enneagramme</small></div>
+        <div class="word-dial-track">
+          <input type="range" class="teal-range" id="words_ennea" min="50" max="600" step="50" value="250" oninput="updateDial('ennea')">
+        </div>
+        <div class="word-dial-value teal-val" id="dial_ennea">250<span>mots</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. MBTI -->
+  <div class="section">
+    <div class="section-header" onclick="toggleSection(this)">
+      <span class="section-tag">03</span>
+      <span class="section-title">MBTI &mdash; Profil typologique</span>
+      <span class="section-toggle">&#9660;</span>
+    </div>
+    <div class="section-body">
+      <div class="mbti-grid">
+        <div class="mbti-col">
+          <div class="mbti-col-head">&Eacute;nergie</div>
+          <div class="mbti-option" data-group="ei" data-val="E">
+            <div class="mbti-radio"></div>
+            <div><div class="mbti-letter">E</div><div class="mbti-name">Extraversion</div></div>
+          </div>
+          <div class="mbti-option" data-group="ei" data-val="I">
+            <div class="mbti-radio"></div>
+            <div><div class="mbti-letter">I</div><div class="mbti-name">Introversion</div></div>
+          </div>
+        </div>
+        <div class="mbti-col">
+          <div class="mbti-col-head">Perception</div>
+          <div class="mbti-option" data-group="sn" data-val="S">
+            <div class="mbti-radio"></div>
+            <div><div class="mbti-letter">S</div><div class="mbti-name">Sensation</div></div>
+          </div>
+          <div class="mbti-option" data-group="sn" data-val="N">
+            <div class="mbti-radio"></div>
+            <div><div class="mbti-letter">N</div><div class="mbti-name">Intuition</div></div>
+          </div>
+        </div>
+        <div class="mbti-col">
+          <div class="mbti-col-head">Jugement</div>
+          <div class="mbti-option" data-group="tf" data-val="T">
+            <div class="mbti-radio"></div>
+            <div><div class="mbti-letter">T</div><div class="mbti-name">Pens&eacute;e</div></div>
+          </div>
+          <div class="mbti-option" data-group="tf" data-val="F">
+            <div class="mbti-radio"></div>
+            <div><div class="mbti-letter">F</div><div class="mbti-name">Sentiment</div></div>
+          </div>
+        </div>
+        <div class="mbti-col">
+          <div class="mbti-col-head">Mode de vie</div>
+          <div class="mbti-option" data-group="jp" data-val="J">
+            <div class="mbti-radio"></div>
+            <div><div class="mbti-letter">J</div><div class="mbti-name">Jugement</div></div>
+          </div>
+          <div class="mbti-option" data-group="jp" data-val="P">
+            <div class="mbti-radio"></div>
+            <div><div class="mbti-letter">P</div><div class="mbti-name">Perception</div></div>
+          </div>
+        </div>
+      </div>
+      <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--section-sep);display:flex;align-items:center;gap:12px;">
+        <span style="font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);font-weight:600;">Type r&eacute;sultant</span>
+        <span id="mbti-result" style="font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:400;color:var(--purple);letter-spacing:4px;">_ _ _ _</span>
+      </div>
+      <div class="word-dial">
+        <div class="word-dial-label">Mots condense<small>Chapitre MBTI</small></div>
+        <div class="word-dial-track">
+          <input type="range" class="purple-range" id="words_mbti" min="50" max="600" step="50" value="250" oninput="updateDial('mbti')">
+        </div>
+        <div class="word-dial-value purple-val" id="dial_mbti">250<span>mots</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. RIASEC -->
+  <div class="section">
+    <div class="section-header" onclick="toggleSection(this)">
+      <span class="section-tag">04</span>
+      <span class="section-title">RIASEC &mdash; Profil d'int&eacute;r&ecirc;ts</span>
+      <span class="section-toggle">&#9660;</span>
+    </div>
+    <div class="section-body">
+      <p style="font-size:11px;color:var(--muted);margin-bottom:20px;line-height:1.6;">Clique pour s&eacute;lectionner les types dominants (max 3 &mdash; dans l'ordre de priorit&eacute;)</p>
+      <div class="riasec-row" id="riasec-row">
+        <div class="riasec-item" data-val="R">
+          <div class="riasec-circle"><span class="riasec-letter">R</span><span class="riasec-rank">1</span></div>
+          <span class="riasec-name">R&eacute;aliste</span>
+        </div>
+        <div class="riasec-item" data-val="I">
+          <div class="riasec-circle"><span class="riasec-letter">I</span><span class="riasec-rank">1</span></div>
+          <span class="riasec-name">Investigateur</span>
+        </div>
+        <div class="riasec-item" data-val="A">
+          <div class="riasec-circle"><span class="riasec-letter">A</span><span class="riasec-rank">1</span></div>
+          <span class="riasec-name">Artistique</span>
+        </div>
+        <div class="riasec-item" data-val="S">
+          <div class="riasec-circle"><span class="riasec-letter">S</span><span class="riasec-rank">1</span></div>
+          <span class="riasec-name">Social</span>
+        </div>
+        <div class="riasec-item" data-val="E">
+          <div class="riasec-circle"><span class="riasec-letter">E</span><span class="riasec-rank">1</span></div>
+          <span class="riasec-name">Entreprenant</span>
+        </div>
+        <div class="riasec-item" data-val="C">
+          <div class="riasec-circle"><span class="riasec-letter">C</span><span class="riasec-rank">1</span></div>
+          <span class="riasec-name">Conventionnel</span>
+        </div>
+      </div>
+      <div class="word-dial">
+        <div class="word-dial-label">Mots condense<small>Chapitre RIASEC</small></div>
+        <div class="word-dial-track">
+          <input type="range" class="teal-range" id="words_riasec" min="50" max="600" step="50" value="200" oninput="updateDial('riasec')">
+        </div>
+        <div class="word-dial-value teal-val" id="dial_riasec">200<span>mots</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. NOTES -->
+  <div class="section">
+    <div class="section-header" onclick="toggleSection(this)">
+      <span class="section-tag">05</span>
+      <span class="section-title">Notes du coach &amp; Conclusion</span>
+      <span class="section-toggle">&#9660;</span>
+    </div>
+    <div class="section-body notes-field">
+      <label style="display:block;margin-bottom:8px;">Observations libres, hypoth&egrave;ses, pistes retenues</label>
+      <textarea id="notes_coach" placeholder="Impressions de s&eacute;ance, &eacute;l&eacute;ments cl&eacute;s du parcours, points &agrave; approfondir...&#10;&#10;Ces notes seront int&eacute;gr&eacute;es dans le rapport final."></textarea>
+    </div>
+  </div>
+
+</div>
+
+<!-- SAVE BAR -->
+<div class="save-bar">
+  <div class="save-bar-inner">
+    <span class="save-status" id="save-status">Sauvegard&eacute; !</span>
+    <button class="btn-save" onclick="saveCoachee()">Sauvegarder</button>
+  </div>
+</div>
+
+<!-- MAKE REPORT -->
+<div class="make-report-bar">
+  <div class="make-report-inner">
+    <div class="report-hint">
+      <strong>G&eacute;n&eacute;rer le rapport</strong><br>
+      Un document Word sera cr&eacute;&eacute; avec les profils s&eacute;lectionn&eacute;s et vos notes.
+      <span id="report-status-text"></span>
+      <span id="download-link-wrapper"></span>
+    </div>
+    <button class="btn-report" id="btn-report" onclick="makeReport()">Cr&eacute;er le rapport</button>
+  </div>
+</div>
+
+<script src="/js/pipeline.js"></script>
+</body>
+</html>
