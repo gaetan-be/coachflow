@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BRENSO — Questionnaire</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --dark:   #141e22;
+  --dark2:  #1c2a30;
+  --dark3:  #243238;
+  --teal:   #3fa8b8;
+  --teal2:  #2a7d8e;
+  --teal-glow: rgba(63,168,184,0.12);
+  --warm:   #c8a97e;
+  --warm-pale: rgba(200,169,126,0.10);
+  --green:  #4caf82;
+  --border: rgba(255,255,255,0.07);
+  --border2: rgba(63,168,184,0.25);
+  --text:   rgba(255,255,255,0.88);
+  --muted:  rgba(255,255,255,0.35);
+  --label:  rgba(255,255,255,0.50);
+  --input-bg: rgba(255,255,255,0.04);
+  --input-border: rgba(255,255,255,0.10);
+  --input-focus: rgba(63,168,184,0.4);
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior:smooth; }
+
+body {
+  background: var(--dark);
+  font-family: 'DM Sans', sans-serif;
+  color: var(--text);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── HEADER ── */
+.page-header {
+  background: var(--dark2);
+  border-bottom: 1px solid var(--border);
+  padding: 20px 24px;
+  text-align: center;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  backdrop-filter: blur(12px);
+}
+.logo { display:inline-flex; align-items:center; gap:10px; margin-bottom:8px; }
+.logo-circle {
+  width:30px; height:30px;
+  border:1.5px solid var(--teal);
+  border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  font-family:'Cormorant Garamond',serif;
+  font-size:13px; color:var(--teal); font-weight:600;
+}
+.logo-name { font-size:10px; letter-spacing:3px; text-transform:uppercase; font-weight:500; }
+.page-subtitle {
+  font-family:'Cormorant Garamond',serif;
+  font-size:16px; font-weight:300;
+  color:rgba(255,255,255,0.6);
+  letter-spacing:0.3px;
+}
+.page-subtitle span { color:var(--teal); font-style:italic; }
+
+/* ── FORM ── */
+.form-wrapper {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 24px 20px 120px;
+}
+
+/* ── INTRO ── */
+.intro-card {
+  background: linear-gradient(135deg, rgba(63,168,184,0.08), rgba(200,169,126,0.06));
+  border: 1px solid var(--border2);
+  border-radius: 14px;
+  padding: 20px;
+  margin-bottom: 28px;
+  text-align: center;
+}
+.intro-card h2 {
+  font-family:'Cormorant Garamond',serif;
+  font-size:20px; font-weight:400;
+  color:var(--teal);
+  margin-bottom:8px;
+}
+.intro-card p {
+  font-size:13px;
+  color:var(--muted);
+  line-height:1.6;
+}
+
+/* ── PROGRESS ── */
+.progress-bar {
+  display:flex; gap:4px;
+  margin-bottom:28px;
+}
+.progress-step {
+  flex:1; height:3px;
+  background: rgba(255,255,255,0.08);
+  border-radius:2px;
+  transition: background 0.4s;
+}
+.progress-step.active { background: var(--teal); }
+.progress-step.done { background: var(--green); }
+
+/* ── FIELD GROUP ── */
+.field-group {
+  margin-bottom: 22px;
+  animation: fadeUp 0.4s ease both;
+}
+.field-group label {
+  display: block;
+  font-size: 11px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--label);
+  margin-bottom: 7px;
+  font-weight: 500;
+}
+.field-group .hint {
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 4px;
+  font-style: italic;
+}
+
+input[type="text"],
+input[type="date"],
+textarea {
+  width: 100%;
+  padding: 12px 14px;
+  background: var(--input-bg);
+  border: 1px solid var(--input-border);
+  border-radius: 10px;
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  outline: none;
+  -webkit-appearance: none;
+}
+input:focus, textarea:focus {
+  border-color: var(--teal);
+  box-shadow: 0 0 0 3px var(--input-focus);
+}
+textarea {
+  min-height: 80px;
+  resize: vertical;
+  line-height: 1.5;
+}
+input[type="date"] {
+  color-scheme: dark;
+}
+::placeholder { color: var(--muted); font-size:13px; }
+
+/* ── STEPS ── */
+.step { display:none; }
+.step.active { display:block; }
+
+/* ── BUTTONS ── */
+.btn-row {
+  display:flex; gap:10px;
+  margin-top:28px;
+}
+.btn {
+  flex:1;
+  padding:14px 20px;
+  border:none;
+  border-radius:12px;
+  font-family:'DM Sans',sans-serif;
+  font-size:14px;
+  font-weight:500;
+  cursor:pointer;
+  transition: all 0.2s;
+  text-align:center;
+}
+.btn-back {
+  background: rgba(255,255,255,0.06);
+  color: var(--muted);
+  border:1px solid var(--border);
+}
+.btn-back:hover { background: rgba(255,255,255,0.10); color:var(--text); }
+.btn-next {
+  background: var(--teal);
+  color: #fff;
+}
+.btn-next:hover { background: var(--teal2); transform:translateY(-1px); }
+.btn-next:disabled {
+  background: rgba(63,168,184,0.25);
+  color: rgba(255,255,255,0.3);
+  cursor:not-allowed;
+  transform:none;
+}
+.btn-submit {
+  background: linear-gradient(135deg, var(--teal), var(--teal2));
+  color:#fff;
+  font-size:15px;
+  padding:16px;
+  width:100%;
+  border:none;
+  border-radius:12px;
+  cursor:pointer;
+  font-family:'DM Sans',sans-serif;
+  font-weight:600;
+  letter-spacing:0.3px;
+  transition: all 0.3s;
+}
+.btn-submit:hover { transform:translateY(-2px); box-shadow:0 6px 20px rgba(63,168,184,0.3); }
+
+/* ── SUCCESS ── */
+.success-screen {
+  display:none;
+  text-align:center;
+  padding:60px 20px;
+}
+.success-screen .check {
+  width:60px; height:60px;
+  border:2px solid var(--green);
+  border-radius:50%;
+  display:inline-flex; align-items:center; justify-content:center;
+  font-size:28px;
+  margin-bottom:20px;
+  animation: scaleIn 0.4s ease;
+}
+.success-screen h2 {
+  font-family:'Cormorant Garamond',serif;
+  font-size:22px; font-weight:400;
+  color:var(--green);
+  margin-bottom:10px;
+}
+.success-screen p {
+  font-size:13px; color:var(--muted); line-height:1.6;
+}
+.success-screen .json-link {
+  display:inline-block;
+  margin-top:20px;
+  padding:10px 24px;
+  background:rgba(63,168,184,0.1);
+  border:1px solid var(--border2);
+  border-radius:10px;
+  color:var(--teal);
+  font-size:13px;
+  cursor:pointer;
+  transition:all 0.2s;
+  text-decoration:none;
+}
+.success-screen .json-link:hover { background:rgba(63,168,184,0.18); }
+
+/* ── ERROR ── */
+.field-error input,
+.field-error textarea {
+  border-color: #e05555;
+  box-shadow: 0 0 0 3px rgba(224,85,85,0.15);
+}
+.error-msg {
+  color:#e05555;
+  font-size:11px;
+  margin-top:4px;
+  display:none;
+}
+.field-error .error-msg { display:block; }
+
+/* ── ANIMATIONS ── */
+@keyframes fadeUp {
+  from { opacity:0; transform:translateY(12px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+@keyframes scaleIn {
+  from { transform:scale(0.5); opacity:0; }
+  to   { transform:scale(1); opacity:1; }
+}
+
+/* ── MOBILE ── */
+@media (max-width:480px) {
+  .form-wrapper { padding:20px 16px 120px; }
+  .page-header { padding:16px 16px; }
+}
+</style>
+</head>
+<body>
+
+<header class="page-header">
+  <div class="logo">
+    <div class="logo-circle">B</div>
+    <div>
+      <div class="logo-name">BRENSO</div>
+    </div>
+  </div>
+  <div class="page-subtitle">Ton <span>questionnaire</span> d'orientation</div>
+</header>
+
+<div class="form-wrapper">
+
+  <!-- INTRO -->
+  <div class="intro-card">
+    <h2>Bienvenue !</h2>
+    <p>
+      Avant notre premi&egrave;re rencontre, j'aimerais mieux te conna&icirc;tre.
+      Remplis ce petit questionnaire — &ccedil;a prend 2 minutes.
+    </p>
+  </div>
+
+  <!-- PROGRESS -->
+  <div class="progress-bar">
+    <div class="progress-step active" id="prog-1"></div>
+    <div class="progress-step" id="prog-2"></div>
+    <div class="progress-step" id="prog-3"></div>
+  </div>
+
+  <!-- STEP 1 : Identite -->
+  <div class="step active" id="step-1">
+    <div class="field-group" style="animation-delay:0.05s">
+      <label>Pr&eacute;nom</label>
+      <input type="text" id="q_prenom" placeholder="ex. Sofia" required>
+      <div class="error-msg">Ce champ est requis</div>
+    </div>
+    <div class="field-group" style="animation-delay:0.10s">
+      <label>Nom</label>
+      <input type="text" id="q_nom" placeholder="ex. Dupont" required>
+      <div class="error-msg">Ce champ est requis</div>
+    </div>
+    <div class="field-group" style="animation-delay:0.15s">
+      <label>Date de naissance</label>
+      <input type="date" id="q_anniversaire" required>
+      <div class="error-msg">Ce champ est requis</div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-next" onclick="goStep(2)">Suivant</button>
+    </div>
+  </div>
+
+  <!-- STEP 2 : Ecole -->
+  <div class="step" id="step-2">
+    <div class="field-group" style="animation-delay:0.05s">
+      <label>&Eacute;cole ou Universit&eacute;</label>
+      <input type="text" id="q_ecole" placeholder="ex. Ath&eacute;n&eacute;e Royal d'Ixelles">
+      <div class="hint">Le nom de ton &eacute;cole, coll&egrave;ge ou universit&eacute;</div>
+    </div>
+    <div class="field-group" style="animation-delay:0.10s">
+      <label>Ann&eacute;e scolaire</label>
+      <input type="text" id="q_annee" placeholder="ex. 5e secondaire, 1&egrave;re bac">
+      <div class="hint">En quelle ann&eacute;e es-tu actuellement ?</div>
+    </div>
+    <div class="field-group" style="animation-delay:0.15s">
+      <label>Orientation actuelle</label>
+      <input type="text" id="q_orientation" placeholder="ex. Sciences &eacute;conomiques, Latin-Maths">
+      <div class="hint">Ta fili&egrave;re, option ou section actuelle</div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-back" onclick="goStep(1)">Retour</button>
+      <button class="btn btn-next" onclick="goStep(3)">Suivant</button>
+    </div>
+  </div>
+
+  <!-- STEP 3 : Loisirs + envoi -->
+  <div class="step" id="step-3">
+    <div class="field-group" style="animation-delay:0.05s">
+      <label>Loisirs et centres d'int&eacute;r&ecirc;t</label>
+      <textarea id="q_loisirs" placeholder="Sports, musique, jeux vid&eacute;o, lecture, b&eacute;n&eacute;volat, voyages..."></textarea>
+      <div class="hint">Tout ce que tu aimes faire en dehors de l'&eacute;cole</div>
+    </div>
+    <div class="field-group" style="animation-delay:0.10s">
+      <label>Choix ou orientations envisag&eacute;es</label>
+      <textarea id="q_choix" placeholder="Des pistes que tu as d&eacute;j&agrave; en t&ecirc;te ? Des m&eacute;tiers qui t'attirent ?"></textarea>
+      <div class="hint">Pas d'inqui&eacute;tude si tu n'as pas encore d'id&eacute;e — c'est pour &ccedil;a qu'on se voit !</div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-back" onclick="goStep(2)">Retour</button>
+    </div>
+    <div style="margin-top:12px">
+      <button class="btn-submit" onclick="submitForm()">Envoyer mes reponses</button>
+    </div>
+  </div>
+
+  <!-- SUCCESS -->
+  <div class="success-screen" id="success">
+    <div class="check">&#10003;</div>
+    <h2>Merci <span id="success-name"></span> !</h2>
+    <p>Tes r&eacute;ponses ont bien &eacute;t&eacute; enregistr&eacute;es.<br>On se voit bient&ocirc;t pour la premi&egrave;re s&eacute;ance !</p>
+    <div style="display:flex;flex-direction:column;gap:10px;margin-top:20px;align-items:center;">
+      <a class="json-link" id="pipeline-link" href="brenso-coach-pipeline.html" target="_blank" style="background:rgba(76,175,130,0.12);border-color:rgba(76,175,130,0.4);color:#4caf82;">Ouvrir le pipeline coach (auto-import)</a>
+      <a class="json-link" id="download-link" href="#" download style="font-size:11px;opacity:0.6;">T&eacute;l&eacute;charger le JSON (backup)</a>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ── STATE ──
+let currentStep = 1;
+const totalSteps = 3;
+
+// ── NAVIGATION ──
+function goStep(n) {
+  // Validate before moving forward
+  if (n > currentStep && !validateStep(currentStep)) return;
+
+  document.getElementById('step-' + currentStep).classList.remove('active');
+  document.getElementById('step-' + n).classList.add('active');
+  currentStep = n;
+  updateProgress();
+  window.scrollTo({top: 0, behavior: 'smooth'});
+}
+
+function updateProgress() {
+  for (let i = 1; i <= totalSteps; i++) {
+    const el = document.getElementById('prog-' + i);
+    el.classList.remove('active', 'done');
+    if (i < currentStep) el.classList.add('done');
+    else if (i === currentStep) el.classList.add('active');
+  }
+}
+
+// ── VALIDATION ──
+function validateStep(step) {
+  let valid = true;
+  const container = document.getElementById('step-' + step);
+  const required = container.querySelectorAll('[required]');
+
+  required.forEach(input => {
+    const group = input.closest('.field-group');
+    if (!input.value.trim()) {
+      group.classList.add('field-error');
+      valid = false;
+    } else {
+      group.classList.remove('field-error');
+    }
+  });
+
+  return valid;
+}
+
+// Remove error on input
+document.querySelectorAll('input, textarea').forEach(el => {
+  el.addEventListener('input', () => {
+    el.closest('.field-group').classList.remove('field-error');
+  });
+});
+
+// ── COLLECT DATA ──
+function collectData() {
+  const bday = document.getElementById('q_anniversaire').value;
+  let age = '';
+  if (bday) {
+    const bd = new Date(bday);
+    const today = new Date();
+    age = today.getFullYear() - bd.getFullYear();
+    const m = today.getMonth() - bd.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < bd.getDate())) age--;
+  }
+
+  const ecole = document.getElementById('q_ecole').value.trim();
+  const annee = document.getElementById('q_annee').value.trim();
+  // Combine ecole + annee for the coach pipeline field
+  const ecoleComplete = [ecole, annee].filter(Boolean).join(', ');
+
+  return {
+    source: 'brenso-questionnaire-jeune',
+    version: '1.0',
+    timestamp: new Date().toISOString(),
+    // Fields matching brenso-coach-pipeline.html Section 01
+    prenom: document.getElementById('q_prenom').value.trim(),
+    nom: document.getElementById('q_nom').value.trim(),
+    anniversaire: bday,
+    age: age.toString(),
+    ecole: ecoleComplete,
+    ecole_nom: ecole,
+    annee_scolaire: annee,
+    orientation_actuelle: document.getElementById('q_orientation').value.trim(),
+    loisirs: document.getElementById('q_loisirs').value.trim(),
+    choix: document.getElementById('q_choix').value.trim()
+  };
+}
+
+// ── SUBMIT ──
+function submitForm() {
+  if (!validateStep(3)) return;
+
+  const data = collectData();
+  const json = JSON.stringify(data, null, 2);
+
+  // Save to localStorage for automatic transfer to coach pipeline
+  try {
+    localStorage.setItem('brenso_questionnaire_data', json);
+    localStorage.setItem('brenso_questionnaire_timestamp', new Date().toISOString());
+  } catch(e) { /* localStorage unavailable — fallback to download */ }
+
+  // Generate JSON blob for backup download
+  const blob = new Blob([json], {type: 'application/json'});
+  const url = URL.createObjectURL(blob);
+  const link = document.getElementById('download-link');
+  link.href = url;
+  link.download = 'brenso_questionnaire_' + data.prenom.toLowerCase() + '_' + new Date().toISOString().slice(0,10) + '.json';
+
+  // Show success with name
+  document.getElementById('success-name').textContent = data.prenom;
+  document.getElementById('step-' + currentStep).style.display = 'none';
+  document.querySelector('.progress-bar').style.display = 'none';
+  document.getElementById('success').style.display = 'block';
+}
+
+// ── AUTO-SAVE DRAFT (localStorage) ──
+function saveDraft() {
+  try {
+    const draft = {};
+    document.querySelectorAll('input, textarea').forEach(el => {
+      if (el.id) draft[el.id] = el.value;
+    });
+    draft._step = currentStep;
+    localStorage.setItem('brenso_questionnaire_draft', JSON.stringify(draft));
+  } catch(e) {}
+}
+
+function restoreDraft() {
+  try {
+    const raw = localStorage.getItem('brenso_questionnaire_draft');
+    if (!raw) return;
+    const draft = JSON.parse(raw);
+    let hasData = false;
+    document.querySelectorAll('input, textarea').forEach(el => {
+      if (el.id && draft[el.id]) { el.value = draft[el.id]; hasData = true; }
+    });
+    if (hasData && draft._step) { goStep(draft._step); }
+  } catch(e) {}
+}
+
+// Auto-save on every input
+document.querySelectorAll('input, textarea').forEach(el => {
+  el.addEventListener('input', saveDraft);
+});
+
+// Restore draft on load
+restoreDraft();
+</script>
+</body>
+</html>

@@ -1,0 +1,2104 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BRENSO — Fiche Coach & Pipeline</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --dark:   #141e22;
+  --dark2:  #1c2a30;
+  --dark3:  #243238;
+  --teal:   #3fa8b8;
+  --teal2:  #2a7d8e;
+  --teal-glow: rgba(63,168,184,0.12);
+  --warm:   #c8a97e;
+  --warm-pale: rgba(200,169,126,0.10);
+  --green:  #4caf82;
+  --purple: #7f77dd;
+  --border: rgba(255,255,255,0.07);
+  --border2: rgba(63,168,184,0.25);
+  --text:   rgba(255,255,255,0.88);
+  --muted:  rgba(255,255,255,0.35);
+  --label:  rgba(255,255,255,0.50);
+  --input-bg: rgba(255,255,255,0.04);
+  --input-border: rgba(255,255,255,0.10);
+  --input-focus: rgba(63,168,184,0.4);
+  --section-sep: rgba(63,168,184,0.12);
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior:smooth; }
+
+body {
+  background: var(--dark);
+  font-family: 'DM Sans', sans-serif;
+  color: var(--text);
+  min-height: 100vh;
+  padding-bottom: 80px;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── HEADER ── */
+.page-header {
+  background: var(--dark2);
+  border-bottom: 1px solid var(--border);
+  padding: 28px 48px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  backdrop-filter: blur(12px);
+}
+.logo { display:flex; align-items:center; gap:12px; }
+.logo-circle {
+  width:34px; height:34px;
+  border:1.5px solid var(--teal);
+  border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  font-family:'Cormorant Garamond',serif;
+  font-size:15px; color:var(--teal); font-weight:600;
+  flex-shrink:0;
+}
+.logo-name { font-size:11px; letter-spacing:3px; text-transform:uppercase; font-weight:500; }
+.logo-sub  { font-size:9px; color:var(--muted); letter-spacing:1.5px; margin-top:1px; }
+
+.header-center {
+  font-family:'Cormorant Garamond',serif;
+  font-size:18px; font-weight:300;
+  color:rgba(255,255,255,0.7);
+  letter-spacing:0.5px;
+}
+.header-center span { color:var(--teal); font-style:italic; }
+
+.header-right {
+  font-size:11px; color:var(--muted);
+  letter-spacing:0.3px;
+  text-align:right;
+}
+
+/* ── FORM WRAPPER ── */
+.form-wrapper {
+  max-width: 860px;
+  margin: 48px auto 0;
+  padding: 0 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+/* ── SECTION ── */
+.section {
+  background: var(--dark2);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  overflow: hidden;
+  margin-bottom: 16px;
+  animation: fadeUp 0.5s ease both;
+}
+.section:nth-child(1) { animation-delay:0.05s; }
+.section:nth-child(2) { animation-delay:0.12s; }
+.section:nth-child(3) { animation-delay:0.19s; }
+.section:nth-child(4) { animation-delay:0.26s; }
+.section:nth-child(5) { animation-delay:0.33s; }
+.section:nth-child(6) { animation-delay:0.40s; }
+
+.section-header {
+  display:flex; align-items:center; gap:10px;
+  padding:14px 24px;
+  background: rgba(63,168,184,0.05);
+  border-bottom:1px solid var(--section-sep);
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.2s;
+}
+.section-header:hover {
+  background: rgba(63,168,184,0.08);
+}
+.section-tag {
+  font-size:8px;
+  letter-spacing:2px;
+  text-transform:uppercase;
+  font-weight:600;
+  color:var(--teal);
+  background: rgba(63,168,184,0.1);
+  padding:3px 10px;
+  border-radius:20px;
+  border:1px solid rgba(63,168,184,0.2);
+}
+.section-title {
+  font-size:13px;
+  font-weight:500;
+  color:rgba(255,255,255,0.8);
+  letter-spacing:0.2px;
+  flex:1;
+}
+.section-toggle {
+  font-size:11px;
+  color:var(--muted);
+  transition: transform 0.3s;
+}
+.section-header.collapsed .section-toggle {
+  transform: rotate(-90deg);
+}
+.section-body {
+  padding:24px;
+  transition: max-height 0.4s ease, opacity 0.3s ease, padding 0.3s ease;
+  overflow: hidden;
+}
+.section-body.collapsed {
+  max-height: 0 !important;
+  opacity: 0;
+  padding: 0 24px;
+}
+
+/* ── IDENTITY GRID ── */
+.identity-grid {
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:20px 32px;
+}
+.field-group { display:flex; flex-direction:column; gap:6px; }
+.field-group.span2 { grid-column:span 2; }
+
+label {
+  font-size:9px;
+  letter-spacing:2px;
+  text-transform:uppercase;
+  color:var(--label);
+  font-weight:600;
+}
+
+input[type="text"],
+input[type="date"],
+input[type="number"],
+textarea,
+select {
+  background: var(--input-bg);
+  border: 1px solid var(--input-border);
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-family:'DM Sans',sans-serif;
+  font-size:13px;
+  color: var(--text);
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  width: 100%;
+  resize: none;
+}
+input:focus, textarea:focus {
+  border-color: rgba(63,168,184,0.5);
+  box-shadow: 0 0 0 3px rgba(63,168,184,0.08);
+}
+input::placeholder, textarea::placeholder { color:rgba(255,255,255,0.18); }
+input[type="date"]::-webkit-calendar-picker-indicator { filter:invert(0.5); }
+
+textarea.multi { min-height:72px; }
+
+/* ── WORD COUNT DIAL ── */
+.word-dial {
+  margin-top: 20px;
+  padding: 16px 20px;
+  background: rgba(255,255,255,0.02);
+  border: 1px solid var(--section-sep);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.word-dial-label {
+  font-size: 9px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--label);
+  font-weight: 600;
+  min-width: 110px;
+  line-height: 1.4;
+}
+.word-dial-label small {
+  display: block;
+  font-size: 8px;
+  letter-spacing: 0.5px;
+  color: var(--muted);
+  font-weight: 400;
+  text-transform: none;
+  margin-top: 2px;
+}
+.word-dial-track {
+  flex: 1;
+  position: relative;
+  height: 36px;
+  display: flex;
+  align-items: center;
+}
+.word-dial-track input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 4px;
+  border-radius: 2px;
+  outline: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+.word-dial-track input[type="range"].teal-range {
+  background: linear-gradient(to right, rgba(63,168,184,0.3), rgba(63,168,184,0.15));
+}
+.word-dial-track input[type="range"].purple-range {
+  background: linear-gradient(to right, rgba(127,119,221,0.3), rgba(127,119,221,0.15));
+}
+.word-dial-track input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  border: 2px solid var(--teal);
+  background: var(--dark2);
+  cursor: pointer;
+  box-shadow: 0 0 8px rgba(63,168,184,0.3);
+  transition: all 0.2s;
+}
+.word-dial-track input[type="range"].purple-range::-webkit-slider-thumb {
+  border-color: var(--purple);
+  box-shadow: 0 0 8px rgba(127,119,221,0.3);
+}
+.word-dial-track input[type="range"]::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
+  box-shadow: 0 0 14px rgba(63,168,184,0.4);
+}
+.word-dial-track input[type="range"]::-moz-range-thumb {
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  border: 2px solid var(--teal);
+  background: var(--dark2);
+  cursor: pointer;
+}
+.word-dial-value {
+  min-width: 64px;
+  text-align: center;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 22px;
+  font-weight: 400;
+  letter-spacing: 1px;
+  line-height: 1;
+}
+.word-dial-value.teal-val { color: var(--teal); }
+.word-dial-value.purple-val { color: var(--purple); }
+.word-dial-value span {
+  display: block;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 8px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+/* ── ENNEAGRAMME ── */
+.ennea-base {
+  display:flex;
+  gap:8px;
+  margin-bottom:16px;
+  flex-wrap:wrap;
+}
+.ennea-btn {
+  width:42px; height:42px;
+  border-radius:8px;
+  border:1.5px solid var(--input-border);
+  background: var(--input-bg);
+  color:var(--muted);
+  font-size:15px;
+  font-weight:600;
+  font-family:'DM Sans',sans-serif;
+  cursor:pointer;
+  transition:all 0.18s;
+  display:flex; align-items:center; justify-content:center;
+}
+.ennea-btn:hover {
+  border-color:var(--teal2);
+  color:var(--teal);
+  background:rgba(63,168,184,0.08);
+}
+.ennea-btn.active {
+  border-color:var(--teal);
+  background:rgba(63,168,184,0.15);
+  color:var(--teal);
+  box-shadow:0 0 12px rgba(63,168,184,0.2);
+}
+
+.sub-type-label {
+  font-size:9px;
+  letter-spacing:2px;
+  text-transform:uppercase;
+  color:var(--label);
+  font-weight:600;
+  margin-bottom:8px;
+  display:block;
+}
+.sous-type-group {
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+}
+.sous-type-btn {
+  padding:8px 16px;
+  border-radius:8px;
+  border:1.5px solid var(--input-border);
+  background:var(--input-bg);
+  color:var(--muted);
+  font-size:11px;
+  font-weight:500;
+  font-family:'DM Sans',sans-serif;
+  cursor:pointer;
+  letter-spacing:0.3px;
+  transition:all 0.18s;
+}
+.sous-type-btn:hover {
+  border-color:var(--warm);
+  color:var(--warm);
+  background:rgba(200,169,126,0.06);
+}
+.sous-type-btn.active {
+  border-color:var(--warm);
+  background:rgba(200,169,126,0.12);
+  color:var(--warm);
+}
+
+/* ── MBTI ── */
+.mbti-grid {
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:12px;
+}
+.mbti-col { display:flex; flex-direction:column; gap:6px; }
+.mbti-col-head {
+  font-size:8px;
+  letter-spacing:2px;
+  text-transform:uppercase;
+  color:var(--muted);
+  font-weight:600;
+  padding:0 0 4px 2px;
+  border-bottom:1px solid var(--section-sep);
+  margin-bottom:4px;
+}
+.mbti-option {
+  display:flex;
+  align-items:center;
+  gap:8px;
+  padding:8px 10px;
+  border-radius:6px;
+  border:1.5px solid var(--input-border);
+  background:var(--input-bg);
+  cursor:pointer;
+  transition:all 0.18s;
+  position:relative;
+}
+.mbti-option:hover {
+  border-color:var(--purple);
+  background:rgba(127,119,221,0.06);
+}
+.mbti-option.active {
+  border-color:var(--purple);
+  background:rgba(127,119,221,0.12);
+}
+.mbti-radio {
+  width:14px; height:14px;
+  border-radius:50%;
+  border:1.5px solid var(--input-border);
+  flex-shrink:0;
+  transition:all 0.18s;
+  display:flex; align-items:center; justify-content:center;
+}
+.mbti-option.active .mbti-radio {
+  border-color:var(--purple);
+  background:var(--purple);
+}
+.mbti-option.active .mbti-radio::after {
+  content:'';
+  width:5px; height:5px;
+  border-radius:50%;
+  background:#fff;
+}
+.mbti-letter {
+  font-size:15px;
+  font-weight:600;
+  color:rgba(255,255,255,0.4);
+  transition:color 0.18s;
+  font-family:'Cormorant Garamond',serif;
+}
+.mbti-option.active .mbti-letter { color:var(--purple); }
+.mbti-name {
+  font-size:9px;
+  color:var(--muted);
+  letter-spacing:0.2px;
+  line-height:1.3;
+}
+
+/* ── RIASEC ── */
+.riasec-row {
+  display:flex;
+  gap:12px;
+  justify-content:space-between;
+  align-items:flex-start;
+}
+.riasec-item {
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:6px;
+  cursor:pointer;
+}
+.riasec-circle {
+  width:56px; height:56px;
+  border-radius:50%;
+  border:2px solid var(--input-border);
+  background:var(--input-bg);
+  display:flex; align-items:center; justify-content:center;
+  transition:all 0.2s;
+  position:relative;
+}
+.riasec-circle::before {
+  content:'';
+  width:8px; height:8px;
+  border-radius:50%;
+  background:transparent;
+  transition:all 0.2s;
+}
+.riasec-item:hover .riasec-circle {
+  border-color:var(--teal2);
+  background:rgba(63,168,184,0.06);
+}
+.riasec-item.active .riasec-circle {
+  border-color:var(--teal);
+  background:rgba(63,168,184,0.15);
+  box-shadow:0 0 16px rgba(63,168,184,0.2);
+}
+.riasec-item.active .riasec-circle::before {
+  background:var(--teal);
+  width:16px; height:16px;
+}
+.riasec-letter {
+  font-family:'Cormorant Garamond',serif;
+  font-size:20px;
+  font-weight:400;
+  color:rgba(255,255,255,0.5);
+  transition:color 0.2s;
+  position:absolute;
+}
+.riasec-item.active .riasec-letter { color:var(--teal); }
+.riasec-name {
+  font-size:9px;
+  letter-spacing:1px;
+  text-transform:uppercase;
+  color:var(--muted);
+  text-align:center;
+}
+.riasec-rank {
+  width:20px; height:20px;
+  border-radius:50%;
+  background:var(--teal);
+  color:#fff;
+  font-size:10px;
+  font-weight:700;
+  display:flex; align-items:center; justify-content:center;
+  opacity:0;
+  transition:opacity 0.2s;
+  position:absolute;
+  top:-6px; right:-6px;
+}
+.riasec-item.active .riasec-rank { opacity:1; }
+
+/* ── NOTES ── */
+.notes-field textarea { min-height:120px; }
+
+/* ── DOCUMENT LIBRARY (Section 06) ── */
+.doc-library {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+.doc-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.doc-group-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--section-sep);
+}
+.doc-group-tag {
+  font-size: 8px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 20px;
+  border: 1px solid;
+}
+.doc-group-tag.ennea { color: var(--teal); border-color: rgba(63,168,184,0.3); background: rgba(63,168,184,0.08); }
+.doc-group-tag.sous  { color: var(--warm); border-color: rgba(200,169,126,0.3); background: rgba(200,169,126,0.08); }
+.doc-group-tag.riasec { color: var(--teal); border-color: rgba(63,168,184,0.3); background: rgba(63,168,184,0.08); }
+.doc-group-title {
+  font-size: 12px;
+  font-weight: 500;
+  color: rgba(255,255,255,0.65);
+  letter-spacing: 0.3px;
+}
+.doc-group-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+.doc-group-grid.wide {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+/* ── DOCUMENT CARD ── */
+.doc-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  background: var(--dark3);
+  border: 1.5px solid var(--input-border);
+  border-radius: 10px;
+  cursor: default;
+  transition: all 0.35s cubic-bezier(0.4,0,0.2,1);
+  position: relative;
+  overflow: hidden;
+}
+.doc-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 0.35s;
+  pointer-events: none;
+}
+/* Highlighted = matched by selection above */
+.doc-card.highlighted {
+  border-color: var(--teal);
+  background: rgba(63,168,184,0.08);
+  box-shadow: 0 0 20px rgba(63,168,184,0.15), inset 0 0 30px rgba(63,168,184,0.05);
+  transform: scale(1.02);
+}
+.doc-card.highlighted::before {
+  opacity: 1;
+  background: linear-gradient(135deg, rgba(63,168,184,0.06), transparent 60%);
+}
+.doc-card.highlighted.warm-hl {
+  border-color: var(--warm);
+  background: rgba(200,169,126,0.08);
+  box-shadow: 0 0 20px rgba(200,169,126,0.15), inset 0 0 30px rgba(200,169,126,0.05);
+}
+.doc-card.highlighted.warm-hl::before {
+  background: linear-gradient(135deg, rgba(200,169,126,0.06), transparent 60%);
+}
+
+.doc-card-icon {
+  width: 32px; height: 32px;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--input-border);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px;
+  flex-shrink: 0;
+  transition: all 0.35s;
+  font-family: 'Cormorant Garamond', serif;
+  font-weight: 600;
+  color: var(--muted);
+}
+.doc-card.highlighted .doc-card-icon {
+  background: rgba(63,168,184,0.15);
+  border-color: rgba(63,168,184,0.3);
+  color: var(--teal);
+}
+.doc-card.highlighted.warm-hl .doc-card-icon {
+  background: rgba(200,169,126,0.15);
+  border-color: rgba(200,169,126,0.3);
+  color: var(--warm);
+}
+.doc-card-info {
+  flex: 1;
+  min-width: 0;
+}
+.doc-card-label {
+  font-size: 11px;
+  font-weight: 500;
+  color: rgba(255,255,255,0.55);
+  transition: color 0.35s;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.doc-card.highlighted .doc-card-label {
+  color: rgba(255,255,255,0.9);
+}
+.doc-card-file {
+  font-size: 9px;
+  color: var(--muted);
+  margin-top: 1px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* Pulse animation on highlight */
+@keyframes docPulse {
+  0%   { box-shadow: 0 0 0 0 rgba(63,168,184,0.3); }
+  70%  { box-shadow: 0 0 0 8px rgba(63,168,184,0); }
+  100% { box-shadow: 0 0 0 0 rgba(63,168,184,0); }
+}
+@keyframes docPulseWarm {
+  0%   { box-shadow: 0 0 0 0 rgba(200,169,126,0.3); }
+  70%  { box-shadow: 0 0 0 8px rgba(200,169,126,0); }
+  100% { box-shadow: 0 0 0 0 rgba(200,169,126,0); }
+}
+.doc-card.pulse {
+  animation: docPulse 0.6s ease-out;
+}
+.doc-card.pulse.warm-hl {
+  animation: docPulseWarm 0.6s ease-out;
+}
+
+/* Selection badge */
+.doc-card-badge {
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  background: var(--teal);
+  color: var(--dark);
+  font-size: 10px;
+  font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0;
+  transform: scale(0.5);
+  transition: all 0.3s cubic-bezier(0.34,1.56,0.64,1);
+  flex-shrink: 0;
+}
+.doc-card.highlighted .doc-card-badge {
+  opacity: 1;
+  transform: scale(1);
+}
+.doc-card.highlighted.warm-hl .doc-card-badge {
+  background: var(--warm);
+}
+/* Purple variant for MBTI */
+.doc-card.highlighted.purple-hl {
+  border-color: var(--purple);
+  background: rgba(127,119,221,0.08);
+  box-shadow: 0 0 20px rgba(127,119,221,0.15), inset 0 0 30px rgba(127,119,221,0.05);
+}
+.doc-card.highlighted.purple-hl::before {
+  background: linear-gradient(135deg, rgba(127,119,221,0.06), transparent 60%);
+}
+.doc-card.highlighted.purple-hl .doc-card-icon {
+  background: rgba(127,119,221,0.15);
+  border-color: rgba(127,119,221,0.3);
+  color: var(--purple);
+}
+.doc-card.highlighted.purple-hl .doc-card-badge {
+  background: var(--purple);
+}
+@keyframes docPulsePurple {
+  0%   { box-shadow: 0 0 0 0 rgba(127,119,221,0.3); }
+  70%  { box-shadow: 0 0 0 8px rgba(127,119,221,0); }
+  100% { box-shadow: 0 0 0 0 rgba(127,119,221,0); }
+}
+.doc-card.pulse.purple-hl {
+  animation: docPulsePurple 0.6s ease-out;
+}
+.doc-group-tag.mbti { color: var(--purple); border-color: rgba(127,119,221,0.3); background: rgba(127,119,221,0.08); }
+.summary-chip.purple {
+  background: rgba(127,119,221,0.12);
+  color: var(--purple);
+  border: 1px solid rgba(127,119,221,0.25);
+}
+/* MBTI grid: 4 cols for 16 types */
+.doc-group-grid.mbti-grid-16 {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+/* ── SUMMARY STRIP ── */
+.selection-summary {
+  margin-top: 20px;
+  padding: 16px 20px;
+  background: rgba(63,168,184,0.04);
+  border: 1px solid rgba(63,168,184,0.15);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  transition: all 0.3s;
+}
+.summary-count {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 32px;
+  font-weight: 300;
+  color: var(--teal);
+  line-height: 1;
+  min-width: 40px;
+  text-align: center;
+}
+.summary-text {
+  font-size: 12px;
+  color: rgba(255,255,255,0.55);
+  line-height: 1.5;
+}
+.summary-text strong {
+  color: rgba(255,255,255,0.8);
+  font-weight: 500;
+}
+.summary-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+}
+.summary-chip {
+  font-size: 9px;
+  letter-spacing: 0.5px;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-weight: 600;
+}
+.summary-chip.teal {
+  background: rgba(63,168,184,0.12);
+  color: var(--teal);
+  border: 1px solid rgba(63,168,184,0.25);
+}
+.summary-chip.warm {
+  background: rgba(200,169,126,0.12);
+  color: var(--warm);
+  border: 1px solid rgba(200,169,126,0.25);
+}
+
+/* ── CONFIG ── */
+/* ── MAKE REPORT BUTTON ── */
+.make-report-bar {
+  max-width:860px;
+  margin:8px auto 0;
+  padding:0 32px;
+  animation:fadeUp 0.5s ease 0.5s both;
+}
+.make-report-inner {
+  background:linear-gradient(135deg,rgba(63,168,184,0.12),rgba(63,168,184,0.05));
+  border:1px solid rgba(63,168,184,0.25);
+  border-radius:16px;
+  padding:28px 32px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:24px;
+}
+.report-hint {
+  font-size:12px; color:var(--muted); line-height:1.6;
+}
+.report-hint strong { color:rgba(255,255,255,0.7); font-weight:500; }
+
+.btn-make-report {
+  display:inline-flex;
+  align-items:center;
+  gap:10px;
+  padding:14px 32px;
+  background:var(--teal);
+  color:var(--dark);
+  font-family:'DM Sans',sans-serif;
+  font-size:12px;
+  font-weight:700;
+  letter-spacing:2px;
+  text-transform:uppercase;
+  border:none;
+  border-radius:100px;
+  cursor:pointer;
+  transition:all 0.25s;
+  white-space:nowrap;
+  flex-shrink:0;
+}
+.btn-make-report:hover {
+  background:#5dc5d5;
+  transform:translateY(-2px);
+  box-shadow:0 8px 28px rgba(63,168,184,0.35);
+}
+.btn-make-report:active { transform:translateY(0); }
+.btn-arrow {
+  width:18px; height:18px;
+  border-radius:50%;
+  background:rgba(20,30,34,0.25);
+  display:flex; align-items:center; justify-content:center;
+  font-size:11px;
+}
+.btn-import-json {
+  display:inline-flex;
+  align-items:center;
+  gap:10px;
+  padding:10px 22px;
+  background:rgba(76,175,130,0.06);
+  border:1px solid rgba(76,175,130,0.4);
+  color:var(--green);
+  font-size:13px;
+  font-weight:500;
+  border-radius:12px;
+  cursor:pointer;
+  font-family:'DM Sans',sans-serif;
+  transition:all 0.25s;
+  white-space:nowrap;
+  flex-shrink:0;
+}
+.btn-import-json:hover {
+  background:rgba(76,175,130,0.12);
+  border-color:var(--green);
+  transform:translateY(-2px);
+  box-shadow:0 6px 20px rgba(76,175,130,0.2);
+}
+.btn-import-json:active { transform:translateY(0); }
+
+.btn-export-excel {
+  display:inline-flex;
+  align-items:center;
+  gap:10px;
+  padding:14px 28px;
+  background: transparent;
+  color:var(--warm);
+  font-family:'DM Sans',sans-serif;
+  font-size:11px;
+  font-weight:600;
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  border:1.5px solid rgba(200,169,126,0.4);
+  border-radius:100px;
+  cursor:pointer;
+  transition:all 0.25s;
+  white-space:nowrap;
+  flex-shrink:0;
+}
+.btn-export-excel:hover {
+  background:rgba(200,169,126,0.08);
+  border-color:var(--warm);
+  transform:translateY(-2px);
+}
+
+/* ── GLOW BG ── */
+body::before {
+  content:'';
+  position:fixed;
+  top:-150px; right:-100px;
+  width:500px; height:500px;
+  border-radius:50%;
+  background:radial-gradient(circle,rgba(63,168,184,0.05) 0%,transparent 70%);
+  pointer-events:none;
+  z-index:0;
+}
+
+/* ── AUTO-IMPORT BANNER ── */
+.auto-import-banner {
+  background: linear-gradient(135deg, rgba(76,175,130,0.12), rgba(63,168,184,0.08));
+  border-bottom: 1px solid rgba(76,175,130,0.3);
+  padding: 12px 24px;
+  animation: slideDown 0.4s ease;
+}
+.auto-import-inner {
+  max-width: 860px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.auto-import-icon { font-size:18px; }
+.auto-import-text { flex:1; font-size:13px; color:rgba(255,255,255,0.8); }
+.auto-import-text strong { color:var(--green); display:block; font-size:12px; }
+.auto-import-text span { font-size:12px; color:var(--muted); }
+.auto-import-btn {
+  padding:8px 20px;
+  background:var(--green);
+  color:#fff;
+  border:none;
+  border-radius:8px;
+  font-family:'DM Sans',sans-serif;
+  font-size:13px;
+  font-weight:600;
+  cursor:pointer;
+  transition:all 0.2s;
+}
+.auto-import-btn:hover { background:#3a9a6a; transform:translateY(-1px); }
+.auto-import-dismiss {
+  background:none;
+  border:none;
+  color:var(--muted);
+  font-size:18px;
+  cursor:pointer;
+  padding:4px 8px;
+  transition:color 0.2s;
+}
+.auto-import-dismiss:hover { color:var(--text); }
+@keyframes slideDown {
+  from { opacity:0; transform:translateY(-20px); }
+  to { opacity:1; transform:translateY(0); }
+}
+
+/* ── IMPORT HIGHLIGHT ── */
+.field-imported {
+  animation: importFlash 1.5s ease;
+}
+@keyframes importFlash {
+  0% { box-shadow: 0 0 0 3px rgba(76,175,130,0.5); }
+  100% { box-shadow: 0 0 0 0 rgba(76,175,130,0); }
+}
+
+/* ── FADE UP ── */
+@keyframes fadeUp {
+  from { opacity:0; transform:translateY(14px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+
+/* ── RESPONSIVE ── */
+@media(max-width:640px){
+  .page-header { padding:20px 20px 16px; }
+  .header-center { display:none; }
+  .form-wrapper { padding:0 16px; }
+  .identity-grid { grid-template-columns:1fr; }
+  .field-group.span2 { grid-column:span 1; }
+  .mbti-grid { grid-template-columns:repeat(2,1fr); }
+  .riasec-row { flex-wrap:wrap; justify-content:center; gap:16px; }
+  .riasec-item { flex:0 0 calc(33% - 12px); }
+  .doc-group-grid { grid-template-columns:1fr 1fr; }
+  .doc-group-grid.mbti-grid-16 { grid-template-columns:repeat(2,1fr); }
+  .make-report-inner { flex-direction:column; text-align:center; }
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="page-header">
+  <div class="logo">
+    <div class="logo-circle">B</div>
+    <div>
+      <div class="logo-name">BRENSO</div>
+      <div class="logo-sub">Coaching & Training</div>
+    </div>
+  </div>
+  <div class="header-center">Fiche <span>Coach</span> — Pipeline Orientation</div>
+  <div class="header-right">
+    <span id="saveStatus" style="color:var(--muted);">Brouillon auto-sauvegard&eacute;</span>
+  </div>
+</header>
+
+<!-- AUTO-IMPORT BANNER -->
+<div class="auto-import-banner" id="auto-import-banner" style="display:none;">
+  <div class="auto-import-inner">
+    <div class="auto-import-icon">&#9889;</div>
+    <div class="auto-import-text">
+      <strong>Questionnaire re&ccedil;u !</strong>
+      <span id="auto-import-name">Donn&eacute;es d'un jeune d&eacute;tect&eacute;es</span>
+    </div>
+    <button class="auto-import-btn" onclick="autoImportFromStorage()">Importer</button>
+    <button class="auto-import-dismiss" onclick="dismissAutoImport()">&times;</button>
+  </div>
+</div>
+
+<!-- FORM -->
+<div class="form-wrapper">
+
+  <!-- 1. IDENTITE -->
+  <div class="section">
+    <div class="section-header" onclick="toggleSection(this)">
+      <span class="section-tag">01</span>
+      <span class="section-title">Identit&eacute; du jeune</span>
+      <span class="section-toggle">&#9660;</span>
+    </div>
+    <div class="section-body">
+      <div class="identity-grid">
+        <div class="field-group">
+          <label>Pr&eacute;nom</label>
+          <input type="text" id="prenom" placeholder="ex. Sofia">
+        </div>
+        <div class="field-group">
+          <label>Date</label>
+          <input type="date" id="date_seance">
+        </div>
+        <div class="field-group">
+          <label>Nom</label>
+          <input type="text" id="nom" placeholder="ex. Dupont">
+        </div>
+        <div class="field-group">
+          <label>&Eacute;cole / Niveau</label>
+          <input type="text" id="ecole" placeholder="ex. Ath&eacute;n&eacute;e Royal, 5e secondaire">
+        </div>
+        <div class="field-group">
+          <label>Date de naissance</label>
+          <input type="date" id="anniversaire">
+        </div>
+        <div class="field-group">
+          <label>Choix / Orientations envisag&eacute;es</label>
+          <textarea class="multi" id="choix" placeholder="Pistes d&eacute;j&agrave; envisag&eacute;es par le jeune ou sa famille..."></textarea>
+        </div>
+        <div class="field-group">
+          <label>Code postal</label>
+          <input type="text" id="zip" placeholder="ex. 1050">
+        </div>
+        <div class="field-group">
+          <label>Loisirs / Centres d'int&eacute;r&ecirc;t</label>
+          <textarea class="multi" id="loisirs" placeholder="Sports, musique, jeux, b&eacute;n&eacute;volat..."></textarea>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. ENNEAGRAMME -->
+  <div class="section">
+    <div class="section-header" onclick="toggleSection(this)">
+      <span class="section-tag">02</span>
+      <span class="section-title">Enneagramme — Base &amp; Sous-type</span>
+      <span class="section-toggle">&#9660;</span>
+    </div>
+    <div class="section-body">
+      <label style="display:block;margin-bottom:10px;">Type de base (1–9)</label>
+      <div class="ennea-base" id="ennea-base">
+        <button class="ennea-btn" data-val="1">1</button>
+        <button class="ennea-btn" data-val="2">2</button>
+        <button class="ennea-btn" data-val="3">3</button>
+        <button class="ennea-btn" data-val="4">4</button>
+        <button class="ennea-btn" data-val="5">5</button>
+        <button class="ennea-btn" data-val="6">6</button>
+        <button class="ennea-btn" data-val="7">7</button>
+        <button class="ennea-btn" data-val="8">8</button>
+        <button class="ennea-btn" data-val="9">9</button>
+      </div>
+      <div style="margin-top:20px;padding-top:20px;border-top:1px solid var(--section-sep);">
+        <span class="sub-type-label">Sous-type</span>
+        <div class="sous-type-group" id="sous-type">
+          <button class="sous-type-btn" data-val="Social">Social</button>
+          <button class="sous-type-btn" data-val="Survie">Survie</button>
+          <button class="sous-type-btn" data-val="T&ecirc;te-&agrave;-t&ecirc;te">T&ecirc;te-&agrave;-t&ecirc;te</button>
+        </div>
+      </div>
+
+      <!-- Word count dial for Enneagramme chapter -->
+      <div class="word-dial">
+        <div class="word-dial-label">Mots condense<small>Chapitre Enneagramme</small></div>
+        <div class="word-dial-track">
+          <input type="range" class="teal-range" id="words_ennea" min="50" max="600" step="50" value="250" oninput="updateDial('ennea')">
+        </div>
+        <div class="word-dial-value teal-val" id="dial_ennea">250<span>mots</span></div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- 3. MBTI -->
+  <div class="section">
+    <div class="section-header" onclick="toggleSection(this)">
+      <span class="section-tag">03</span>
+      <span class="section-title">MBTI — Profil typologique</span>
+      <span class="section-toggle">&#9660;</span>
+    </div>
+    <div class="section-body">
+      <div class="mbti-grid">
+        <div class="mbti-col">
+          <div class="mbti-col-head">&Eacute;nergie</div>
+          <div class="mbti-option" data-group="ei" data-val="E">
+            <div class="mbti-radio"></div>
+            <div><div class="mbti-letter">E</div><div class="mbti-name">Extraversion</div></div>
+          </div>
+          <div class="mbti-option" data-group="ei" data-val="I">
+            <div class="mbti-radio"></div>
+            <div><div class="mbti-letter">I</div><div class="mbti-name">Introversion</div></div>
+          </div>
+        </div>
+        <div class="mbti-col">
+          <div class="mbti-col-head">Perception</div>
+          <div class="mbti-option" data-group="sn" data-val="S">
+            <div class="mbti-radio"></div>
+            <div><div class="mbti-letter">S</div><div class="mbti-name">Sensation</div></div>
+          </div>
+          <div class="mbti-option" data-group="sn" data-val="N">
+            <div class="mbti-radio"></div>
+            <div><div class="mbti-letter">N</div><div class="mbti-name">Intuition</div></div>
+          </div>
+        </div>
+        <div class="mbti-col">
+          <div class="mbti-col-head">Jugement</div>
+          <div class="mbti-option" data-group="tf" data-val="T">
+            <div class="mbti-radio"></div>
+            <div><div class="mbti-letter">T</div><div class="mbti-name">Pens&eacute;e</div></div>
+          </div>
+          <div class="mbti-option" data-group="tf" data-val="F">
+            <div class="mbti-radio"></div>
+            <div><div class="mbti-letter">F</div><div class="mbti-name">Sentiment</div></div>
+          </div>
+        </div>
+        <div class="mbti-col">
+          <div class="mbti-col-head">Mode de vie</div>
+          <div class="mbti-option" data-group="jp" data-val="J">
+            <div class="mbti-radio"></div>
+            <div><div class="mbti-letter">J</div><div class="mbti-name">Jugement</div></div>
+          </div>
+          <div class="mbti-option" data-group="jp" data-val="P">
+            <div class="mbti-radio"></div>
+            <div><div class="mbti-letter">P</div><div class="mbti-name">Perception</div></div>
+          </div>
+        </div>
+      </div>
+      <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--section-sep);display:flex;align-items:center;gap:12px;">
+        <span style="font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);font-weight:600;">Type r&eacute;sultant</span>
+        <span id="mbti-result" style="font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:400;color:var(--purple);letter-spacing:4px;">_ _ _ _</span>
+      </div>
+
+      <!-- Word count dial for MBTI chapter -->
+      <div class="word-dial">
+        <div class="word-dial-label">Mots condense<small>Chapitre MBTI</small></div>
+        <div class="word-dial-track">
+          <input type="range" class="purple-range" id="words_mbti" min="50" max="600" step="50" value="250" oninput="updateDial('mbti')">
+        </div>
+        <div class="word-dial-value purple-val" id="dial_mbti">250<span>mots</span></div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- 4. RIASEC -->
+  <div class="section">
+    <div class="section-header" onclick="toggleSection(this)">
+      <span class="section-tag">04</span>
+      <span class="section-title">RIASEC — Profil d'int&eacute;r&ecirc;ts</span>
+      <span class="section-toggle">&#9660;</span>
+    </div>
+    <div class="section-body">
+      <p style="font-size:11px;color:var(--muted);margin-bottom:20px;line-height:1.6;">Clique pour s&eacute;lectionner les types dominants (max 3 — dans l'ordre de priorit&eacute;)</p>
+      <div class="riasec-row" id="riasec-row">
+        <div class="riasec-item" data-val="R">
+          <div class="riasec-circle"><span class="riasec-letter">R</span><span class="riasec-rank">1</span></div>
+          <span class="riasec-name">R&eacute;aliste</span>
+        </div>
+        <div class="riasec-item" data-val="I">
+          <div class="riasec-circle"><span class="riasec-letter">I</span><span class="riasec-rank">1</span></div>
+          <span class="riasec-name">Investigateur</span>
+        </div>
+        <div class="riasec-item" data-val="A">
+          <div class="riasec-circle"><span class="riasec-letter">A</span><span class="riasec-rank">1</span></div>
+          <span class="riasec-name">Artistique</span>
+        </div>
+        <div class="riasec-item" data-val="S">
+          <div class="riasec-circle"><span class="riasec-letter">S</span><span class="riasec-rank">1</span></div>
+          <span class="riasec-name">Social</span>
+        </div>
+        <div class="riasec-item" data-val="E">
+          <div class="riasec-circle"><span class="riasec-letter">E</span><span class="riasec-rank">1</span></div>
+          <span class="riasec-name">Entreprenant</span>
+        </div>
+        <div class="riasec-item" data-val="C">
+          <div class="riasec-circle"><span class="riasec-letter">C</span><span class="riasec-rank">1</span></div>
+          <span class="riasec-name">Conventionnel</span>
+        </div>
+      </div>
+
+      <!-- Word count dial for RIASEC chapter -->
+      <div class="word-dial">
+        <div class="word-dial-label">Mots condense<small>Chapitre RIASEC</small></div>
+        <div class="word-dial-track">
+          <input type="range" class="teal-range" id="words_riasec" min="50" max="600" step="50" value="200" oninput="updateDial('riasec')">
+        </div>
+        <div class="word-dial-value teal-val" id="dial_riasec">200<span>mots</span></div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- 5. NOTES / CONCLUSION -->
+  <div class="section">
+    <div class="section-header" onclick="toggleSection(this)">
+      <span class="section-tag">05</span>
+      <span class="section-title">Notes du coach &amp; Conclusion</span>
+      <span class="section-toggle">&#9660;</span>
+    </div>
+    <div class="section-body notes-field">
+      <label style="display:block;margin-bottom:8px;">Observations libres, hypoth&egrave;ses, pistes retenues</label>
+      <textarea id="notes_coach" placeholder="Impressions de s&eacute;ance, &eacute;l&eacute;ments cl&eacute;s du parcours, points &agrave; approfondir...&#10;&#10;Ces notes seront int&eacute;gr&eacute;es dans le rapport final."></textarea>
+    </div>
+  </div>
+
+  <!-- 6. DOCUMENTS SOURCE — BIBLIOTHEQUE STATIQUE -->
+  <div class="section" id="section-docs">
+    <div class="section-header collapsed" onclick="toggleSection(this)">
+      <span class="section-tag">06</span>
+      <span class="section-title">Biblioth&egrave;que de documents — Content Statique</span>
+      <span class="section-toggle">&#9660;</span>
+    </div>
+    <div class="section-body collapsed">
+
+      <p style="font-size:11px;color:var(--muted);margin-bottom:24px;line-height:1.6;">
+        Les documents ci-dessous sont s&eacute;lectionn&eacute;s automatiquement selon tes choix dans les sections 02 (Enneagramme) et 04 (RIASEC).
+        Le contenu des documents actifs sera extrait vers le fichier Excel.
+      </p>
+
+      <div class="doc-library">
+
+        <!-- GROUP 1: Enneagramme Base -->
+        <div class="doc-group">
+          <div class="doc-group-header">
+            <span class="doc-group-tag ennea">Enneagramme</span>
+            <span class="doc-group-title">Types de base (1–9)</span>
+          </div>
+          <div class="doc-group-grid">
+            <div class="doc-card" data-doc="ennea-1">
+              <div class="doc-card-icon">1</div>
+              <div class="doc-card-info">
+                <div class="doc-card-label">Le Perfectionniste</div>
+                <div class="doc-card-file">Base 1.docx</div>
+              </div>
+              <div class="doc-card-badge">&#10003;</div>
+            </div>
+            <div class="doc-card" data-doc="ennea-2">
+              <div class="doc-card-icon">2</div>
+              <div class="doc-card-info">
+                <div class="doc-card-label">L'Altruiste</div>
+                <div class="doc-card-file">Base 2.docx</div>
+              </div>
+              <div class="doc-card-badge">&#10003;</div>
+            </div>
+            <div class="doc-card" data-doc="ennea-3">
+              <div class="doc-card-icon">3</div>
+              <div class="doc-card-info">
+                <div class="doc-card-label">Le Battant</div>
+                <div class="doc-card-file">Base 3.docx</div>
+              </div>
+              <div class="doc-card-badge">&#10003;</div>
+            </div>
+            <div class="doc-card" data-doc="ennea-4">
+              <div class="doc-card-icon">4</div>
+              <div class="doc-card-info">
+                <div class="doc-card-label">Le Romantique</div>
+                <div class="doc-card-file">Base 4.docx</div>
+              </div>
+              <div class="doc-card-badge">&#10003;</div>
+            </div>
+            <div class="doc-card" data-doc="ennea-5">
+              <div class="doc-card-icon">5</div>
+              <div class="doc-card-info">
+                <div class="doc-card-label">L'Observateur</div>
+                <div class="doc-card-file">Base 5.docx</div>
+              </div>
+              <div class="doc-card-badge">&#10003;</div>
+            </div>
+            <div class="doc-card" data-doc="ennea-6">
+              <div class="doc-card-icon">6</div>
+              <div class="doc-card-info">
+                <div class="doc-card-label">Le Loyaliste</div>
+                <div class="doc-card-file">Base 6.docx</div>
+              </div>
+              <div class="doc-card-badge">&#10003;</div>
+            </div>
+            <div class="doc-card" data-doc="ennea-7">
+              <div class="doc-card-icon">7</div>
+              <div class="doc-card-info">
+                <div class="doc-card-label">L'Enthousiaste</div>
+                <div class="doc-card-file">Base 7.docx</div>
+              </div>
+              <div class="doc-card-badge">&#10003;</div>
+            </div>
+            <div class="doc-card" data-doc="ennea-8">
+              <div class="doc-card-icon">8</div>
+              <div class="doc-card-info">
+                <div class="doc-card-label">Le Protecteur</div>
+                <div class="doc-card-file">Base 8.docx</div>
+              </div>
+              <div class="doc-card-badge">&#10003;</div>
+            </div>
+            <div class="doc-card" data-doc="ennea-9">
+              <div class="doc-card-icon">9</div>
+              <div class="doc-card-info">
+                <div class="doc-card-label">Le M&eacute;diateur</div>
+                <div class="doc-card-file">Base 9.docx</div>
+              </div>
+              <div class="doc-card-badge">&#10003;</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- GROUP 2: Sous-types -->
+        <div class="doc-group">
+          <div class="doc-group-header">
+            <span class="doc-group-tag sous">Sous-type</span>
+            <span class="doc-group-title">Fiches instinctives</span>
+          </div>
+          <div class="doc-group-grid wide">
+            <div class="doc-card" data-doc="sous-Social">
+              <div class="doc-card-icon">S</div>
+              <div class="doc-card-info">
+                <div class="doc-card-label">Social</div>
+                <div class="doc-card-file">Fiche social.docx</div>
+              </div>
+              <div class="doc-card-badge">&#10003;</div>
+            </div>
+            <div class="doc-card" data-doc="sous-Survie">
+              <div class="doc-card-icon">Sv</div>
+              <div class="doc-card-info">
+                <div class="doc-card-label">Survie</div>
+                <div class="doc-card-file">Fiche survie.docx</div>
+              </div>
+              <div class="doc-card-badge">&#10003;</div>
+            </div>
+            <div class="doc-card" data-doc="sous-Tete">
+              <div class="doc-card-icon">T</div>
+              <div class="doc-card-info">
+                <div class="doc-card-label">T&ecirc;te-&agrave;-t&ecirc;te</div>
+                <div class="doc-card-file">Fiche t&ecirc;te &agrave; t&ecirc;te.docx</div>
+              </div>
+              <div class="doc-card-badge">&#10003;</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- GROUP 3: MBTI 16 types -->
+        <div class="doc-group">
+          <div class="doc-group-header">
+            <span class="doc-group-tag mbti">MBTI</span>
+            <span class="doc-group-title">16 types de personnalit&eacute;</span>
+          </div>
+          <div class="doc-group-grid mbti-grid-16">
+            <div class="doc-card" data-doc="mbti-ISTJ">
+              <div class="doc-card-icon" style="font-size:11px;">ISTJ</div>
+              <div class="doc-card-info">
+                <div class="doc-card-label">Administrateur</div>
+                <div class="doc-card-file">ISTJ Administrateur.docx</div>
+              </div>
+              <div class="doc-card-badge">&#10003;</div>
+            </div>
+            <div class="doc-card" data-doc="mbti-ISFJ">
+              <div class="doc-card-icon" style="font-size:11px;">ISFJ</div>
+              <div class="doc-card-info">
+                <div class="doc-card-label">Protecteur</div>
+                <div class="doc-card-file">ISFJ Protecteur.docx</div>
+              </div>
+              <div class="doc-card-badge">&#10003;</div>
+            </div>
+            <div class="doc-card" data-doc="mbti-INFJ">
+              <div class="doc-card-icon" style="font-size:11px;">INFJ</div>
+              <div class="doc-card-info">
+                <div class="doc-card-label">Avocat</div>
+                <div class="doc-card-file">INFJ.docx</div>
+              </div>
+              <div class="doc-card-badge">&#10003;</div>
+            </div>
+            <div class="doc-card" data-doc="mbti-INTJ">
+              <div class="doc-card-icon" style="font-size:11px;">INTJ</div>
+              <div class="doc-card-info">
+                <div class="doc-card-label">Strat&egrave;ge</div>
+                <div class="doc-card-file">INTJ Strat&egrave;ge.docx</div>
+              </div>
+              <div class="doc-card-badge">&#10003;</div>
+            </div>
+            <div class="doc-card" data-doc="mbti-ISTP">
+              <div class="doc-card-icon" style="font-size:11px;">ISTP</div>
+              <div class="doc-card-info">
+                <div class="doc-card-label">Practicien</div>
+                <div class="doc-card-file">ISTP Practicien.docx</div>
+              </div>
+              <div class="doc-card-badge">&#10003;</div>
+            </div>
+            <div class="doc-card" data-doc="mbti-ISFP">
+              <div class="doc-card-icon" style="font-size:11px;">ISFP</div>
+              <div class="doc-card-info">
+                <div class="doc-card-label">Conciliateur</div>
+                <div class="doc-card-file">ISFP Conciliateur.docx</div>
+              </div>
+              <div class="doc-card-badge">&#10003;</div>
+            </div>
+            <div class="doc-card" data-doc="mbti-INFP">
+              <div class="doc-card-icon" style="font-size:11px;">INFP</div>
+              <div class="doc-card-info">
+                <div class="doc-card-label">Id&eacute;aliste</div>
+                <div class="doc-card-file">INFP Id&eacute;aliste.docx</div>
+              </div>
+              <div class="doc-card-badge">&#10003;</div>
+            </div>
+            <div class="doc-card" data-doc="mbti-INTP">
+              <div class="doc-card-icon" style="font-size:11px;">INTP</div>
+              <div class="doc-card-info">
+                <div class="doc-card-label">Concepteur</div>
+                <div class="doc-card-file">INTP Concepteur.docx</div>
+              </div>
+              <div class="doc-card-badge">&#10003;</div>
+            </div>
+            <div class="doc-card" data-doc="mbti-ESTP">
+              <div class="doc-card-icon" style="font-size:11px;">ESTP</div>
+              <div class="doc-card-info">
+                <div class="doc-card-label">N&eacute;gociateur</div>
+                <div class="doc-card-file">ESTP Negociateur.docx</div>
+              </div>
+              <div class="doc-card-badge">&#10003;</div>
+            </div>
+            <div class="doc-card" data-doc="mbti-ESFP">
+              <div class="doc-card-icon" style="font-size:11px;">ESFP</div>
+              <div class="doc-card-info">
+                <div class="doc-card-label">Facilitateur</div>
+                <div class="doc-card-file">ESFP Facilitateur.docx</div>
+              </div>
+              <div class="doc-card-badge">&#10003;</div>
+            </div>
+            <div class="doc-card" data-doc="mbti-ENFP">
+              <div class="doc-card-icon" style="font-size:11px;">ENFP</div>
+              <div class="doc-card-info">
+                <div class="doc-card-label">Inspirateur</div>
+                <div class="doc-card-file">ENFP.docx</div>
+              </div>
+              <div class="doc-card-badge">&#10003;</div>
+            </div>
+            <div class="doc-card" data-doc="mbti-ENTP">
+              <div class="doc-card-icon" style="font-size:11px;">ENTP</div>
+              <div class="doc-card-info">
+                <div class="doc-card-label">Innovateur</div>
+                <div class="doc-card-file">ENTP Innovateur.docx</div>
+              </div>
+              <div class="doc-card-badge">&#10003;</div>
+            </div>
+            <div class="doc-card" data-doc="mbti-ESTJ">
+              <div class="doc-card-icon" style="font-size:11px;">ESTJ</div>
+              <div class="doc-card-info">
+                <div class="doc-card-label">Organisateur</div>
+                <div class="doc-card-file">ESTJ Organisateur.docx</div>
+              </div>
+              <div class="doc-card-badge">&#10003;</div>
+            </div>
+            <div class="doc-card" data-doc="mbti-ESFJ">
+              <div class="doc-card-icon" style="font-size:11px;">ESFJ</div>
+              <div class="doc-card-info">
+                <div class="doc-card-label">Nourricier</div>
+                <div class="doc-card-file">ESFJ Nourricier.docx</div>
+              </div>
+              <div class="doc-card-badge">&#10003;</div>
+            </div>
+            <div class="doc-card" data-doc="mbti-ENFJ">
+              <div class="doc-card-icon" style="font-size:11px;">ENFJ</div>
+              <div class="doc-card-info">
+                <div class="doc-card-label">Animateur</div>
+                <div class="doc-card-file">ENFJ Animateur.docx</div>
+              </div>
+              <div class="doc-card-badge">&#10003;</div>
+            </div>
+            <div class="doc-card" data-doc="mbti-ENTJ">
+              <div class="doc-card-icon" style="font-size:11px;">ENTJ</div>
+              <div class="doc-card-info">
+                <div class="doc-card-label">Meneur</div>
+                <div class="doc-card-file">ENTJ Meneur.docx</div>
+              </div>
+              <div class="doc-card-badge">&#10003;</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- GROUP 4: RIASEC -->
+        <div class="doc-group">
+          <div class="doc-group-header">
+            <span class="doc-group-tag riasec">RIASEC</span>
+            <span class="doc-group-title">Profils d'int&eacute;r&ecirc;ts</span>
+          </div>
+          <div class="doc-group-grid wide">
+            <div class="doc-card" data-doc="riasec-R">
+              <div class="doc-card-icon">R</div>
+              <div class="doc-card-info">
+                <div class="doc-card-label">R&eacute;aliste</div>
+                <div class="doc-card-file">R_REALISTE.docx</div>
+              </div>
+              <div class="doc-card-badge">&#10003;</div>
+            </div>
+            <div class="doc-card" data-doc="riasec-I">
+              <div class="doc-card-icon">I</div>
+              <div class="doc-card-info">
+                <div class="doc-card-label">Investigateur</div>
+                <div class="doc-card-file">I_INVESTIGATEUR.docx</div>
+              </div>
+              <div class="doc-card-badge">&#10003;</div>
+            </div>
+            <div class="doc-card" data-doc="riasec-A">
+              <div class="doc-card-icon">A</div>
+              <div class="doc-card-info">
+                <div class="doc-card-label">Artistique</div>
+                <div class="doc-card-file">A_ARTISTIQUE.docx</div>
+              </div>
+              <div class="doc-card-badge">&#10003;</div>
+            </div>
+            <div class="doc-card" data-doc="riasec-S">
+              <div class="doc-card-icon">S</div>
+              <div class="doc-card-info">
+                <div class="doc-card-label">Social</div>
+                <div class="doc-card-file">S_SOCIAL.docx</div>
+              </div>
+              <div class="doc-card-badge">&#10003;</div>
+            </div>
+            <div class="doc-card" data-doc="riasec-E">
+              <div class="doc-card-icon">E</div>
+              <div class="doc-card-info">
+                <div class="doc-card-label">Entreprenant</div>
+                <div class="doc-card-file">E_ENTREPRENANT.docx</div>
+              </div>
+              <div class="doc-card-badge">&#10003;</div>
+            </div>
+            <div class="doc-card" data-doc="riasec-C">
+              <div class="doc-card-icon">C</div>
+              <div class="doc-card-info">
+                <div class="doc-card-label">Conventionnel</div>
+                <div class="doc-card-file">C_CONVENTIONNEL.docx</div>
+              </div>
+              <div class="doc-card-badge">&#10003;</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Selection summary -->
+      <div class="selection-summary" id="selection-summary">
+        <div class="summary-count" id="summary-count">0</div>
+        <div>
+          <div class="summary-text">
+            <strong id="summary-label">Aucun document s&eacute;lectionn&eacute;</strong><br>
+            <span id="summary-detail">Choisis un type Enneagramme, un sous-type ou des lettres RIASEC ci-dessus</span>
+          </div>
+          <div class="summary-chips" id="summary-chips"></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<!-- ACTION BAR -->
+<div class="make-report-bar">
+  <div class="make-report-inner">
+    <div class="report-hint">
+      <strong>Pipeline pr&ecirc;t ?</strong><br>
+      Exporte les donn&eacute;es en JSON, puis g&eacute;n&egrave;re le rapport final en Word ou PowerPoint.
+    </div>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;">
+      <input type="file" id="import-file" accept=".json" style="display:none" onchange="importQuestionnaire(this)">
+      <button class="btn-import-json" onclick="document.getElementById('import-file').click()">
+        Import Questionnaire
+        <span class="btn-arrow" style="background:rgba(76,175,130,0.2);">&#8593;</span>
+      </button>
+      <button class="btn-export-excel" onclick="exportExcel()">
+        Export JSON
+        <span class="btn-arrow" style="background:rgba(200,169,126,0.2);">&#8595;</span>
+      </button>
+      <button class="btn-make-report" onclick="makeReport()">
+        Make Report
+        <span class="btn-arrow">&#8594;</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── SECTION TOGGLE ──
+// ── WORD DIAL ──
+function updateDial(id) {
+  const input = document.getElementById('words_' + id);
+  const display = document.getElementById('dial_' + id);
+  display.innerHTML = input.value + '<span>mots</span>';
+}
+
+function toggleSection(header) {
+  const body = header.nextElementSibling;
+  if (body.classList.contains('collapsed')) {
+    body.classList.remove('collapsed');
+    body.style.maxHeight = body.scrollHeight + 'px';
+    header.classList.remove('collapsed');
+  } else {
+    body.style.maxHeight = body.scrollHeight + 'px';
+    requestAnimationFrame(() => {
+      body.classList.add('collapsed');
+      header.classList.add('collapsed');
+    });
+  }
+}
+
+// ══════════════════════════════════════════════
+// ── HIGHLIGHT ENGINE — links sections 02/04 → section 06
+// ══════════════════════════════════════════════
+
+function highlightDocs() {
+  // 1. Clear all highlights
+  document.querySelectorAll('.doc-card').forEach(c => {
+    c.classList.remove('highlighted', 'warm-hl', 'pulse');
+  });
+
+  const active = [];
+
+  // 2. Enneagramme base → ennea-N
+  const enneaBtn = document.querySelector('#ennea-base .ennea-btn.active');
+  if (enneaBtn) {
+    const card = document.querySelector(`.doc-card[data-doc="ennea-${enneaBtn.dataset.val}"]`);
+    if (card) {
+      card.classList.add('highlighted');
+      triggerPulse(card);
+      active.push({ label: `Type ${enneaBtn.dataset.val}`, cls: 'teal' });
+    }
+  }
+
+  // 3. Sous-type → sous-X
+  const sousBtn = document.querySelector('#sous-type .sous-type-btn.active');
+  if (sousBtn) {
+    // Map display value to doc data-key
+    const sousMap = {
+      'Social': 'sous-Social',
+      'Survie': 'sous-Survie'
+    };
+    // Tete-a-tete: the button value contains special chars
+    let docKey = sousMap[sousBtn.dataset.val] || 'sous-Tete';
+    const card = document.querySelector(`.doc-card[data-doc="${docKey}"]`);
+    if (card) {
+      card.classList.add('highlighted', 'warm-hl');
+      triggerPulse(card);
+      active.push({ label: sousBtn.dataset.val, cls: 'warm' });
+    }
+  }
+
+  // 4. MBTI → mbti-XXXX (only when all 4 dimensions selected)
+  const m = mbtiSelections;
+  if (m.ei && m.sn && m.tf && m.jp) {
+    const mbtiType = m.ei + m.sn + m.tf + m.jp;
+    const card = document.querySelector(`.doc-card[data-doc="mbti-${mbtiType}"]`);
+    if (card) {
+      card.classList.add('highlighted', 'purple-hl');
+      triggerPulse(card);
+      active.push({ label: mbtiType, cls: 'purple' });
+    }
+  }
+
+  // 5. RIASEC → riasec-X
+  riasecOrder.forEach((letter, idx) => {
+    const card = document.querySelector(`.doc-card[data-doc="riasec-${letter}"]`);
+    if (card) {
+      card.classList.add('highlighted');
+      card.querySelector('.doc-card-badge').textContent = idx + 1;
+      triggerPulse(card);
+      active.push({ label: letter, cls: 'teal' });
+    }
+  });
+
+  // 6. Update summary
+  updateSummary(active);
+}
+
+function triggerPulse(card) {
+  card.classList.remove('pulse');
+  void card.offsetWidth; // force reflow
+  card.classList.add('pulse');
+}
+
+function updateSummary(active) {
+  const count = active.length;
+  document.getElementById('summary-count').textContent = count;
+
+  const label = document.getElementById('summary-label');
+  const detail = document.getElementById('summary-detail');
+  const chips = document.getElementById('summary-chips');
+
+  if (count === 0) {
+    label.textContent = 'Aucun document s\u00e9lectionn\u00e9';
+    detail.textContent = 'Choisis un type Enneagramme, un sous-type ou des lettres RIASEC ci-dessus';
+    chips.innerHTML = '';
+  } else {
+    label.textContent = count + ' document' + (count > 1 ? 's' : '') + ' actif' + (count > 1 ? 's' : '');
+    detail.textContent = 'Seront extraits vers le fichier Excel';
+    chips.innerHTML = active.map(a =>
+      `<span class="summary-chip ${a.cls}">${a.label}</span>`
+    ).join('');
+  }
+}
+
+// ── ENNEAGRAMME ──
+document.querySelectorAll('#ennea-base .ennea-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('#ennea-base .ennea-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    highlightDocs();
+  });
+});
+document.querySelectorAll('#sous-type .sous-type-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('#sous-type .sous-type-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    highlightDocs();
+  });
+});
+
+// ── MBTI ──
+const mbtiSelections = { ei:'', sn:'', tf:'', jp:'' };
+document.querySelectorAll('.mbti-option').forEach(opt => {
+  opt.addEventListener('click', () => {
+    const group = opt.dataset.group;
+    document.querySelectorAll(`.mbti-option[data-group="${group}"]`).forEach(o => o.classList.remove('active'));
+    opt.classList.add('active');
+    mbtiSelections[group] = opt.dataset.val;
+    const r = mbtiSelections;
+    document.getElementById('mbti-result').textContent =
+      (r.ei||'_') + ' ' + (r.sn||'_') + ' ' + (r.tf||'_') + ' ' + (r.jp||'_');
+    highlightDocs();
+  });
+});
+
+// ── RIASEC ──
+let riasecOrder = [];
+document.querySelectorAll('#riasec-row .riasec-item').forEach(item => {
+  item.addEventListener('click', () => {
+    const val = item.dataset.val;
+    if (item.classList.contains('active')) {
+      item.classList.remove('active');
+      riasecOrder = riasecOrder.filter(v => v !== val);
+    } else {
+      if (riasecOrder.length >= 3) return;
+      item.classList.add('active');
+      riasecOrder.push(val);
+    }
+    document.querySelectorAll('#riasec-row .riasec-item').forEach(it => {
+      const rank = it.querySelector('.riasec-rank');
+      const idx = riasecOrder.indexOf(it.dataset.val);
+      if (idx >= 0) rank.textContent = idx + 1;
+    });
+    highlightDocs();
+  });
+});
+
+// ── COLLECT DATA ──
+function collectData() {
+  const base = document.querySelector('#ennea-base .ennea-btn.active');
+  const sousType = document.querySelector('#sous-type .sous-type-btn.active');
+
+  // Gather active documents
+  const activeDocs = [];
+  document.querySelectorAll('.doc-card.highlighted').forEach(card => {
+    activeDocs.push({
+      key: card.dataset.doc,
+      file: card.querySelector('.doc-card-file').textContent
+    });
+  });
+
+  // Compute age from birthday
+  let age = '';
+  const bday = document.getElementById('anniversaire').value;
+  if (bday) {
+    const diff = Date.now() - new Date(bday).getTime();
+    age = Math.floor(diff / (365.25 * 24 * 60 * 60 * 1000));
+  }
+
+  return {
+    prenom:         document.getElementById('prenom').value,
+    nom:            document.getElementById('nom').value,
+    anniversaire:   bday,
+    age:            age,
+    zip:            document.getElementById('zip').value,
+    date_seance:    document.getElementById('date_seance').value,
+    ecole:          document.getElementById('ecole').value,
+    choix:          document.getElementById('choix').value,
+    loisirs:        document.getElementById('loisirs').value,
+    ennea_base:     base ? base.dataset.val : '',
+    ennea_soustype: sousType ? sousType.dataset.val : '',
+    mbti:           document.getElementById('mbti-result').textContent.replace(/\s/g,''),
+    riasec:         riasecOrder.join(''),
+    notes:          document.getElementById('notes_coach').value,
+    // Per-chapter word counts (chosen by coach)
+    words_ennea:    parseInt(document.getElementById('words_ennea').value) || 250,
+    words_mbti:     parseInt(document.getElementById('words_mbti').value) || 250,
+    words_riasec:   parseInt(document.getElementById('words_riasec').value) || 200,
+    active_documents: activeDocs
+  };
+}
+
+// ── EXPORT EXCEL ──
+// ── IMPORT QUESTIONNAIRE ──
+function importQuestionnaire(input) {
+  const file = input.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const data = JSON.parse(e.target.result);
+
+      // Verify source
+      if (data.source !== 'brenso-questionnaire-jeune') {
+        if (!confirm('Ce fichier ne semble pas provenir du questionnaire BRENSO.\nImporter quand m\u00eame ?')) return;
+      }
+
+      // Use shared import logic
+      const filled = applyQuestionnaireData(data);
+
+      // Scroll to section 01
+      document.querySelector('.section').scrollIntoView({behavior:'smooth'});
+
+      // Toast feedback
+      showImportToast(data.prenom, filled);
+
+    } catch(err) {
+      alert('Erreur de lecture du fichier JSON : ' + err.message);
+    }
+  };
+  reader.readAsText(file);
+
+  // Reset input so same file can be re-imported
+  input.value = '';
+}
+
+// ── AUTO-IMPORT FROM LOCALSTORAGE ──
+function applyQuestionnaireData(data) {
+  const fieldMap = {
+    'prenom': 'prenom',
+    'nom': 'nom',
+    'anniversaire': 'anniversaire',
+    'ecole': 'ecole',
+    'loisirs': 'loisirs',
+    'choix': 'choix',
+    'zip': 'zip'
+  };
+
+  // Also map orientation_actuelle into choix (prefix if choix exists)
+  if (data.orientation_actuelle && data.choix) {
+    data.choix = 'Orientation actuelle : ' + data.orientation_actuelle + '\n' + data.choix;
+  } else if (data.orientation_actuelle && !data.choix) {
+    data.choix = 'Orientation actuelle : ' + data.orientation_actuelle;
+  }
+
+  let filled = 0;
+  for (const [jsonKey, htmlId] of Object.entries(fieldMap)) {
+    if (data[jsonKey]) {
+      const el = document.getElementById(htmlId);
+      if (el) {
+        el.value = data[jsonKey];
+        el.classList.add('field-imported');
+        filled++;
+      }
+    }
+  }
+  return filled;
+}
+
+function autoImportFromStorage() {
+  try {
+    const raw = localStorage.getItem('brenso_questionnaire_data');
+    if (!raw) return;
+    const data = JSON.parse(raw);
+    const filled = applyQuestionnaireData(data);
+
+    // Hide banner
+    document.getElementById('auto-import-banner').style.display = 'none';
+
+    // Scroll to section 01
+    document.querySelector('.section').scrollIntoView({behavior:'smooth'});
+
+    // Clear the questionnaire data from localStorage (one-time import)
+    localStorage.removeItem('brenso_questionnaire_data');
+    localStorage.removeItem('brenso_questionnaire_timestamp');
+
+    // Toast feedback
+    showImportToast(data.prenom, filled);
+  } catch(e) {
+    console.error('Auto-import failed:', e);
+  }
+}
+
+function dismissAutoImport() {
+  document.getElementById('auto-import-banner').style.display = 'none';
+  localStorage.removeItem('brenso_questionnaire_data');
+  localStorage.removeItem('brenso_questionnaire_timestamp');
+}
+
+function showImportToast(name, count) {
+  const toast = document.createElement('div');
+  toast.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#4caf82;color:#fff;padding:12px 24px;border-radius:10px;font-size:13px;font-weight:500;z-index:999;animation:slideDown 0.3s ease;box-shadow:0 4px 20px rgba(76,175,130,0.3);';
+  toast.textContent = (name || 'Questionnaire') + ' — ' + count + ' champs importes';
+  document.body.appendChild(toast);
+  setTimeout(() => { toast.style.opacity = '0'; toast.style.transition = 'opacity 0.3s'; }, 3000);
+  setTimeout(() => toast.remove(), 3500);
+}
+
+// ── CHECK FOR QUESTIONNAIRE DATA ON LOAD ──
+(function checkAutoImport() {
+  try {
+    const raw = localStorage.getItem('brenso_questionnaire_data');
+    if (!raw) return;
+    const data = JSON.parse(raw);
+    if (!data.source || data.source !== 'brenso-questionnaire-jeune') return;
+
+    const banner = document.getElementById('auto-import-banner');
+    const nameEl = document.getElementById('auto-import-name');
+    nameEl.textContent = 'Questionnaire de ' + (data.prenom || 'un jeune') + ' ' + (data.nom || '');
+    banner.style.display = 'block';
+  } catch(e) {}
+})();
+
+// ── LOCALSTORAGE AUTO-SAVE (coach form) ──
+(function setupAutoSave() {
+  // Save all form data on any input change
+  function saveCoachDraft() {
+    try {
+      const draft = {};
+      document.querySelectorAll('input, textarea, select').forEach(el => {
+        if (el.id && el.type !== 'file') draft[el.id] = el.value;
+      });
+      // Save active enneagramme, mbti, riasec selections
+      const activeEnnea = document.querySelector('.ennea-btn.active');
+      if (activeEnnea) draft._ennea_base = activeEnnea.dataset.val;
+      const activeSous = document.querySelector('.sous-btn.active');
+      if (activeSous) draft._ennea_sous = activeSous.dataset.val;
+      const mbtiResult = document.getElementById('mbti-result');
+      if (mbtiResult) draft._mbti = mbtiResult.textContent.trim();
+
+      draft._timestamp = new Date().toISOString();
+      localStorage.setItem('brenso_coach_draft', JSON.stringify(draft));
+
+      // Update save status
+      const status = document.getElementById('saveStatus');
+      if (status) {
+        status.textContent = 'Brouillon sauvegarde';
+        status.style.color = 'var(--green)';
+        setTimeout(() => { status.style.color = 'var(--muted)'; }, 2000);
+      }
+    } catch(e) {}
+  }
+
+  // Restore draft on load (only if no auto-import pending)
+  function restoreCoachDraft() {
+    try {
+      // Don't restore if there's a questionnaire waiting to import
+      if (localStorage.getItem('brenso_questionnaire_data')) return;
+
+      const raw = localStorage.getItem('brenso_coach_draft');
+      if (!raw) return;
+      const draft = JSON.parse(raw);
+      let hasData = false;
+
+      document.querySelectorAll('input, textarea').forEach(el => {
+        if (el.id && el.type !== 'file' && draft[el.id]) {
+          el.value = draft[el.id];
+          hasData = true;
+        }
+      });
+
+      if (hasData) {
+        const status = document.getElementById('saveStatus');
+        if (status) {
+          status.textContent = 'Brouillon restaure';
+          status.style.color = 'var(--teal)';
+          setTimeout(() => { status.style.color = 'var(--muted)'; status.textContent = 'Brouillon auto-sauvegarde'; }, 3000);
+        }
+      }
+    } catch(e) {}
+  }
+
+  // Listen to all inputs
+  document.addEventListener('input', saveCoachDraft);
+  document.addEventListener('click', function(e) {
+    if (e.target.classList.contains('ennea-btn') || e.target.classList.contains('sous-btn') ||
+        e.target.classList.contains('mbti-option') || e.target.classList.contains('riasec-item')) {
+      setTimeout(saveCoachDraft, 100);
+    }
+  });
+
+  // Restore on load
+  restoreCoachDraft();
+})();
+
+function exportExcel() {
+  const d = collectData();
+  if (d.active_documents.length === 0) {
+    alert('Aucun document actif. Selectionne un type Enneagramme ou des lettres RIASEC.');
+    return;
+  }
+  const json = JSON.stringify(d, null, 2);
+  console.log('[BRENSO EXCEL EXPORT]', json);
+
+  // Download JSON file
+  const blob = new Blob([json], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const prenom = d.prenom || 'jeune';
+  const today = new Date().toISOString().slice(0,10);
+  a.href = url;
+  a.download = 'brenso_' + prenom.toLowerCase().replace(/\s+/g,'_') + '_' + today + '.json';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+
+  const btn = document.querySelector('.btn-export-excel');
+  const original = btn.innerHTML;
+  btn.innerHTML = 'Extraction en cours...';
+  btn.style.borderColor = 'var(--green)';
+  btn.style.color = 'var(--green)';
+  setTimeout(() => {
+    btn.innerHTML = 'JSON telecharge &#10003;';
+    setTimeout(() => { btn.innerHTML = original; btn.style.borderColor = ''; btn.style.color = ''; }, 3000);
+  }, 1500);
+}
+
+// ── MAKE REPORT ──
+function makeReport() {
+  const d = collectData();
+  const missing = [];
+  if (!d.prenom) missing.push('Prenom');
+  if (!d.ennea_base) missing.push('Type Enneagramme');
+  if (!d.riasec) missing.push('RIASEC');
+  if (missing.length) {
+    alert('Champs manquants : ' + missing.join(', '));
+    return;
+  }
+
+  // Ask format choice
+  const format = prompt('Quel format de rapport ?\n\n1 = Word (.docx)\n2 = PowerPoint (.pptx)\n\nTape 1 ou 2 :');
+  if (!format || (format !== '1' && format !== '2')) return;
+
+  d.report_format = format === '1' ? 'docx' : 'pptx';
+  const formatLabel = format === '1' ? 'Word' : 'PowerPoint';
+
+  const json = JSON.stringify(d, null, 2);
+  console.log('[BRENSO REPORT]', json);
+
+  // Download JSON with format indication
+  const blob = new Blob([json], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const prenom = d.prenom.toLowerCase().replace(/\s+/g,'_');
+  const today = new Date().toISOString().slice(0,10);
+  a.href = url;
+  a.download = 'brenso_report_' + prenom + '_' + today + '.json';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+
+  const btn = document.querySelector('.btn-make-report');
+  btn.textContent = 'Generation ' + formatLabel + '...';
+  btn.style.background = 'var(--green)';
+  setTimeout(() => {
+    btn.innerHTML = 'JSON ' + formatLabel + ' pret <span class="btn-arrow">&#10003;</span>';
+    document.getElementById('saveStatus').style.color = 'var(--green)';
+    document.getElementById('saveStatus').textContent = 'Pret pour generation ' + formatLabel;
+  }, 1200);
+}
+
+// ── AUTO-SAVE ──
+let saveTimer;
+document.querySelectorAll('input, textarea').forEach(el => {
+  el.addEventListener('input', () => {
+    clearTimeout(saveTimer);
+    document.getElementById('saveStatus').style.color = 'var(--muted)';
+    document.getElementById('saveStatus').textContent = 'Modification...';
+    saveTimer = setTimeout(() => {
+      document.getElementById('saveStatus').textContent = 'Brouillon sauvegard\u00e9';
+    }, 1000);
+  });
+});
+
+// Init
+highlightDocs();
+</script>
+</body>
+</html>
