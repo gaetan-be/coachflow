@@ -26,6 +26,7 @@ services:
       - ./src:/app/src
       - ./public:/app/public
       - ./templates:/app/templates
+      - ./scripts:/app/scripts
     command: npm run dev
 
 volumes:

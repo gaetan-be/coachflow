@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
-import PizZip from 'pizzip';
-import Docxtemplater from 'docxtemplater';
+import { execFile } from 'child_process';
+import os from 'os';
 import { pool } from '../db';
 import {
   generateEnneagrammeChapter, generateMbtiChapter, generateRiasecChapter,
@@ -10,6 +10,9 @@ import {
 import { sendReportEmail } from './email';
 
 const TEMPLATE_PATH = path.join(__dirname, '..', '..', 'templates', 'report-template.docx');
+const PYTHON_SCRIPT = path.join(__dirname, '..', '..', 'scripts', 'render_report.py');
+const VENV_PYTHON = path.join(__dirname, '..', '..', '.venv', 'bin', 'python3');
+const PYTHON_BIN = fs.existsSync(VENV_PYTHON) ? VENV_PYTHON : 'python3';
 const MBTI_TEMPLATES_DIR = path.join(__dirname, '..', '..', 'templates', 'MBTI');
 
 const MBTI_TEMPLATE_FILES: Record<string, string> = {
@@ -95,6 +98,77 @@ function calculateAge(dateNaissance: string): number {
   return age;
 }
 
+/** Build the template context object from coachee data + AI chapters. */
+export function buildTemplateContext(
+  data: any,
+  enneaText: string, mbtiText: string, riasecText: string,
+  compBesoinsText: string, metiersText: string, planActionText: string,
+): Record<string, any> {
+  const age = data.date_naissance ? calculateAge(data.date_naissance) : '';
+  return {
+    prenom: data.prenom || '',
+    nom: data.nom || '',
+    date_naissance: data.date_naissance ? new Date(data.date_naissance).toLocaleDateString('fr-BE') : '',
+    age: age.toString(),
+    ecole: data.ecole_nom || '',
+    annee_scolaire: data.annee_scolaire || '',
+    orientation: data.orientation_actuelle || '',
+    code_postal: data.code_postal || '',
+    loisirs: data.loisirs || '',
+    choix: data.choix || '',
+    date_seance: data.date_seance ? new Date(data.date_seance).toLocaleDateString('fr-BE') : '',
+    ennea_base: data.ennea_base ? data.ennea_base.toString() : '',
+    ennea_sous_type: data.ennea_sous_type || '',
+    mbti: data.mbti || '',
+    riasec: data.riasec || '',
+    valeurs: data.valeurs || '',
+    valeurs_list: csvToList(data.valeurs),
+    competences: data.competences || '',
+    competences_list: csvToList(data.competences),
+    besoins: data.besoins || '',
+    besoins_list: csvToList(data.besoins),
+    metiers: formatMetiers(data.metiers),
+    plan_action: data.plan_action || '',
+    chapitre_enneagramme: enneaText,
+    chapitre_mbti: mbtiText,
+    chapitre_riasec: riasecText,
+    chapitre_competences_besoins: compBesoinsText,
+    chapitre_metiers: metiersText,
+    chapitre_plan_action: planActionText,
+    notes_coach: data.notes_coach || '',
+  };
+}
+
+/** Call the Python docxtpl renderer. Returns the docx as a Buffer. */
+export function renderDocxWithPython(
+  templatePath: string,
+  context: Record<string, any>,
+): Promise<Buffer> {
+  return new Promise((resolve, reject) => {
+    const tmpOut = path.join(os.tmpdir(), `brenso_report_${Date.now()}.docx`);
+    const input = JSON.stringify({ template_path: templatePath, output_path: tmpOut, ...context });
+
+    const proc = execFile(PYTHON_BIN, [PYTHON_SCRIPT], { maxBuffer: 10 * 1024 * 1024 }, (err, _stdout, stderr) => {
+      if (err) {
+        // Clean up temp file on error
+        try { fs.unlinkSync(tmpOut); } catch {}
+        reject(new Error(`Python render failed: ${stderr || err.message}`));
+        return;
+      }
+      try {
+        const buf = fs.readFileSync(tmpOut);
+        fs.unlinkSync(tmpOut);
+        resolve(buf);
+      } catch (readErr) {
+        reject(new Error(`Failed to read rendered report: ${readErr}`));
+      }
+    });
+
+    proc.stdin!.write(input);
+    proc.stdin!.end();
+  });
+}
+
 export async function processReport(reportId: number): Promise<void> {
   // Get report + coachee data
   const reportResult = await pool.query(`
@@ -152,53 +226,9 @@ export async function processReport(reportId: number): Promise<void> {
   let docBuffer: Buffer;
 
   if (fs.existsSync(TEMPLATE_PATH)) {
-    // Use user-provided template
-    const templateContent = fs.readFileSync(TEMPLATE_PATH, 'binary');
-    const zip = new PizZip(templateContent);
-    const doc = new Docxtemplater(zip, {
-      paragraphLoop: true,
-      linebreaks: true,
-    });
-
-    const age = data.date_naissance ? calculateAge(data.date_naissance) : '';
-
-    doc.render({
-      prenom: data.prenom || '',
-      nom: data.nom || '',
-      date_naissance: data.date_naissance ? new Date(data.date_naissance).toLocaleDateString('fr-BE') : '',
-      age: age.toString(),
-      ecole: data.ecole_nom || '',
-      annee_scolaire: data.annee_scolaire || '',
-      orientation: data.orientation_actuelle || '',
-      code_postal: data.code_postal || '',
-      loisirs: data.loisirs || '',
-      choix: data.choix || '',
-      date_seance: data.date_seance ? new Date(data.date_seance).toLocaleDateString('fr-BE') : '',
-      ennea_base: data.ennea_base ? data.ennea_base.toString() : '',
-      ennea_sous_type: data.ennea_sous_type || '',
-      mbti: data.mbti || '',
-      riasec: data.riasec || '',
-      valeurs: data.valeurs || '',
-      valeurs_list: csvToList(data.valeurs),
-      competences: data.competences || '',
-      competences_list: csvToList(data.competences),
-      besoins: data.besoins || '',
-      besoins_list: csvToList(data.besoins),
-      metiers: formatMetiers(data.metiers),
-      plan_action: data.plan_action || '',
-      chapitre_enneagramme: enneaText,
-      chapitre_mbti: mbtiText,
-      chapitre_riasec: riasecText,
-      chapitre_competences_besoins: compBesoinsText,
-      chapitre_metiers: metiersText,
-      chapitre_plan_action: planActionText,
-      notes_coach: data.notes_coach || '',
-    });
-
-    const buf = doc.getZip().generate({ type: 'nodebuffer' });
-    docBuffer = buf;
+    const context = buildTemplateContext(data, enneaText, mbtiText, riasecText, compBesoinsText, metiersText, planActionText);
+    docBuffer = await renderDocxWithPython(TEMPLATE_PATH, context);
   } else {
-    // No template — generate a minimal placeholder
     console.warn('No report template found at', TEMPLATE_PATH);
     console.warn('Please provide a .docx template. Storing raw text as fallback.');
 
@@ -242,6 +272,5 @@ export async function processReport(reportId: number): Promise<void> {
     console.log(`Report ${reportId} emailed to ${data.coach_email}`);
   } catch (emailErr) {
     console.error(`Report ${reportId} generated but email failed:`, emailErr);
-    // Don't fail the report — it's still downloadable
   }
 }

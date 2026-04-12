@@ -11,15 +11,12 @@
 
 import fs from 'fs';
 import path from 'path';
-import PizZip from 'pizzip';
-import Docxtemplater from 'docxtemplater';
 import { pool } from '../db';
 import {
   generateEnneagrammeChapter, generateMbtiChapter, generateRiasecChapter,
   generateCompetencesBesoinsChapter, generateMetiersChapter, generatePlanActionChapter
 } from '../services/ai';
-
-// ── Re-use helpers from report.ts ──
+import { buildTemplateContext, renderDocxWithPython } from '../services/report';
 
 const TEMPLATE_PATH = path.join(__dirname, '..', '..', 'templates', 'report-template.docx');
 const MBTI_TEMPLATES_DIR = path.join(__dirname, '..', '..', 'templates', 'MBTI');
@@ -58,34 +55,6 @@ function loadRiasecTemplates(codes: string[]): string | null {
   }
   return parts.length > 0 ? parts.join('\n\n---\n\n') : null;
 }
-
-function csvToList(csv: string | null): Array<{ val: string }> {
-  if (!csv) return [];
-  return csv.split(',').filter(Boolean).map(v => ({ val: v.trim() }));
-}
-
-function formatMetiers(metiers: any): Array<{ nom: string; motscles: string; formations: Array<{ ecole: string; ville: string }> }> {
-  if (!metiers || !Array.isArray(metiers)) return [];
-  return metiers.map((m: any) => ({
-    nom: m.nom || '',
-    motscles: m.motscles || '',
-    formations: Array.isArray(m.formations) ? m.formations.map((f: any) => ({
-      ecole: f.ecole || '',
-      ville: f.ville || '',
-    })) : [],
-  }));
-}
-
-function calculateAge(dateNaissance: string): number {
-  const bd = new Date(dateNaissance);
-  const today = new Date();
-  let age = today.getFullYear() - bd.getFullYear();
-  const m = today.getMonth() - bd.getMonth();
-  if (m < 0 || (m === 0 && today.getDate() < bd.getDate())) age--;
-  return age;
-}
-
-// ── Main ──
 
 async function main() {
   const args = process.argv.slice(2);
@@ -163,56 +132,16 @@ async function main() {
     [enneaText, mbtiText, riasecText, compBesoinsText, metiersText, planActionText] = chapters;
   }
 
-  // Build the docx
+  // Build the docx via Python
   if (!fs.existsSync(TEMPLATE_PATH)) {
     console.error(`Template not found: ${TEMPLATE_PATH}`);
     process.exit(1);
   }
 
-  console.log('\nRendering Word document...');
-  const templateContent = fs.readFileSync(TEMPLATE_PATH, 'binary');
-  const zip = new PizZip(templateContent);
-  const doc = new Docxtemplater(zip, {
-    paragraphLoop: true,
-    linebreaks: true,
-  });
+  console.log('\nRendering Word document via Python (docxtpl)...');
+  const context = buildTemplateContext(data, enneaText, mbtiText, riasecText, compBesoinsText, metiersText, planActionText);
+  const buf = await renderDocxWithPython(TEMPLATE_PATH, context);
 
-  const age = data.date_naissance ? calculateAge(data.date_naissance) : '';
-
-  doc.render({
-    prenom: data.prenom || '',
-    nom: data.nom || '',
-    date_naissance: data.date_naissance ? new Date(data.date_naissance).toLocaleDateString('fr-BE') : '',
-    age: age.toString(),
-    ecole: data.ecole_nom || '',
-    annee_scolaire: data.annee_scolaire || '',
-    orientation: data.orientation_actuelle || '',
-    code_postal: data.code_postal || '',
-    loisirs: data.loisirs || '',
-    choix: data.choix || '',
-    date_seance: data.date_seance ? new Date(data.date_seance).toLocaleDateString('fr-BE') : '',
-    ennea_base: data.ennea_base ? data.ennea_base.toString() : '',
-    ennea_sous_type: data.ennea_sous_type || '',
-    mbti: data.mbti || '',
-    riasec: data.riasec || '',
-    valeurs: data.valeurs || '',
-    valeurs_list: csvToList(data.valeurs),
-    competences: data.competences || '',
-    competences_list: csvToList(data.competences),
-    besoins: data.besoins || '',
-    besoins_list: csvToList(data.besoins),
-    metiers: formatMetiers(data.metiers),
-    plan_action: data.plan_action || '',
-    chapitre_enneagramme: enneaText,
-    chapitre_mbti: mbtiText,
-    chapitre_riasec: riasecText,
-    chapitre_competences_besoins: compBesoinsText,
-    chapitre_metiers: metiersText,
-    chapitre_plan_action: planActionText,
-    notes_coach: data.notes_coach || '',
-  });
-
-  const buf = doc.getZip().generate({ type: 'nodebuffer' });
   const outPath = path.join(process.cwd(), 'output_report.docx');
   fs.writeFileSync(outPath, buf);
 
