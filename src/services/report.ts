@@ -69,6 +69,23 @@ function loadMbtiTemplate(mbtiCode: string): string | null {
   return fs.readFileSync(filePath, 'utf-8');
 }
 
+function csvToList(csv: string | null): Array<{ val: string }> {
+  if (!csv) return [];
+  return csv.split(',').filter(Boolean).map(v => ({ val: v.trim() }));
+}
+
+function formatMetiers(metiers: any): Array<{ nom: string; motscles: string; formations: Array<{ ecole: string; ville: string }> }> {
+  if (!metiers || !Array.isArray(metiers)) return [];
+  return metiers.map(m => ({
+    nom: m.nom || '',
+    motscles: m.motscles || '',
+    formations: Array.isArray(m.formations) ? m.formations.map((f: any) => ({
+      ecole: f.ecole || '',
+      ville: f.ville || '',
+    })) : [],
+  }));
+}
+
 function calculateAge(dateNaissance: string): number {
   const bd = new Date(dateNaissance);
   const today = new Date();
@@ -162,9 +179,12 @@ export async function processReport(reportId: number): Promise<void> {
       mbti: data.mbti || '',
       riasec: data.riasec || '',
       valeurs: data.valeurs || '',
+      valeurs_list: csvToList(data.valeurs),
       competences: data.competences || '',
+      competences_list: csvToList(data.competences),
       besoins: data.besoins || '',
-      metiers_data: data.metiers ? JSON.stringify(data.metiers, null, 2) : '',
+      besoins_list: csvToList(data.besoins),
+      metiers: formatMetiers(data.metiers),
       plan_action: data.plan_action || '',
       chapitre_enneagramme: enneaText,
       chapitre_mbti: mbtiText,

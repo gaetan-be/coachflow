@@ -23,7 +23,10 @@ services:
     environment:
       DATABASE_URL: postgresql://brenso:brenso@postgres:5432/brenso
     volumes:
+      - ./src:/app/src
+      - ./public:/app/public
       - ./templates:/app/templates
+    command: npm run dev
 
 volumes:
   pgdata:
