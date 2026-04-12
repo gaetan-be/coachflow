@@ -7,6 +7,64 @@ import { generateEnneagrammeChapter, generateMbtiChapter, generateRiasecChapter 
 import { sendReportEmail } from './email';
 
 const TEMPLATE_PATH = path.join(__dirname, '..', '..', 'templates', 'report-template.docx');
+const MBTI_TEMPLATES_DIR = path.join(__dirname, '..', '..', 'templates', 'MBTI');
+
+const MBTI_TEMPLATE_FILES: Record<string, string> = {
+  'INTJ': 'INTJ Stratège.md',
+  'INTP': 'INTP Concepteur.md',
+  'ENTJ': 'ENTJ Meneur.md',
+  'ENTP': 'ENTP Innovateur.md',
+  'INFJ': 'INFJ Visionnaire.md',
+  'INFP': 'INFP Idéaliste.md',
+  'ENFJ': 'ENFJ Animateur.md',
+  'ENFP': 'ENFP Communicateur.md',
+  'ISTJ': 'ISTJ Administrateur.md',
+  'ISFJ': 'ISFJ Protecteur.md',
+  'ESTJ': 'ESTJ Organisateur.md',
+  'ESFJ': 'ESFJ Nourricier.md',
+  'ISTP': 'ISTP Practicien.md',
+  'ISFP': 'ISFP Conciliateur.md',
+  'ESTP': 'ESTP Negociateur.md',
+  'ESFP': 'ESFP Facilitateur.md',
+};
+
+const RIASEC_TEMPLATES_DIR = path.join(__dirname, '..', '..', 'templates', 'RIASEC');
+
+const RIASEC_TEMPLATE_FILES: Record<string, string> = {
+  'R': 'R_REALISTE.md',
+  'I': 'I_INVESTIGATEUR.md',
+  'A': 'A_ARTISTIQUE.md',
+  'S': 'S_SOCIAL.md',
+  'E': 'E_ENTREPRENANT.md',
+  'C': 'C_CONVENTIONNEL.md',
+};
+
+function loadRiasecTemplates(codes: string[]): string | null {
+  const parts: string[] = [];
+  for (const code of codes) {
+    const filename = RIASEC_TEMPLATE_FILES[code.toUpperCase()];
+    if (!filename) continue;
+    const filePath = path.join(RIASEC_TEMPLATES_DIR, filename);
+    if (fs.existsSync(filePath)) {
+      parts.push(fs.readFileSync(filePath, 'utf-8'));
+    }
+  }
+  return parts.length > 0 ? parts.join('\n\n---\n\n') : null;
+}
+
+function loadMbtiTemplate(mbtiCode: string): string | null {
+  const filename = MBTI_TEMPLATE_FILES[mbtiCode.toUpperCase()];
+  if (!filename) {
+    console.warn(`No MBTI template found for code: ${mbtiCode}`);
+    return null;
+  }
+  const filePath = path.join(MBTI_TEMPLATES_DIR, filename);
+  if (!fs.existsSync(filePath)) {
+    console.warn(`MBTI template file missing: ${filePath}`);
+    return null;
+  }
+  return fs.readFileSync(filePath, 'utf-8');
+}
 
 function calculateAge(dateNaissance: string): number {
   const bd = new Date(dateNaissance);
@@ -47,10 +105,10 @@ export async function processReport(reportId: number): Promise<void> {
       ? generateEnneagrammeChapter(profile, data.ennea_base, data.ennea_sous_type, data.words_ennea || 250)
       : Promise.resolve(''),
     data.mbti
-      ? generateMbtiChapter(profile, data.mbti, data.words_mbti || 250)
+      ? generateMbtiChapter(profile, data.mbti, data.words_mbti || 250, loadMbtiTemplate(data.mbti))
       : Promise.resolve(''),
     data.riasec
-      ? generateRiasecChapter(profile, data.riasec.split(','), data.words_riasec || 200)
+      ? generateRiasecChapter(profile, data.riasec.split(','), data.words_riasec || 200, loadRiasecTemplates(data.riasec.split(',')))
       : Promise.resolve(''),
   ]);
 
