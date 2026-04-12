@@ -5,6 +5,9 @@ var coacheeId = pathParts[pathParts.length - 1];
 // State
 var mbtiSelections = { ei: '', sn: '', tf: '', jp: '' };
 var riasecOrder = [];
+var enneaOrder = [];
+var tagData = { valeurs: [], competences: [], besoins: [] };
+var metierCount = 0;
 
 // ── SECTION TOGGLE ──
 function toggleSection(header) {
@@ -20,14 +23,37 @@ function updateDial(key) {
   display.innerHTML = input.value + '<span>mots</span>';
 }
 
-// ── ENNEAGRAMME ──
+// ══════════════════════════════════════════════
+// ── ENNEAGRAMME — Multi-selection (max 3) ──
+// ══════════════════════════════════════════════
 document.querySelectorAll('#ennea-base .ennea-btn').forEach(function(btn) {
   btn.addEventListener('click', function() {
-    document.querySelectorAll('#ennea-base .ennea-btn').forEach(function(b) { b.classList.remove('active'); });
-    btn.classList.add('active');
+    var val = btn.dataset.val;
+    var idx = enneaOrder.indexOf(val);
+
+    if (idx >= 0) {
+      enneaOrder.splice(idx, 1);
+    } else {
+      if (enneaOrder.length >= 3) return;
+      enneaOrder.push(val);
+    }
+
+    updateEnneaRanks();
   });
 });
 
+function updateEnneaRanks() {
+  document.querySelectorAll('#ennea-base .ennea-btn').forEach(function(b) {
+    b.classList.remove('ennea-rank-1', 'ennea-rank-2', 'ennea-rank-3');
+    var rank = enneaOrder.indexOf(b.dataset.val);
+    if (rank >= 0) {
+      b.classList.add('ennea-rank-' + (rank + 1));
+      b.querySelector('.ennea-badge').textContent = rank + 1;
+    }
+  });
+}
+
+// ── SOUS-TYPE ──
 document.querySelectorAll('#sous-type .sous-type-btn').forEach(function(btn) {
   btn.addEventListener('click', function() {
     document.querySelectorAll('#sous-type .sous-type-btn').forEach(function(b) { b.classList.remove('active'); });
@@ -40,7 +66,6 @@ document.querySelectorAll('.mbti-option').forEach(function(opt) {
   opt.addEventListener('click', function() {
     var group = opt.dataset.group;
     var val = opt.dataset.val;
-    // Deselect others in same group
     document.querySelectorAll('.mbti-option[data-group="' + group + '"]').forEach(function(o) {
       o.classList.remove('active');
     });
@@ -92,9 +117,157 @@ function updateRiasecRanks() {
   });
 }
 
+// ══════════════════════════════════════════════
+// ── TAG INPUT SYSTEM (Valeurs, Competences, Besoins) ──
+// ══════════════════════════════════════════════
+var tagConfig = {
+  valeurs:     { containerId: 'valeurs-tags',     inputId: 'valeur-input',     cssClass: 'green-tag' },
+  competences: { containerId: 'competences-tags',  inputId: 'competence-input', cssClass: 'teal-tag' },
+  besoins:     { containerId: 'besoins-tags',      inputId: 'besoin-input',     cssClass: 'warm-tag' }
+};
+
+function addTag(type) {
+  var cfg = tagConfig[type];
+  var input = document.getElementById(cfg.inputId);
+  var val = input.value.trim();
+  if (!val) return;
+  if (tagData[type].indexOf(val) >= 0) { input.value = ''; return; }
+
+  tagData[type].push(val);
+  input.value = '';
+  renderTags(type);
+  input.focus();
+}
+
+function removeTag(type, idx) {
+  tagData[type].splice(idx, 1);
+  renderTags(type);
+}
+
+function renderTags(type) {
+  var cfg = tagConfig[type];
+  var container = document.getElementById(cfg.containerId);
+  container.innerHTML = tagData[type].map(function(t, i) {
+    return '<span class="tag-chip ' + cfg.cssClass + '" onclick="removeTag(\'' + type + '\',' + i + ')">' + t + '<span class="tag-x">&times;</span></span>';
+  }).join('');
+}
+
+// Enter key support for tag inputs
+['valeur-input', 'competence-input', 'besoin-input'].forEach(function(id) {
+  document.getElementById(id).addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      var type = id === 'valeur-input' ? 'valeurs' : id === 'competence-input' ? 'competences' : 'besoins';
+      addTag(type);
+    }
+  });
+});
+
+// ══════════════════════════════════════════════
+// ── METIER BLOCKS (Section 07) ──
+// ══════════════════════════════════════════════
+function addMetierBlock() {
+  metierCount++;
+  var container = document.getElementById('metiers-container');
+  var block = document.createElement('div');
+  block.className = 'metier-block';
+  block.innerHTML =
+    '<div class="metier-block-header">' +
+      '<div class="metier-number">' + (container.children.length + 1) + '</div>' +
+      '<label style="flex:1;margin:0;font-size:11px;">Piste m\u00e9tier</label>' +
+      '<button class="metier-remove" onclick="removeMetierBlock(this)">&times;</button>' +
+    '</div>' +
+    '<div class="metier-fields">' +
+      '<div class="field-group">' +
+        '<label>Nom du m\u00e9tier</label>' +
+        '<input type="text" class="metier-nom" placeholder="ex. Game Designer, UX Designer...">' +
+      '</div>' +
+      '<div class="field-group">' +
+        '<label>Mots-cl\u00e9s / pourquoi \u00e7a matche</label>' +
+        '<textarea class="multi metier-motscles" placeholder="R\u00e9solution de probl\u00e8mes complexes, cr\u00e9ativit\u00e9 appliqu\u00e9e..."></textarea>' +
+      '</div>' +
+      '<div class="field-group">' +
+        '<label>Formations / \u00c9coles</label>' +
+        '<div class="formations-list"></div>' +
+        '<button class="btn-add-formation" onclick="addFormationRow(this)">+ Ajouter une formation</button>' +
+      '</div>' +
+    '</div>';
+  container.appendChild(block);
+  addFormationRow(block.querySelector('.btn-add-formation'));
+  renumberMetiers();
+}
+
+function removeMetierBlock(btn) {
+  btn.closest('.metier-block').remove();
+  renumberMetiers();
+}
+
+function renumberMetiers() {
+  document.querySelectorAll('.metier-block').forEach(function(block, i) {
+    block.querySelector('.metier-number').textContent = i + 1;
+  });
+}
+
+function addFormationRow(btn) {
+  var list = btn.previousElementSibling;
+  var row = document.createElement('div');
+  row.className = 'formation-row';
+  row.innerHTML =
+    '<input type="text" class="formation-ecole" placeholder="Nom de l\'\u00e9cole / universit\u00e9">' +
+    '<input type="text" class="formation-ville" placeholder="Ville" style="max-width:140px;">' +
+    '<button class="formation-remove" onclick="this.parentElement.remove()">&times;</button>';
+  list.appendChild(row);
+}
+
+function collectMetiers() {
+  var metiers = [];
+  document.querySelectorAll('.metier-block').forEach(function(block) {
+    var formations = [];
+    block.querySelectorAll('.formation-row').forEach(function(row) {
+      var ecole = row.querySelector('.formation-ecole').value.trim();
+      var ville = row.querySelector('.formation-ville').value.trim();
+      if (ecole) formations.push({ ecole: ecole, ville: ville });
+    });
+    var nom = block.querySelector('.metier-nom').value.trim();
+    if (nom) {
+      metiers.push({
+        nom: nom,
+        motscles: block.querySelector('.metier-motscles').value.trim(),
+        formations: formations
+      });
+    }
+  });
+  return metiers.length > 0 ? metiers : null;
+}
+
+function populateMetiers(data) {
+  if (!data || !Array.isArray(data)) return;
+  data.forEach(function(m) {
+    addMetierBlock();
+    var blocks = document.querySelectorAll('.metier-block');
+    var block = blocks[blocks.length - 1];
+    block.querySelector('.metier-nom').value = m.nom || '';
+    block.querySelector('.metier-motscles').value = m.motscles || '';
+    // Remove the auto-added first formation row before populating
+    var firstRow = block.querySelector('.formation-row');
+    if (firstRow) firstRow.remove();
+    if (m.formations && m.formations.length > 0) {
+      m.formations.forEach(function(f) {
+        var addBtn = block.querySelector('.btn-add-formation');
+        addFormationRow(addBtn);
+        var rows = block.querySelectorAll('.formation-row');
+        var row = rows[rows.length - 1];
+        row.querySelector('.formation-ecole').value = f.ecole || '';
+        row.querySelector('.formation-ville').value = f.ville || '';
+      });
+    }
+  });
+}
+
+// ══════════════════════════════════════════════
 // ── COLLECT DATA ──
+// ══════════════════════════════════════════════
 function collectPipelineData() {
-  var enneaBtn = document.querySelector('#ennea-base .ennea-btn.active');
   var sousBtn = document.querySelector('#sous-type .sous-type-btn.active');
 
   return {
@@ -106,13 +279,21 @@ function collectPipelineData() {
     date_seance: document.getElementById('date_seance').value || null,
     choix: document.getElementById('choix').value.trim(),
     loisirs: document.getElementById('loisirs').value.trim(),
-    ennea_base: enneaBtn ? parseInt(enneaBtn.dataset.val) : null,
+    ennea_base: enneaOrder.length > 0 ? enneaOrder.join(',') : null,
     ennea_sous_type: sousBtn ? sousBtn.dataset.val : null,
     mbti: getMbtiString() || null,
     riasec: riasecOrder.length > 0 ? riasecOrder.join(',') : null,
     words_ennea: parseInt(document.getElementById('words_ennea').value),
     words_mbti: parseInt(document.getElementById('words_mbti').value),
     words_riasec: parseInt(document.getElementById('words_riasec').value),
+    valeurs: tagData.valeurs.length > 0 ? tagData.valeurs.join(',') : null,
+    competences: tagData.competences.length > 0 ? tagData.competences.join(',') : null,
+    besoins: tagData.besoins.length > 0 ? tagData.besoins.join(',') : null,
+    words_comp_besoins: parseInt(document.getElementById('words_comp_besoins').value),
+    metiers: collectMetiers(),
+    words_metiers: parseInt(document.getElementById('words_metiers').value),
+    plan_action: document.getElementById('plan_action').value.trim() || null,
+    words_plan_action: parseInt(document.getElementById('words_plan_action').value),
     notes_coach: document.getElementById('notes_coach').value.trim()
   };
 }
@@ -140,7 +321,6 @@ function makeReport() {
   btn.disabled = true;
   btn.textContent = 'En cours...';
 
-  // Save first, then queue report
   var data = collectPipelineData();
   fetch('/api/coachee/' + coacheeId, {
     method: 'PUT',
@@ -155,12 +335,12 @@ function makeReport() {
     return r.json();
   })
   .then(function() {
-    document.getElementById('report-status-text').innerHTML = '<br><span class="status-badge queued" style="margin-top:8px;display:inline-block;">En attente de g&eacute;n&eacute;ration...</span>';
+    document.getElementById('report-status-text').innerHTML = '<br><span class="status-badge queued" style="margin-top:8px;display:inline-block;">En attente de g\u00e9n\u00e9ration...</span>';
     pollReportStatus();
   })
   .catch(function(err) {
     btn.disabled = false;
-    btn.textContent = 'Créer le rapport';
+    btn.textContent = 'Cr\u00e9er le rapport';
     alert(err.message);
   });
 }
@@ -175,15 +355,15 @@ function pollReportStatus() {
           clearInterval(interval);
           var btn = document.getElementById('btn-report');
           btn.disabled = false;
-          btn.textContent = 'Créer le rapport';
-          document.getElementById('report-status-text').innerHTML = '<br><span class="status-badge done" style="margin-top:8px;display:inline-block;">Rapport g&eacute;n&eacute;r&eacute; !</span>';
-          document.getElementById('download-link-wrapper').innerHTML = '<br><a href="/api/coachee/' + coacheeId + '/report/download" class="btn-download">T&eacute;l&eacute;charger le rapport</a>';
+          btn.textContent = 'Cr\u00e9er le rapport';
+          document.getElementById('report-status-text').innerHTML = '<br><span class="status-badge done" style="margin-top:8px;display:inline-block;">Rapport g\u00e9n\u00e9r\u00e9 !</span>';
+          document.getElementById('download-link-wrapper').innerHTML = '<br><a href="/api/coachee/' + coacheeId + '/report/download" class="btn-download">T\u00e9l\u00e9charger le rapport</a>';
         } else if (data.report_status === 'error') {
           clearInterval(interval);
           var btn2 = document.getElementById('btn-report');
           btn2.disabled = false;
-          btn2.textContent = 'Créer le rapport';
-          document.getElementById('report-status-text').innerHTML = '<br><span class="status-badge error" style="margin-top:8px;display:inline-block;">Erreur lors de la g&eacute;n&eacute;ration</span>';
+          btn2.textContent = 'Cr\u00e9er le rapport';
+          document.getElementById('report-status-text').innerHTML = '<br><span class="status-badge error" style="margin-top:8px;display:inline-block;">Erreur lors de la g\u00e9n\u00e9ration</span>';
         }
       });
   }, 3000);
@@ -201,10 +381,10 @@ function populateForm(data) {
   document.getElementById('loisirs').value = data.loisirs || '';
   document.getElementById('notes_coach').value = data.notes_coach || '';
 
-  // Enneagramme
+  // Enneagramme (multi-select)
   if (data.ennea_base) {
-    var enneaBtn = document.querySelector('#ennea-base .ennea-btn[data-val="' + data.ennea_base + '"]');
-    if (enneaBtn) enneaBtn.classList.add('active');
+    enneaOrder = String(data.ennea_base).split(',').filter(Boolean);
+    updateEnneaRanks();
   }
   if (data.ennea_sous_type) {
     var sousBtn = document.querySelector('#sous-type .sous-type-btn[data-val="' + data.ennea_sous_type + '"]');
@@ -231,30 +411,55 @@ function populateForm(data) {
     updateRiasecRanks();
   }
 
+  // Tags
+  if (data.valeurs) {
+    tagData.valeurs = data.valeurs.split(',').filter(Boolean);
+    renderTags('valeurs');
+  }
+  if (data.competences) {
+    tagData.competences = data.competences.split(',').filter(Boolean);
+    renderTags('competences');
+  }
+  if (data.besoins) {
+    tagData.besoins = data.besoins.split(',').filter(Boolean);
+    renderTags('besoins');
+  }
+
+  // Metiers
+  if (data.metiers) {
+    populateMetiers(data.metiers);
+  }
+
+  // Plan d'action
+  document.getElementById('plan_action').value = data.plan_action || '';
+
   // Word dials
-  if (data.words_ennea) {
-    document.getElementById('words_ennea').value = data.words_ennea;
-    updateDial('ennea');
-  }
-  if (data.words_mbti) {
-    document.getElementById('words_mbti').value = data.words_mbti;
-    updateDial('mbti');
-  }
-  if (data.words_riasec) {
-    document.getElementById('words_riasec').value = data.words_riasec;
-    updateDial('riasec');
-  }
+  var dials = [
+    { key: 'ennea', field: 'words_ennea' },
+    { key: 'mbti', field: 'words_mbti' },
+    { key: 'riasec', field: 'words_riasec' },
+    { key: 'comp_besoins', field: 'words_comp_besoins' },
+    { key: 'metiers', field: 'words_metiers' },
+    { key: 'plan_action', field: 'words_plan_action' }
+  ];
+  dials.forEach(function(d) {
+    if (data[d.field]) {
+      var val = Math.min(data[d.field], 350);
+      document.getElementById('words_' + d.key).value = val;
+      updateDial(d.key);
+    }
+  });
 
   // Report status
   if (data.report_status === 'done') {
     document.getElementById('report-status-text').innerHTML = '<br><span class="status-badge done" style="margin-top:8px;display:inline-block;">Rapport disponible</span>';
-    document.getElementById('download-link-wrapper').innerHTML = '<br><a href="/api/coachee/' + coacheeId + '/report/download" class="btn-download">T&eacute;l&eacute;charger le rapport</a>';
+    document.getElementById('download-link-wrapper').innerHTML = '<br><a href="/api/coachee/' + coacheeId + '/report/download" class="btn-download">T\u00e9l\u00e9charger le rapport</a>';
   } else if (data.report_status === 'queued' || data.report_status === 'processing') {
-    document.getElementById('report-status-text').innerHTML = '<br><span class="status-badge queued" style="margin-top:8px;display:inline-block;">En cours de g&eacute;n&eacute;ration...</span>';
+    document.getElementById('report-status-text').innerHTML = '<br><span class="status-badge queued" style="margin-top:8px;display:inline-block;">En cours de g\u00e9n\u00e9ration...</span>';
     document.getElementById('btn-report').disabled = true;
     pollReportStatus();
   } else if (data.report_status === 'error') {
-    document.getElementById('report-status-text').innerHTML = '<br><span class="status-badge error" style="margin-top:8px;display:inline-block;">Erreur lors de la derni&egrave;re g&eacute;n&eacute;ration</span>';
+    document.getElementById('report-status-text').innerHTML = '<br><span class="status-badge error" style="margin-top:8px;display:inline-block;">Erreur lors de la derni\u00e8re g\u00e9n\u00e9ration</span>';
   }
 }
 
@@ -267,7 +472,7 @@ function logout() {
 // Load on page load
 fetch('/api/coachee/' + coacheeId)
   .then(function(r) {
-    if (!r.ok) throw new Error('Coachee non trouvé');
+    if (!r.ok) throw new Error('Coachee non trouv\u00e9');
     return r.json();
   })
   .then(populateForm)

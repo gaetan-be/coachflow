@@ -75,21 +75,21 @@
   <div class="section">
     <div class="section-header" onclick="toggleSection(this)">
       <span class="section-tag">02</span>
-      <span class="section-title">Enneagramme &mdash; Base &amp; Sous-type</span>
+      <span class="section-title">Enneagramme &mdash; Bases &amp; Sous-type</span>
       <span class="section-toggle">&#9660;</span>
     </div>
     <div class="section-body">
-      <label style="display:block;margin-bottom:10px;">Type de base (1&ndash;9)</label>
+      <label style="display:block;margin-bottom:10px;">Types de base (1&ndash;9) &mdash; clique dans l'ordre d'importance (max 3)</label>
       <div class="ennea-base" id="ennea-base">
-        <button class="ennea-btn" data-val="1">1</button>
-        <button class="ennea-btn" data-val="2">2</button>
-        <button class="ennea-btn" data-val="3">3</button>
-        <button class="ennea-btn" data-val="4">4</button>
-        <button class="ennea-btn" data-val="5">5</button>
-        <button class="ennea-btn" data-val="6">6</button>
-        <button class="ennea-btn" data-val="7">7</button>
-        <button class="ennea-btn" data-val="8">8</button>
-        <button class="ennea-btn" data-val="9">9</button>
+        <button class="ennea-btn" data-val="1">1<span class="ennea-badge"></span></button>
+        <button class="ennea-btn" data-val="2">2<span class="ennea-badge"></span></button>
+        <button class="ennea-btn" data-val="3">3<span class="ennea-badge"></span></button>
+        <button class="ennea-btn" data-val="4">4<span class="ennea-badge"></span></button>
+        <button class="ennea-btn" data-val="5">5<span class="ennea-badge"></span></button>
+        <button class="ennea-btn" data-val="6">6<span class="ennea-badge"></span></button>
+        <button class="ennea-btn" data-val="7">7<span class="ennea-badge"></span></button>
+        <button class="ennea-btn" data-val="8">8<span class="ennea-badge"></span></button>
+        <button class="ennea-btn" data-val="9">9<span class="ennea-badge"></span></button>
       </div>
       <div style="margin-top:20px;padding-top:20px;border-top:1px solid var(--section-sep);">
         <span class="sub-type-label">Sous-type</span>
@@ -102,7 +102,7 @@
       <div class="word-dial">
         <div class="word-dial-label">Mots condense<small>Chapitre Enneagramme</small></div>
         <div class="word-dial-track">
-          <input type="range" class="teal-range" id="words_ennea" min="50" max="600" step="50" value="250" oninput="updateDial('ennea')">
+          <input type="range" class="teal-range" id="words_ennea" min="50" max="350" step="50" value="250" oninput="updateDial('ennea')">
         </div>
         <div class="word-dial-value teal-val" id="dial_ennea">250<span>mots</span></div>
       </div>
@@ -170,7 +170,7 @@
       <div class="word-dial">
         <div class="word-dial-label">Mots condense<small>Chapitre MBTI</small></div>
         <div class="word-dial-track">
-          <input type="range" class="purple-range" id="words_mbti" min="50" max="600" step="50" value="250" oninput="updateDial('mbti')">
+          <input type="range" class="purple-range" id="words_mbti" min="50" max="350" step="50" value="250" oninput="updateDial('mbti')">
         </div>
         <div class="word-dial-value purple-val" id="dial_mbti">250<span>mots</span></div>
       </div>
@@ -215,17 +215,101 @@
       <div class="word-dial">
         <div class="word-dial-label">Mots condense<small>Chapitre RIASEC</small></div>
         <div class="word-dial-track">
-          <input type="range" class="teal-range" id="words_riasec" min="50" max="600" step="50" value="200" oninput="updateDial('riasec')">
+          <input type="range" class="teal-range" id="words_riasec" min="50" max="350" step="50" value="200" oninput="updateDial('riasec')">
         </div>
         <div class="word-dial-value teal-val" id="dial_riasec">200<span>mots</span></div>
       </div>
     </div>
   </div>
 
-  <!-- 5. NOTES -->
+  <!-- 5. VALEURS DU JEUNE -->
   <div class="section">
     <div class="section-header" onclick="toggleSection(this)">
       <span class="section-tag">05</span>
+      <span class="section-title">Valeurs du jeune</span>
+      <span class="section-toggle">&#9660;</span>
+    </div>
+    <div class="section-body">
+      <label style="display:block;margin-bottom:8px;">Valeurs identifi&eacute;es en s&eacute;ance &mdash; une par une, tape Entr&eacute;e pour ajouter</label>
+      <div class="tag-container" id="valeurs-tags"></div>
+      <input type="text" id="valeur-input" placeholder="ex. Cr&eacute;ativit&eacute;" style="max-width:280px;">
+    </div>
+  </div>
+
+  <!-- 6. COMPETENCES & BESOINS -->
+  <div class="section">
+    <div class="section-header" onclick="toggleSection(this)">
+      <span class="section-tag">06</span>
+      <span class="section-title">Comp&eacute;tences cl&eacute;s &amp; Besoins fondamentaux</span>
+      <span class="section-toggle">&#9660;</span>
+    </div>
+    <div class="section-body">
+      <label style="display:block;margin-bottom:8px;">Comp&eacute;tences cl&eacute;s observ&eacute;es &mdash; tape Entr&eacute;e pour ajouter</label>
+      <div class="tag-container" id="competences-tags"></div>
+      <input type="text" id="competence-input" placeholder="ex. R&eacute;solution de probl&egrave;mes" style="max-width:320px;">
+
+      <div class="sub-part">
+        <div class="sub-part-title">Besoins fondamentaux &mdash; tape Entr&eacute;e pour ajouter</div>
+        <div class="tag-container" id="besoins-tags"></div>
+        <input type="text" id="besoin-input" placeholder="ex. Autonomie, Feedback sinc&egrave;re" style="max-width:320px;">
+      </div>
+
+      <div class="word-dial">
+        <div class="word-dial-label">Mots condense<small>Chapitre Comp&eacute;tences &amp; Besoins</small></div>
+        <div class="word-dial-track">
+          <input type="range" class="teal-range" id="words_comp_besoins" min="50" max="350" step="50" value="250" oninput="updateDial('comp_besoins')">
+        </div>
+        <div class="word-dial-value teal-val" id="dial_comp_besoins">250<span>mots</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 7. PISTES DE METIERS & FORMATIONS -->
+  <div class="section">
+    <div class="section-header" onclick="toggleSection(this)">
+      <span class="section-tag">07</span>
+      <span class="section-title">Pistes de m&eacute;tiers &amp; formations</span>
+      <span class="section-toggle">&#9660;</span>
+    </div>
+    <div class="section-body">
+      <div id="metiers-container"></div>
+      <button class="btn-add-metier" onclick="addMetierBlock()">+ Ajouter un m&eacute;tier</button>
+
+      <div class="word-dial">
+        <div class="word-dial-label">Mots condense<small>Chapitre M&eacute;tiers</small></div>
+        <div class="word-dial-track">
+          <input type="range" class="teal-range" id="words_metiers" min="50" max="350" step="50" value="250" oninput="updateDial('metiers')">
+        </div>
+        <div class="word-dial-value teal-val" id="dial_metiers">250<span>mots</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 8. PLAN D'ACTION -->
+  <div class="section">
+    <div class="section-header" onclick="toggleSection(this)">
+      <span class="section-tag">08</span>
+      <span class="section-title">Plan d'action</span>
+      <span class="section-toggle">&#9660;</span>
+    </div>
+    <div class="section-body">
+      <label style="display:block;margin-bottom:8px;">&Eacute;tapes concr&egrave;tes pour le jeune</label>
+      <textarea id="plan_action" class="multi" placeholder="Visiter les &eacute;coles, rencontrer un professionnel, explorer l'IA, consulter des sites...&#10;&#10;Ces &eacute;tapes seront structur&eacute;es dans le rapport final." style="min-height:120px;"></textarea>
+
+      <div class="word-dial">
+        <div class="word-dial-label">Mots condense<small>Chapitre Plan d'action</small></div>
+        <div class="word-dial-track">
+          <input type="range" class="teal-range" id="words_plan_action" min="50" max="350" step="50" value="200" oninput="updateDial('plan_action')">
+        </div>
+        <div class="word-dial-value teal-val" id="dial_plan_action">200<span>mots</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 9. NOTES -->
+  <div class="section">
+    <div class="section-header" onclick="toggleSection(this)">
+      <span class="section-tag">09</span>
       <span class="section-title">Notes du coach &amp; Conclusion</span>
       <span class="section-toggle">&#9660;</span>
     </div>

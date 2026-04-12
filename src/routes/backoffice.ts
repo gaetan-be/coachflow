@@ -64,7 +64,9 @@ backofficeRoutes.put('/api/coachee/:id', async (req: Request, res: Response) => 
     const {
       prenom, nom, date_naissance, ecole_nom, code_postal,
       date_seance, choix, loisirs, ennea_base, ennea_sous_type,
-      mbti, riasec, words_ennea, words_mbti, words_riasec, notes_coach
+      mbti, riasec, words_ennea, words_mbti, words_riasec, notes_coach,
+      valeurs, competences, besoins, words_comp_besoins,
+      metiers, words_metiers, plan_action, words_plan_action
     } = req.body;
 
     await pool.query(`
@@ -73,14 +75,22 @@ backofficeRoutes.put('/api/coachee/:id', async (req: Request, res: Response) => 
         code_postal = $5, date_seance = $6, choix = $7, loisirs = $8,
         ennea_base = $9, ennea_sous_type = $10, mbti = $11, riasec = $12,
         words_ennea = $13, words_mbti = $14, words_riasec = $15,
-        notes_coach = $16, updated_at = NOW()
-      WHERE id = $17 AND coach_id = $18
+        notes_coach = $16,
+        valeurs = $17, competences = $18, besoins = $19, words_comp_besoins = $20,
+        metiers = $21::jsonb, words_metiers = $22,
+        plan_action = $23, words_plan_action = $24,
+        updated_at = NOW()
+      WHERE id = $25 AND coach_id = $26
     `, [
       prenom, nom, date_naissance, ecole_nom || null,
       code_postal || null, date_seance || null, choix || null, loisirs || null,
       ennea_base || null, ennea_sous_type || null, mbti || null, riasec || null,
       words_ennea || 250, words_mbti || 250, words_riasec || 200,
-      notes_coach || null, req.params.id, req.session.coachId
+      notes_coach || null,
+      valeurs || null, competences || null, besoins || null, words_comp_besoins || 250,
+      metiers ? JSON.stringify(metiers) : null, words_metiers || 250,
+      plan_action || null, words_plan_action || 200,
+      req.params.id, req.session.coachId
     ]);
 
     res.json({ ok: true });

@@ -34,11 +34,28 @@ async function complete(prompt: string): Promise<string> {
 
 export async function generateEnneagrammeChapter(
   profile: ProfileData,
-  enneaBase: number,
+  enneaCodes: string[],
   enneaSousType: string | null,
-  wordCount: number
+  wordCount: number,
+  templateContent: string | null = null,
 ): Promise<string> {
   const sousTypeText = enneaSousType ? ` avec un sous-type ${enneaSousType}` : '';
+  const typesDescription = enneaCodes
+    .map((code, i) => `${i + 1}. Type ${code}`)
+    .join(', ');
+
+  const templateBlock = templateContent
+    ? `\nVoici les fiches de référence pour les types Ennéagramme identifiés. Base-toi sur ce contenu pour tes explications :\n\n---\n${templateContent}\n---\n`
+    : '';
+
+  const consignes = templateContent
+    ? `- Base tes explications sur les fiches de référence ci-dessus : reprends les forces, motivations, peurs, environnements de travail et secteurs affinitaires qui y figurent
+- Personnalise le texte en faisant des liens concrets avec les loisirs, centres d'intérêt et orientations envisagées du jeune
+- Ne recopie pas les fiches mot pour mot : reformule, synthétise et adapte le contenu au contexte du jeune
+- Mets en avant l'interaction entre les types dominants et ce que cela signifie pour l'orientation`
+    : `- Explique les forces et les caractéristiques des types identifiés dans le contexte de l'orientation scolaire et professionnelle
+- Mets en avant l'interaction entre les types dominants
+- Fais des liens concrets avec les loisirs et centres d'intérêt mentionnés si disponibles`;
 
   return complete(`Tu es une coach en orientation scolaire experte en Ennéagramme. Rédige un chapitre de rapport d'orientation pour un jeune.
 
@@ -48,15 +65,14 @@ Informations sur le jeune :
 - Orientations envisagées : ${profile.choix || 'Non renseignées'}
 - Notes du coach : ${profile.notes_coach || 'Aucune'}
 
-Type Ennéagramme identifié : Type ${enneaBase}${sousTypeText}
-
+Types Ennéagramme identifiés (par ordre de dominance) : ${typesDescription}${sousTypeText}
+${templateBlock}
 Consignes :
 - Écris environ ${wordCount} mots
 - Utilise le tutoiement (tu/ton/ta)
 - Ton bienveillant et encourageant, adapté à un adolescent/jeune adulte
-- Explique les forces et les caractéristiques du type ${enneaBase} dans le contexte de l'orientation scolaire et professionnelle
-- Fais des liens concrets avec les loisirs et centres d'intérêt mentionnés si disponibles
-- Ne mentionne pas que tu es une IA
+${consignes}
+- Ne mentionne pas que tu es une IA ni que tu utilises des fiches de référence
 - Écris directement le contenu du chapitre, sans titre ni introduction méta
 
 Rédige le chapitre Ennéagramme :`);
@@ -147,4 +163,105 @@ ${consignes}
 - Écris directement le contenu du chapitre, sans titre ni introduction méta
 
 Rédige le chapitre RIASEC :`);
+}
+
+export async function generateCompetencesBesoinsChapter(
+  profile: ProfileData,
+  competences: string[],
+  besoins: string[],
+  wordCount: number
+): Promise<string> {
+  const compList = competences.length > 0 ? competences.join(', ') : 'Non renseignées';
+  const besoinslist = besoins.length > 0 ? besoins.join(', ') : 'Non renseignés';
+
+  return complete(`Tu es une coach en orientation scolaire. Rédige un chapitre de rapport d'orientation sur les compétences clés et les besoins fondamentaux d'un jeune.
+
+Informations sur le jeune :
+- Prénom : ${profile.prenom}
+- Loisirs : ${profile.loisirs || 'Non renseignés'}
+- Orientations envisagées : ${profile.choix || 'Non renseignées'}
+- Notes du coach : ${profile.notes_coach || 'Aucune'}
+
+Compétences clés identifiées : ${compList}
+Besoins fondamentaux identifiés : ${besoinslist}
+
+Consignes :
+- Écris environ ${wordCount} mots
+- Utilise le tutoiement (tu/ton/ta)
+- Ton bienveillant et encourageant, adapté à un adolescent/jeune adulte
+- Explique comment ces compétences se manifestent concrètement et comment les valoriser dans un parcours d'orientation
+- Relie les besoins fondamentaux à des environnements d'études et de travail qui les respectent
+- Fais des liens concrets avec les loisirs et centres d'intérêt mentionnés si disponibles
+- Ne mentionne pas que tu es une IA
+- Écris directement le contenu du chapitre, sans titre ni introduction méta
+
+Rédige le chapitre Compétences & Besoins :`);
+}
+
+export async function generateMetiersChapter(
+  profile: ProfileData,
+  metiers: Array<{ nom: string; motscles: string; formations: Array<{ ecole: string; ville: string }> }>,
+  wordCount: number
+): Promise<string> {
+  const metiersDescription = metiers.map((m, i) => {
+    let desc = `${i + 1}. ${m.nom}`;
+    if (m.motscles) desc += ` — ${m.motscles}`;
+    if (m.formations && m.formations.length > 0) {
+      const formationsText = m.formations.map(f => `${f.ecole}${f.ville ? ' (' + f.ville + ')' : ''}`).join(', ');
+      desc += `\n   Formations envisagées : ${formationsText}`;
+    }
+    return desc;
+  }).join('\n');
+
+  return complete(`Tu es une coach en orientation scolaire. Rédige un chapitre de rapport d'orientation sur les pistes de métiers et formations identifiées pour un jeune.
+
+Informations sur le jeune :
+- Prénom : ${profile.prenom}
+- Loisirs : ${profile.loisirs || 'Non renseignés'}
+- Orientations envisagées : ${profile.choix || 'Non renseignées'}
+- Notes du coach : ${profile.notes_coach || 'Aucune'}
+
+Pistes de métiers identifiées :
+${metiersDescription}
+
+Consignes :
+- Écris environ ${wordCount} mots
+- Utilise le tutoiement (tu/ton/ta)
+- Ton bienveillant et encourageant, adapté à un adolescent/jeune adulte
+- Pour chaque métier, explique brièvement en quoi il correspond au profil du jeune
+- Mentionne les formations et écoles identifiées comme des pistes concrètes à explorer
+- Fais des liens avec les loisirs et centres d'intérêt du jeune
+- Ne mentionne pas que tu es une IA
+- Écris directement le contenu du chapitre, sans titre ni introduction méta
+
+Rédige le chapitre Métiers & Formations :`);
+}
+
+export async function generatePlanActionChapter(
+  profile: ProfileData,
+  planAction: string,
+  wordCount: number
+): Promise<string> {
+  return complete(`Tu es une coach en orientation scolaire. Rédige un chapitre de rapport d'orientation présentant un plan d'action concret pour un jeune.
+
+Informations sur le jeune :
+- Prénom : ${profile.prenom}
+- Loisirs : ${profile.loisirs || 'Non renseignés'}
+- Orientations envisagées : ${profile.choix || 'Non renseignées'}
+- Notes du coach : ${profile.notes_coach || 'Aucune'}
+
+Étapes proposées par la coach :
+${planAction}
+
+Consignes :
+- Écris environ ${wordCount} mots
+- Utilise le tutoiement (tu/ton/ta)
+- Ton bienveillant et encourageant, adapté à un adolescent/jeune adulte
+- Structure les étapes de manière claire et motivante
+- Ajoute des conseils pratiques pour chaque étape si pertinent
+- Donne envie au jeune de passer à l'action
+- Ne mentionne pas que tu es une IA
+- Écris directement le contenu du chapitre, sans titre ni introduction méta
+
+Rédige le chapitre Plan d'action :`);
 }

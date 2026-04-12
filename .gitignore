@@ -3,3 +3,4 @@ dist/
 .env
 *.docx
 !templates/report-template.docx
+.DS_Store

@@ -3,7 +3,10 @@ import path from 'path';
 import PizZip from 'pizzip';
 import Docxtemplater from 'docxtemplater';
 import { pool } from '../db';
-import { generateEnneagrammeChapter, generateMbtiChapter, generateRiasecChapter } from './ai';
+import {
+  generateEnneagrammeChapter, generateMbtiChapter, generateRiasecChapter,
+  generateCompetencesBesoinsChapter, generateMetiersChapter, generatePlanActionChapter
+} from './ai';
 import { sendReportEmail } from './email';
 
 const TEMPLATE_PATH = path.join(__dirname, '..', '..', 'templates', 'report-template.docx');
@@ -102,7 +105,7 @@ export async function processReport(reportId: number): Promise<void> {
   // Generate AI chapters in parallel
   const chapters = await Promise.all([
     data.ennea_base
-      ? generateEnneagrammeChapter(profile, data.ennea_base, data.ennea_sous_type, data.words_ennea || 250)
+      ? generateEnneagrammeChapter(profile, String(data.ennea_base).split(',').filter(Boolean), data.ennea_sous_type, data.words_ennea || 250)
       : Promise.resolve(''),
     data.mbti
       ? generateMbtiChapter(profile, data.mbti, data.words_mbti || 250, loadMbtiTemplate(data.mbti))
@@ -110,9 +113,23 @@ export async function processReport(reportId: number): Promise<void> {
     data.riasec
       ? generateRiasecChapter(profile, data.riasec.split(','), data.words_riasec || 200, loadRiasecTemplates(data.riasec.split(',')))
       : Promise.resolve(''),
+    data.competences || data.besoins
+      ? generateCompetencesBesoinsChapter(
+          profile,
+          (data.competences || '').split(',').filter(Boolean),
+          (data.besoins || '').split(',').filter(Boolean),
+          data.words_comp_besoins || 250
+        )
+      : Promise.resolve(''),
+    data.metiers && Array.isArray(data.metiers) && data.metiers.length > 0
+      ? generateMetiersChapter(profile, data.metiers, data.words_metiers || 250)
+      : Promise.resolve(''),
+    data.plan_action
+      ? generatePlanActionChapter(profile, data.plan_action, data.words_plan_action || 200)
+      : Promise.resolve(''),
   ]);
 
-  const [enneaText, mbtiText, riasecText] = chapters;
+  const [enneaText, mbtiText, riasecText, compBesoinsText, metiersText, planActionText] = chapters;
 
   // Build Word document
   let docBuffer: Buffer;
@@ -144,9 +161,17 @@ export async function processReport(reportId: number): Promise<void> {
       ennea_sous_type: data.ennea_sous_type || '',
       mbti: data.mbti || '',
       riasec: data.riasec || '',
+      valeurs: data.valeurs || '',
+      competences: data.competences || '',
+      besoins: data.besoins || '',
+      metiers_data: data.metiers ? JSON.stringify(data.metiers, null, 2) : '',
+      plan_action: data.plan_action || '',
       chapitre_enneagramme: enneaText,
       chapitre_mbti: mbtiText,
       chapitre_riasec: riasecText,
+      chapitre_competences_besoins: compBesoinsText,
+      chapitre_metiers: metiersText,
+      chapitre_plan_action: planActionText,
       notes_coach: data.notes_coach || '',
     });
 
@@ -168,6 +193,15 @@ export async function processReport(reportId: number): Promise<void> {
       '',
       '=== RIASEC ===',
       riasecText || '(Non renseigné)',
+      '',
+      '=== COMPÉTENCES & BESOINS ===',
+      compBesoinsText || '(Non renseigné)',
+      '',
+      '=== MÉTIERS & FORMATIONS ===',
+      metiersText || '(Non renseigné)',
+      '',
+      '=== PLAN D\'ACTION ===',
+      planActionText || '(Non renseigné)',
       '',
       '=== NOTES DU COACH ===',
       data.notes_coach || '(Aucune)',
