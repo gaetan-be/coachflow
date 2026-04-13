@@ -229,10 +229,17 @@ const docFooter = new Footer({ children:[
 
 // ── API CLAUDE ──────────────────────────────────────────────────────────────
 
+const ANTHROPIC_BASE_URL = (process.env.ANTHROPIC_BASE_URL || "https://api.anthropic.com").replace(/\/+$/, "");
+const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY || "";
+
 async function callClaude(systemPrompt, userPrompt) {
-  const response = await fetch("https://api.anthropic.com/v1/messages", {
+  const response = await fetch(`${ANTHROPIC_BASE_URL}/v1/messages`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      "x-api-key": ANTHROPIC_API_KEY,
+      "anthropic-version": "2023-06-01",
+    },
     body: JSON.stringify({
       model: "claude-sonnet-4-20250514",
       max_tokens: 2000,
