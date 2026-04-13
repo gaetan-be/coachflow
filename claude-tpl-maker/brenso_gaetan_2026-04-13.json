@@ -1,0 +1,30 @@
+{
+  "prenom": "Gaetan",
+  "nom": "DENAISSE",
+  "anniversaire": "2007-06-15",
+  "age": 18,
+  "zip": "1050",
+  "date_seance": "2026-04-01",
+  "ecole": "JOS SCHOOL",
+  "choix": "Charpentier",
+  "loisirs": "Judo",
+  "ennea_bases": [
+    "2",
+    "7"
+  ],
+  "ennea_soustype": "Tête-à-tête",
+  "mbti": "ISFJ",
+  "riasec": "IS",
+  "valeurs": [],
+  "competences": [],
+  "besoins": [],
+  "metiers": [],
+  "plan_action": "Génail la rencontre",
+  "notes": "Génail la rencontre",
+  "words_ennea": 150,
+  "words_mbti": 250,
+  "words_riasec": 200,
+  "words_comp_besoins": 150,
+  "words_metiers": 250,
+  "words_plan_action": 200
+}
