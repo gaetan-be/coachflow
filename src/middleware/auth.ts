@@ -10,6 +10,6 @@ export function requireAuth(req: Request, res: Response, next: NextFunction): vo
   if (req.session.coachId) {
     next();
   } else {
-    res.redirect('/login');
+    res.redirect('/coach');
   }
 }

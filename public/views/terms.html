@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BRENSO &mdash; Conditions et protection des donn&eacute;es</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/login.css">
+<style>
+  body {
+    flex-direction: column;
+    padding: 60px 20px;
+    align-items: center;
+  }
+  .terms-card {
+    background: var(--dark2);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 56px 56px;
+    width: 100%;
+    max-width: 760px;
+    text-align: left;
+  }
+  .terms-card .logo {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 32px;
+  }
+  .terms-card .logo-circle {
+    width: 40px; height: 40px;
+    border: 1.5px solid var(--teal);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 16px; color: var(--teal); font-weight: 600;
+  }
+  .terms-card .logo-name {
+    font-size: 12px; letter-spacing: 3px;
+    text-transform: uppercase; font-weight: 500;
+  }
+  .terms-card h1 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 32px;
+    font-weight: 300;
+    color: rgba(255,255,255,0.88);
+    margin-bottom: 8px;
+    line-height: 1.3;
+  }
+  .terms-card .subtitle {
+    font-size: 12px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 40px;
+  }
+  .terms-card h2 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 22px;
+    font-weight: 400;
+    color: var(--teal);
+    margin-top: 32px;
+    margin-bottom: 14px;
+  }
+  .terms-card p,
+  .terms-card li {
+    font-size: 14px;
+    line-height: 1.7;
+    color: rgba(255,255,255,0.78);
+    margin-bottom: 12px;
+  }
+  .terms-card ul {
+    padding-left: 20px;
+    margin-bottom: 16px;
+  }
+  .terms-card li { margin-bottom: 6px; }
+  .terms-card strong {
+    color: rgba(255,255,255,0.92);
+    font-weight: 600;
+  }
+  .terms-card a {
+    color: var(--teal);
+    text-decoration: none;
+    border-bottom: 1px solid rgba(63,168,184,0.4);
+  }
+  .terms-card a:hover { color: var(--teal2); }
+  .terms-card .box {
+    background: rgba(63,168,184,0.08);
+    border: 1px solid var(--border2);
+    border-radius: 10px;
+    padding: 18px 22px;
+    margin: 20px 0;
+  }
+  .terms-card .box p { margin-bottom: 0; }
+  .back-link {
+    display: inline-block;
+    margin-top: 32px;
+    font-size: 12px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    text-decoration: none;
+    border: none !important;
+  }
+  .back-link:hover { color: var(--teal); }
+  @media (max-width: 640px) {
+    .terms-card { padding: 36px 28px; }
+    .terms-card h1 { font-size: 26px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="terms-card">
+  <div class="logo">
+    <div class="logo-circle">B</div>
+    <div class="logo-name">BRENSO</div>
+  </div>
+
+  <h1>Conditions d'utilisation &amp; protection des donn&eacute;es</h1>
+  <div class="subtitle">Derni&egrave;re mise &agrave; jour : avril 2026</div>
+
+  <div class="box">
+    <p><strong>En r&eacute;sum&eacute; :</strong> Brenso collecte uniquement les informations
+    n&eacute;cessaires au coach pour pr&eacute;parer votre entretien. Vos donn&eacute;es sont
+    stock&eacute;es en Europe, chez OVH, et ne sont jamais revendues ni partag&eacute;es &agrave;
+    des fins commerciales. Une partie limit&eacute;e est transmise &agrave; Anthropic
+    (&Eacute;tats-Unis) pour la r&eacute;daction du rapport par intelligence artificielle
+    &mdash; voir la section 5.</p>
+  </div>
+
+  <h2>1. Qu'est-ce que Brenso&nbsp;?</h2>
+  <p>
+    Brenso est une plateforme utilis&eacute;e par des coachs d'orientation pour
+    accompagner des jeunes dans le choix de leurs &eacute;tudes. Le jeune remplit un
+    court questionnaire en ligne, que le coach consulte avant la premi&egrave;re
+    s&eacute;ance afin d'adapter son accompagnement.
+  </p>
+
+  <h2>2. Quelles donn&eacute;es collectons-nous&nbsp;?</h2>
+  <p>Nous appliquons le principe de <strong>minimisation des donn&eacute;es</strong> :
+  nous ne conservons que ce qui est strictement utile au coaching.</p>
+  <ul>
+    <li>Pr&eacute;nom, nom, date de naissance</li>
+    <li>&Eacute;tablissement scolaire et ann&eacute;e en cours</li>
+    <li>Orientation actuelle, loisirs, pistes de m&eacute;tiers envisag&eacute;es</li>
+    <li>R&eacute;sultats des questionnaires de profil (MBTI, RIASEC, Ennagramme)
+      lorsque le coach les renseigne</li>
+    <li>Le rapport d'orientation g&eacute;n&eacute;r&eacute; par le coach</li>
+  </ul>
+  <p>
+    Aucune donn&eacute;e sensible au sens du RGPD n'est demand&eacute;e&nbsp;: ni
+    num&eacute;ro d'identification nationale, ni donn&eacute;e de sant&eacute;, ni
+    opinions politiques ou religieuses.
+  </p>
+
+  <h2>3. &Agrave; quoi servent ces donn&eacute;es&nbsp;?</h2>
+  <p>Elles servent <strong>uniquement</strong> &agrave; :</p>
+  <ul>
+    <li>permettre au coach de pr&eacute;parer et mener l'accompagnement&nbsp;;</li>
+    <li>produire le rapport d'orientation remis au jeune et &agrave; sa famille.</li>
+  </ul>
+  <p>
+    Elles ne sont <strong>jamais</strong> revendues, partag&eacute;es avec des
+    tiers commerciaux, ni utilis&eacute;es &agrave; des fins publicitaires ou
+    statistiques externes.
+  </p>
+
+  <h2>4. O&ugrave; sont stock&eacute;es les donn&eacute;es&nbsp;?</h2>
+  <p>
+    L'ensemble du stockage (base de donn&eacute;es, rapports g&eacute;n&eacute;r&eacute;s,
+    sauvegardes) est h&eacute;berg&eacute; <strong>dans l'Union Europ&eacute;enne</strong>,
+    sur l'infrastructure d'<strong>OVH</strong> (France).
+  </p>
+  <p>
+    <strong>Transfert hors UE li&eacute; &agrave; la g&eacute;n&eacute;ration du rapport :</strong>
+    pour r&eacute;diger les chapitres du rapport d'orientation, Brenso utilise un
+    mod&egrave;le d'intelligence artificielle fourni par <strong>Anthropic</strong>
+    (soci&eacute;t&eacute; am&eacute;ricaine, &Eacute;tats-Unis). Lors de cette g&eacute;n&eacute;ration, les
+    informations suivantes sont transmises &agrave; Anthropic&nbsp;:
+  </p>
+  <ul>
+    <li>le <strong>pr&eacute;nom</strong> du jeune&nbsp;;</li>
+    <li>ses loisirs et centres d'int&eacute;r&ecirc;t&nbsp;;</li>
+    <li>les orientations envisag&eacute;es&nbsp;;</li>
+    <li>les r&eacute;sultats des questionnaires de profil (codes MBTI, RIASEC, Ennagramme)&nbsp;;</li>
+    <li>les notes r&eacute;dig&eacute;es par le coach et le plan d'action propos&eacute;.</li>
+  </ul>
+  <p>
+    Ne sont <strong>jamais</strong> transmis : le nom de famille, la date de
+    naissance, l'&eacute;tablissement scolaire, ni aucune autre donn&eacute;e directement
+    identifiante.
+  </p>
+  <p>
+    Ce transfert est encadr&eacute; par le <strong>Data Privacy Framework
+    UE&ndash;&Eacute;tats-Unis</strong>, dont Anthropic est certifi&eacute;, et par les
+    clauses contractuelles types (SCC) de la Commission europ&eacute;enne.
+    Anthropic s'engage &agrave; ne pas utiliser les donn&eacute;es transmises via son
+    API pour entra&icirc;ner ses mod&egrave;les.
+  </p>
+
+  <h2>5. Qui est responsable&nbsp;?</h2>
+  <p><strong>Responsable de traitement (Data Controller)</strong></p>
+  <ul>
+    <li>Narido.eu</li>
+  </ul>
+  <p><strong>Sous-traitants (Data Processors)</strong></p>
+  <ul>
+    <li><strong>OVH</strong> (UE) &mdash; h&eacute;bergement et infrastructure</li>
+    <li><strong>Narido.eu</strong> (UE) &mdash; exploitation et maintenance de la plateforme</li>
+    <li><strong>Anthropic</strong> (&Eacute;tats-Unis) &mdash; g&eacute;n&eacute;ration du texte
+      du rapport via son API Claude, sous couvert du Data Privacy Framework UE&ndash;US</li>
+  </ul>
+
+  <h2>6. Combien de temps les donn&eacute;es sont-elles conserv&eacute;es&nbsp;?</h2>
+  <p>
+    Les donn&eacute;es d'un coachee sont conserv&eacute;es le temps de la mission
+    d'accompagnement. Au terme de celle-ci, elles peuvent &ecirc;tre supprim&eacute;es
+    sur simple demande, ou archiv&eacute;es uniquement si le coach et le jeune
+    conviennent d'un suivi dans le temps.
+  </p>
+
+  <h2>7. Vos droits (RGPD)</h2>
+  <p>Conform&eacute;ment au R&egrave;glement G&eacute;n&eacute;ral sur la Protection des
+  Donn&eacute;es (RGPD), vous disposez des droits suivants :</p>
+  <ul>
+    <li><strong>Acc&egrave;s</strong>&nbsp;: savoir quelles donn&eacute;es nous d&eacute;tenons sur vous</li>
+    <li><strong>Rectification</strong>&nbsp;: faire corriger une information inexacte</li>
+    <li><strong>Effacement</strong>&nbsp;: demander la suppression de vos donn&eacute;es</li>
+    <li><strong>Limitation</strong>&nbsp;: restreindre le traitement de vos donn&eacute;es</li>
+    <li><strong>Portabilit&eacute;</strong>&nbsp;: r&eacute;cup&eacute;rer vos donn&eacute;es dans un format r&eacute;utilisable</li>
+    <li><strong>Opposition</strong>&nbsp;: vous opposer au traitement</li>
+  </ul>
+  <p>
+    Pour exercer l'un de ces droits, il suffit d'&eacute;crire &agrave;
+    <a href="mailto:contact@narido.eu">contact@narido.eu</a>. Vous pouvez
+    &eacute;galement introduire une r&eacute;clamation aupr&egrave;s de l'autorit&eacute;
+    de protection des donn&eacute;es comp&eacute;tente.
+  </p>
+
+  <h2>8. S&eacute;curit&eacute;</h2>
+  <p>
+    L'acc&egrave;s &agrave; l'espace coach est prot&eacute;g&eacute; par identifiant et mot de
+    passe. Les communications sont chiffr&eacute;es (HTTPS/TLS). Les mots de passe
+    sont stock&eacute;s sous forme hach&eacute;e et ne sont jamais accessibles en clair.
+  </p>
+
+  <h2>9. Contact</h2>
+  <p>
+    Pour toute question concernant vos donn&eacute;es ou cette page&nbsp;:
+    <a href="mailto:contact@narido.eu">contact@narido.eu</a>
+  </p>
+
+  <a href="/" class="back-link">&larr; Retour &agrave; l'accueil</a>
+</div>
+
+</body>
+</html>

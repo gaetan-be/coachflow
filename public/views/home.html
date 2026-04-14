@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BRENSO &mdash; Coaching d'orientation</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/login.css">
+<style>
+  body {
+    flex-direction: column;
+    padding: 40px 20px;
+  }
+  .home-card {
+    background: var(--dark2);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 56px 48px;
+    width: 100%;
+    max-width: 560px;
+    text-align: center;
+  }
+  .home-card .logo {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 36px;
+  }
+  .home-card .logo-circle {
+    width: 44px; height: 44px;
+    border: 1.5px solid var(--teal);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 18px; color: var(--teal); font-weight: 600;
+  }
+  .home-card .logo-name {
+    font-size: 13px; letter-spacing: 3px;
+    text-transform: uppercase; font-weight: 500;
+  }
+  .home-card h1 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 34px;
+    font-weight: 300;
+    color: rgba(255,255,255,0.88);
+    margin-bottom: 16px;
+    line-height: 1.3;
+  }
+  .home-card p.tagline {
+    font-size: 15px;
+    color: var(--muted);
+    line-height: 1.6;
+    margin-bottom: 36px;
+    max-width: 420px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .home-footer {
+    margin-top: 32px;
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .home-footer a {
+    color: var(--muted);
+    text-decoration: none;
+    margin-left: 10px;
+    border-bottom: 1px solid transparent;
+    transition: color 0.2s, border-color 0.2s;
+  }
+  .home-footer a:hover {
+    color: var(--teal);
+    border-color: var(--teal);
+  }
+</style>
+</head>
+<body>
+
+<div class="home-card">
+  <div class="logo">
+    <div class="logo-circle">B</div>
+    <div class="logo-name">BRENSO</div>
+  </div>
+
+  <h1>Un accompagnement sur mesure<br>pour trouver sa voie.</h1>
+
+  <p class="tagline">
+    Brenso aide les jeunes &agrave; identifier leur profil et &agrave; choisir l'orientation scolaire
+    qui leur ressemble, &agrave; travers un coaching personnalis&eacute;.
+  </p>
+
+  <div class="home-footer">
+    Coaching d'orientation
+    <a href="/terms">Conditions &amp; RGPD</a>
+  </div>
+</div>
+
+</body>
+</html>

@@ -5,8 +5,18 @@ import { questionnaireRateLimit } from '../middleware/rateLimit';
 
 export const publicRoutes = Router();
 
-// Serve questionnaire page
+// Front page
 publicRoutes.get('/', (_req: Request, res: Response) => {
+  res.sendFile(path.join(__dirname, '..', '..', 'public', 'views', 'home.html'));
+});
+
+// Terms & GDPR page
+publicRoutes.get('/terms', (_req: Request, res: Response) => {
+  res.sendFile(path.join(__dirname, '..', '..', 'public', 'views', 'terms.html'));
+});
+
+// Serve questionnaire page
+publicRoutes.get('/hello', (_req: Request, res: Response) => {
   res.sendFile(path.join(__dirname, '..', '..', 'public', 'views', 'questionnaire.html'));
 });
 

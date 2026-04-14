@@ -465,7 +465,7 @@ function populateForm(data) {
 
 function logout() {
   fetch('/api/logout', { method: 'POST' }).then(function() {
-    window.location.href = '/login';
+    window.location.href = '/coach';
   });
 }
 

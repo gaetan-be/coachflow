@@ -5,7 +5,7 @@ import { pool } from '../db';
 
 export const authRoutes = Router();
 
-authRoutes.get('/login', (_req: Request, res: Response) => {
+authRoutes.get('/coach', (_req: Request, res: Response) => {
   res.sendFile(path.join(__dirname, '..', '..', 'public', 'views', 'login.html'));
 });
 
