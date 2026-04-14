@@ -231,6 +231,7 @@ const docFooter = new Footer({ children:[
 
 const ANTHROPIC_BASE_URL = (process.env.ANTHROPIC_BASE_URL || "https://api.anthropic.com").replace(/\/+$/, "");
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY || "";
+const CLAUDE_MODEL = process.env.CLAUDE_MODEL || "claude-sonnet-4-20250514";
 
 async function callClaude(systemPrompt, userPrompt) {
   const response = await fetch(`${ANTHROPIC_BASE_URL}/v1/messages`, {
@@ -241,7 +242,7 @@ async function callClaude(systemPrompt, userPrompt) {
       "anthropic-version": "2023-06-01",
     },
     body: JSON.stringify({
-      model: "claude-sonnet-4-20250514",
+      model: CLAUDE_MODEL,
       max_tokens: 2000,
       system: systemPrompt,
       messages: [{ role: "user", content: userPrompt }],
@@ -249,7 +250,10 @@ async function callClaude(systemPrompt, userPrompt) {
   });
   const data = await response.json();
   if (data.error) throw new Error(JSON.stringify(data.error));
-  return data.content[0].text.trim();
+  let text = data.content[0].text.trim();
+  // Strip markdown code fences if the model wraps JSON in ```json ... ```
+  text = text.replace(/^```(?:json)?\s*\n?/i, '').replace(/\n?```\s*$/, '');
+  return text;
 }
 
 // ── PROMPT BUILDER ───────────────────────────────────────────────────────────
@@ -717,11 +721,10 @@ function buildDocument(q, chapters) {
 
 async function main() {
   const jsonPath = process.argv[2];
-  if (!jsonPath) { console.error("Usage: node brenso-rapport.js <questionnaire.json>"); process.exit(1); }
+  const outPath = process.argv[3] || path.join(process.cwd(), 'brenso-raport.docx');
+  if (!jsonPath) { console.error("Usage: node brenso-rapport.js <questionnaire.json> [output.docx]"); process.exit(1); }
 
   const q = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
-  const prenom = (q.prenom||"jeune").toLowerCase().replace(/\s+/g,"_");
-  const outPath = `/home/claude/rapport-${prenom}.docx`;
 
   console.log(`\n🔵 BRENSO — Génération rapport ${q.prenom} ${q.nom}`);
   console.log(`   Enneagramme : ${q.ennea_bases.join("+")} (${q.ennea_soustype})`);

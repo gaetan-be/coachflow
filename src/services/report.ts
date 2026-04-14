@@ -66,7 +66,7 @@ export function renderDocxWithClaude(data: any): Promise<Buffer> {
     const questionnaireJson = mapCoacheeToJson(data);
     fs.writeFileSync(jsonPath, JSON.stringify(questionnaireJson, null, 2));
 
-    execFile('bash', [MAKE_DOCX_SCRIPT, jsonPath], {
+    execFile('bash', [MAKE_DOCX_SCRIPT, jsonPath, outputPath], {
       cwd: tmpDir,
       timeout: 5 * 60 * 1000,
       maxBuffer: 10 * 1024 * 1024,
