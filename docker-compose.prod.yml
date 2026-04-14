@@ -1,0 +1,42 @@
+version: "3.8"
+
+services:
+  postgres:
+    container_name: brenso-postgres
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: brenso
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-brenso}
+      POSTGRES_DB: brenso
+    ports:
+      - "5532:5432"
+    volumes:
+      - /srv/brenso/pgdata:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  backend:
+    container_name: brenso-backend
+    build: .
+    depends_on:
+      - postgres
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: postgresql://brenso:${POSTGRES_PASSWORD:-brenso}@postgres:5432/brenso
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+      ANTHROPIC_BASE_URL: ${ANTHROPIC_BASE_URL:-https://api.anthropic.com}
+      CLAUDE_MODEL: ${CLAUDE_MODEL:-claude-sonnet-4-20250514}
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.brenso.rule=Host(`brenso.oriado.com`)"
+      - "traefik.http.routers.brenso.entrypoints=websecure"
+      - "traefik.http.routers.brenso.tls.certresolver=letsencrypt"
+      - "traefik.http.services.brenso.loadbalancer.server.port=3000"
+    networks:
+      - proxy
+      - default
+    restart: unless-stopped
+
+networks:
+  proxy:
+    external: true

@@ -1,0 +1,23 @@
+---
+# Copy to vars.yml and fill in. vars.yml is gitignored.
+
+postgres_password: "change-me-strong-password"
+session_secret: "change-me-to-a-long-random-string"
+
+coach_name: "Coach Brenso"
+coach_email: "coach@brenso.be"
+coach_password: "change-me"
+
+openai_api_key: "sk-..."
+openai_base_url: "https://api.openai.com/v1"
+openai_model: "gpt-4o"
+
+anthropic_api_key: ""
+anthropic_base_url: "https://api.anthropic.com"
+claude_model: "claude-sonnet-4-20250514"
+
+smtp_host: "smtp.example.com"
+smtp_port: 587
+smtp_user: "your@email.com"
+smtp_pass: "your-password"
+smtp_from: "noreply@brenso.be"

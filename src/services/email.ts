@@ -21,7 +21,15 @@ export async function sendReportEmail(
     return;
   }
 
-  await transporter.sendMail({
+  try {
+    await transporter.verify();
+    console.log(`SMTP verified: ${config.smtp.host}:${config.smtp.port} as ${config.smtp.user}`);
+  } catch (err) {
+    console.error('SMTP verify failed:', err);
+    throw err;
+  }
+
+  const info = await transporter.sendMail({
     from: config.smtp.from,
     to: coachEmail,
     subject: `Brenso — Rapport d'orientation : ${coacheeName}`,
@@ -33,5 +41,13 @@ export async function sendReportEmail(
         contentType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
       },
     ],
+  });
+
+  console.log('SMTP sendMail info:', {
+    messageId: info.messageId,
+    accepted: info.accepted,
+    rejected: info.rejected,
+    response: info.response,
+    envelope: info.envelope,
   });
 }

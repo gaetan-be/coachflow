@@ -1,0 +1,82 @@
+---
+- name: Deploy Brenso
+  hosts: brenso
+  become: true
+  vars_files:
+    - vars.yml
+  vars:
+    app_dir: /srv/brenso/app
+    project_root: "{{ playbook_dir }}/.."
+
+  tasks:
+    - name: Ensure rsync is installed (needed for code sync)
+      apt:
+        name: rsync
+        state: present
+        update_cache: true
+
+    # ---- Directories ----
+    - name: Create persistent data directories
+      file:
+        path: "{{ item }}"
+        state: directory
+        owner: ubuntu
+        group: ubuntu
+        mode: "0755"
+      loop:
+        - /srv/brenso
+        - /srv/brenso/pgdata
+        - "{{ app_dir }}"
+
+    # ---- Sync code ----
+    - name: Sync application source to server
+      delegate_to: localhost
+      become: false
+      ansible.builtin.command:
+        cmd: >
+          rsync -az --delete
+          --exclude=node_modules
+          --exclude=dist
+          --exclude=.git
+          --exclude=.venv
+          --exclude=ansible
+          --exclude=.env
+          --exclude=.DS_Store
+          --exclude='~$*'
+          --exclude='*.retry'
+          -e "ssh -o StrictHostKeyChecking=no"
+          {{ project_root }}/
+          {{ ansible_user }}@{{ inventory_hostname }}:{{ app_dir }}/
+      changed_when: true
+
+    - name: Fix ownership of app directory
+      file:
+        path: "{{ app_dir }}"
+        owner: ubuntu
+        group: ubuntu
+        recurse: true
+
+    # ---- Environment ----
+    - name: Render .env file
+      template:
+        src: templates/env.j2
+        dest: "{{ app_dir }}/.env"
+        owner: ubuntu
+        group: ubuntu
+        mode: "0600"
+
+    # ---- Proxy network (shared with Traefik) ----
+    - name: Ensure external 'proxy' network exists
+      community.docker.docker_network:
+        name: proxy
+        state: present
+
+    # ---- Build & start ----
+    - name: Build and start the stack
+      community.docker.docker_compose_v2:
+        project_src: "{{ app_dir }}"
+        files:
+          - docker-compose.prod.yml
+        build: always
+        state: present
+        remove_orphans: true
