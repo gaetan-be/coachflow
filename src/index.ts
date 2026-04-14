@@ -7,6 +7,7 @@ import { pool, runMigrations } from './db';
 import { publicRoutes } from './routes/public';
 import { authRoutes } from './routes/auth';
 import { backofficeRoutes } from './routes/backoffice';
+import { resolveCoach } from './middleware/coach';
 import { startWorker } from './worker';
 
 const app = express();
@@ -31,6 +32,9 @@ app.use(
     },
   })
 );
+
+// Resolve the coach tenant from the Host header for every request
+app.use(resolveCoach);
 
 // Routes
 app.use('/', publicRoutes);

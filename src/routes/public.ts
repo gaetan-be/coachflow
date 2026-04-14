@@ -1,28 +1,33 @@
 import { Router, Request, Response } from 'express';
-import path from 'path';
 import { pool } from '../db';
 import { questionnaireRateLimit } from '../middleware/rateLimit';
+import { renderBranded } from '../util/renderBranded';
 
 export const publicRoutes = Router();
 
 // Front page
-publicRoutes.get('/', (_req: Request, res: Response) => {
-  res.sendFile(path.join(__dirname, '..', '..', 'public', 'views', 'home.html'));
+publicRoutes.get('/', (req: Request, res: Response) => {
+  renderBranded(req, res, 'views/home.html');
 });
 
 // Terms & GDPR page
-publicRoutes.get('/terms', (_req: Request, res: Response) => {
-  res.sendFile(path.join(__dirname, '..', '..', 'public', 'views', 'terms.html'));
+publicRoutes.get('/terms', (req: Request, res: Response) => {
+  renderBranded(req, res, 'views/terms.html');
 });
 
 // Serve questionnaire page
-publicRoutes.get('/hello', (_req: Request, res: Response) => {
-  res.sendFile(path.join(__dirname, '..', '..', 'public', 'views', 'questionnaire.html'));
+publicRoutes.get('/hello', (req: Request, res: Response) => {
+  renderBranded(req, res, 'views/questionnaire.html');
 });
 
-// Submit questionnaire
+// Submit questionnaire — tenant comes from the Host header via resolveCoach
 publicRoutes.post('/api/questionnaire', questionnaireRateLimit, async (req: Request, res: Response) => {
   try {
+    if (!req.coach) {
+      res.status(500).json({ error: 'Aucun coach configuré.' });
+      return;
+    }
+
     const { prenom, nom, date_naissance, ecole_nom, annee_scolaire, orientation_actuelle, loisirs, choix } = req.body;
 
     if (!prenom || !nom || !date_naissance) {
@@ -30,19 +35,11 @@ publicRoutes.post('/api/questionnaire', questionnaireRateLimit, async (req: Requ
       return;
     }
 
-    // Get the single coach
-    const coachResult = await pool.query('SELECT id FROM coach LIMIT 1');
-    if (coachResult.rows.length === 0) {
-      res.status(500).json({ error: 'Aucun coach configuré.' });
-      return;
-    }
-    const coachId = coachResult.rows[0].id;
-
     const result = await pool.query(
       `INSERT INTO coachee (coach_id, prenom, nom, date_naissance, ecole_nom, annee_scolaire, orientation_actuelle, loisirs, choix)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
        RETURNING id`,
-      [coachId, prenom.trim(), nom.trim(), date_naissance, ecole_nom || null, annee_scolaire || null, orientation_actuelle || null, loisirs || null, choix || null]
+      [req.coach.id, prenom.trim(), nom.trim(), date_naissance, ecole_nom || null, annee_scolaire || null, orientation_actuelle || null, loisirs || null, choix || null]
     );
 
     res.json({ id: result.rows[0].id });

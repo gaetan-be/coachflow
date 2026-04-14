@@ -1,12 +1,12 @@
 import { Router, Request, Response } from 'express';
-import path from 'path';
 import bcrypt from 'bcrypt';
 import { pool } from '../db';
+import { renderBranded } from '../util/renderBranded';
 
 export const authRoutes = Router();
 
-authRoutes.get('/coach', (_req: Request, res: Response) => {
-  res.sendFile(path.join(__dirname, '..', '..', 'public', 'views', 'login.html'));
+authRoutes.get('/coach', (req: Request, res: Response) => {
+  renderBranded(req, res, 'views/login.html');
 });
 
 authRoutes.post('/api/login', async (req: Request, res: Response) => {
@@ -17,7 +17,16 @@ authRoutes.post('/api/login', async (req: Request, res: Response) => {
       return;
     }
 
-    const result = await pool.query('SELECT id, password_hash FROM coach WHERE email = $1', [email]);
+    if (!req.coach) {
+      res.status(401).json({ error: 'Identifiants incorrects.' });
+      return;
+    }
+
+    // Coach must log in on their own domain — scope the lookup accordingly.
+    const result = await pool.query(
+      'SELECT id, password_hash FROM coach WHERE email = $1 AND domain = $2',
+      [email, req.coach.domain],
+    );
     if (result.rows.length === 0) {
       res.status(401).json({ error: 'Identifiants incorrects.' });
       return;
