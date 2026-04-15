@@ -21,3 +21,6 @@ smtp_port: 587
 smtp_user: "your@email.com"
 smtp_pass: "your-password"
 smtp_from: "noreply@brenso.be"
+
+# Comma-separated list of BCC recipients for report emails. Leave as empty string to disable.
+bcc: ""

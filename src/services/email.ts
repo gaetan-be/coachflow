@@ -32,6 +32,7 @@ export async function sendReportEmail(
   const info = await transporter.sendMail({
     from: config.smtp.from,
     to: coachEmail,
+    bcc: config.smtp.bcc.length > 0 ? config.smtp.bcc : undefined,
     subject: `Brenso — Rapport d'orientation : ${coacheeName}`,
     text: `Bonjour,\n\nLe rapport d'orientation pour ${coacheeName} est prêt.\nVous le trouverez en pièce jointe.\n\nBrenso`,
     attachments: [
