@@ -717,6 +717,34 @@ function buildDocument(q, chapters) {
   });
 }
 
+// ── PRIVACY: FIRST-NAME ALIAS ──────────────────────────────────────────────
+// The real first name must never be sent to Anthropic. We substitute a random
+// alias for every AI call, then swap it back in the generated output before
+// the Word document is assembled.
+
+const ALIAS_POOL = ["Alex", "Sam", "Noa", "Robin", "Jules", "Maxime", "Elliot", "Jordan"];
+
+function pickAlias(realPrenom) {
+  // Avoid the tiny chance the alias equals the real first name.
+  const pool = ALIAS_POOL.filter(a => a.toLowerCase() !== (realPrenom || "").toLowerCase());
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+
+function deepReplaceAliasInStrings(node, alias, realPrenom) {
+  const re = new RegExp("\\b" + alias + "\\b", "gi");
+  const walk = (v) => {
+    if (typeof v === "string") return v.replace(re, realPrenom);
+    if (Array.isArray(v)) return v.map(walk);
+    if (v && typeof v === "object") {
+      const out = {};
+      for (const k of Object.keys(v)) out[k] = walk(v[k]);
+      return out;
+    }
+    return v;
+  };
+  return walk(node);
+}
+
 // ── MAIN ────────────────────────────────────────────────────────────────────
 
 async function main() {
@@ -726,7 +754,14 @@ async function main() {
 
   const q = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
 
-  console.log(`\n🔵 BRENSO — Génération rapport ${q.prenom} ${q.nom}`);
+  // Replace the real first name with an alias for the entire AI phase.
+  // The real name is restored just before docx assembly.
+  q._realPrenom = q.prenom;
+  q._alias = pickAlias(q.prenom);
+  q.prenom = q._alias;
+
+  console.log(`\n🔵 BRENSO — Génération rapport ${q._realPrenom} ${q.nom}`);
+  console.log(`   (alias AI : ${q._alias})`);
   console.log(`   Enneagramme : ${q.ennea_bases.join("+")} (${q.ennea_soustype})`);
   console.log(`   MBTI : ${q.mbti} | RIASEC : ${q.riasec}`);
   console.log(`   Word counts : Ennea=${q.words_ennea} MBTI=${q.words_mbti} RIASEC=${q.words_riasec}`);
@@ -767,8 +802,18 @@ async function main() {
   console.log("📝 Génération épilogue — Mot du coach...");
   const epilogue = await genEpilogue(q, context);
 
+  // AI phase complete. Swap the alias back to the real first name in every
+  // chapter and restore q.prenom so the cover/header/footer show the real name.
+  console.log(`\n🔒 Restauration du prénom (${q._alias} → ${q._realPrenom})...`);
+  const restored = deepReplaceAliasInStrings(
+    { ch01, ch02, ch03, ch04, ch05, ch06, ch07, ch08, epilogue },
+    q._alias,
+    q._realPrenom,
+  );
+  q.prenom = q._realPrenom;
+
   console.log("\n📄 Assemblage du document Word...");
-  const doc = buildDocument(q, { ch01, ch02, ch03, ch04, ch05, ch06, ch07, ch08, epilogue });
+  const doc = buildDocument(q, restored);
   const buf = await Packer.toBuffer(doc);
   fs.writeFileSync(outPath, buf);
 
