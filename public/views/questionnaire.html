@@ -41,12 +41,14 @@
   <div class="step active" id="step-1">
     <div class="field-group" style="animation-delay:0.05s">
       <label>Pr&eacute;nom</label>
-      <input type="text" id="q_prenom" placeholder="ex. Sofia" required>
+      <input type="text" id="q_prenom" name="given-name" autocomplete="given-name"
+             autocapitalize="words" placeholder="ex. Sofia" required>
       <div class="error-msg">Ce champ est requis</div>
     </div>
     <div class="field-group" style="animation-delay:0.10s">
       <label>Nom</label>
-      <input type="text" id="q_nom" placeholder="ex. Dupont" required>
+      <input type="text" id="q_nom" name="family-name" autocomplete="family-name"
+             autocapitalize="words" placeholder="ex. Dupont" required>
       <div class="error-msg">Ce champ est requis</div>
     </div>
     <div class="field-group" style="animation-delay:0.15s">
