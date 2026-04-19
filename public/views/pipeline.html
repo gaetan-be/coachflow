@@ -4,25 +4,27 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>BRENSO &mdash; Fiche Coach</title>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/css/backoffice.css">
 </head>
 <body>
 
-<header class="page-header">
-  <div class="logo">
-    <div class="logo-circle">B</div>
-    <div>
-      <div class="logo-name">BRENSO</div>
-      <div class="logo-sub">BACKOFFICE</div>
+<div class="page-header-wrap">
+  <header class="page-header">
+    <div class="logo">
+      <div class="logo-g">B</div>
+      <span class="logo-name">BRENSO</span>
     </div>
-  </div>
-  <div class="header-center">Fiche <span>coach</span> &amp; pipeline</div>
-  <div class="header-right">
-    <a href="/backoffice" class="btn-logout">&larr; Retour &agrave; la liste</a>
-    <button class="btn-logout" onclick="logout()">D&eacute;connexion</button>
-  </div>
-</header>
+    <div class="header-rapport">
+      Le rapport de <span class="header-prenom-val" id="header-prenom">...</span>
+    </div>
+    <div class="header-right-group">
+      <span class="header-save save-status" id="save-status"></span>
+      <a href="/backoffice" class="header-dashboard">&larr; Liste</a>
+      <button class="header-dashboard" onclick="logout()">D&eacute;connexion</button>
+    </div>
+  </header>
+</div>
 
 <div class="form-wrapper" id="pipeline-form">
 
@@ -69,6 +71,10 @@
         </div>
       </div>
     </div>
+  </div>
+
+  <div class="toggle-all-row">
+    <button class="toggle-all-btn" id="toggle-all-btn" onclick="toggleAll()">&#9660; Tout d&eacute;plier</button>
   </div>
 
   <!-- 2. ENNEAGRAMME -->
@@ -321,24 +327,23 @@
 
 </div>
 
-<!-- SAVE BAR -->
-<div class="save-bar">
-  <div class="save-bar-inner">
-    <span class="save-status" id="save-status">Sauvegard&eacute; !</span>
-    <button class="btn-save" onclick="saveCoachee()">Sauvegarder</button>
-  </div>
-</div>
-
-<!-- MAKE REPORT -->
 <div class="make-report-bar">
   <div class="make-report-inner">
     <div class="report-hint">
-      <strong>G&eacute;n&eacute;rer le rapport</strong><br>
-      Un document Word sera cr&eacute;&eacute; avec les profils s&eacute;lectionn&eacute;s et vos notes.
+      <strong>Pipeline pr&ecirc;t ?</strong><br>
+      Sauvegarde les donn&eacute;es, puis g&eacute;n&egrave;re le rapport Word avec les profils et notes.
       <span id="report-status-text"></span>
       <span id="download-link-wrapper"></span>
     </div>
-    <button class="btn-report" id="btn-report" onclick="makeReport()">Cr&eacute;er le rapport</button>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;">
+      <button class="btn-save" onclick="saveCoachee()">
+        Sauvegarder
+      </button>
+      <button class="btn-make-report" id="btn-report" onclick="makeReport()">
+        Cr&eacute;er le rapport
+        <span class="btn-arrow">&#8594;</span>
+      </button>
+    </div>
   </div>
 </div>
 

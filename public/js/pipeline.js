@@ -11,9 +11,58 @@ var metierCount = 0;
 
 // ── SECTION TOGGLE ──
 function toggleSection(header) {
-  header.classList.toggle('collapsed');
   var body = header.nextElementSibling;
-  body.classList.toggle('collapsed');
+  if (body.classList.contains('collapsed')) {
+    body.classList.remove('collapsed');
+    body.style.maxHeight = 'none';
+    body.style.opacity = '1';
+    body.style.padding = '24px';
+    header.classList.remove('collapsed');
+  } else {
+    body.style.maxHeight = '0px';
+    body.style.opacity = '0';
+    body.style.padding = '0 24px';
+    body.classList.add('collapsed');
+    header.classList.add('collapsed');
+  }
+}
+
+function toggleAll() {
+  var btn = document.getElementById('toggle-all-btn');
+  var shouldCollapse = btn && btn.innerHTML.indexOf('replier') !== -1;
+  var sections = document.querySelectorAll('.form-wrapper .section');
+  sections.forEach(function(s, i) {
+    if (i === 0) return;
+    var header = s.querySelector('.section-header');
+    var body = s.querySelector('.section-body');
+    if (shouldCollapse) {
+      body.style.maxHeight = '0px';
+      body.style.opacity = '0';
+      body.style.padding = '0 24px';
+      body.classList.add('collapsed');
+      header.classList.add('collapsed');
+    } else {
+      body.classList.remove('collapsed');
+      body.style.maxHeight = 'none';
+      body.style.opacity = '1';
+      body.style.padding = '24px';
+      header.classList.remove('collapsed');
+    }
+  });
+  if (btn) {
+    btn.innerHTML = shouldCollapse ? '&#9660; Tout d&eacute;plier' : '&#9650; Tout replier';
+  }
+}
+
+function updateToggleAllBtn() {
+  var btn = document.getElementById('toggle-all-btn');
+  if (!btn) return;
+  var sections = document.querySelectorAll('.form-wrapper .section');
+  var allOpen = Array.from(sections).every(function(s, i) {
+    if (i === 0) return true;
+    return !s.querySelector('.section-body').classList.contains('collapsed');
+  });
+  btn.innerHTML = allOpen ? '&#9650; Tout replier' : '&#9660; Tout d&eacute;plier';
 }
 
 // ── WORD DIAL ──
@@ -300,6 +349,12 @@ function collectPipelineData() {
 
 // ── SAVE ──
 function saveCoachee() {
+  var btn = document.querySelector('.btn-save');
+  var statusEl = document.getElementById('save-status');
+  var originalLabel = btn ? btn.innerHTML : '';
+
+  if (btn) { btn.disabled = true; btn.textContent = 'Sauvegarde...'; }
+
   var data = collectPipelineData();
   fetch('/api/coachee/' + coacheeId, {
     method: 'PUT',
@@ -308,18 +363,30 @@ function saveCoachee() {
   })
   .then(function(r) {
     if (!r.ok) throw new Error('Erreur de sauvegarde');
-    var el = document.getElementById('save-status');
-    el.classList.add('visible');
-    setTimeout(function() { el.classList.remove('visible'); }, 2000);
+    if (btn) { btn.disabled = false; btn.innerHTML = originalLabel; }
+    if (statusEl) {
+      statusEl.textContent = 'Sauvegard\u00e9 \u2713';
+      statusEl.classList.add('visible');
+      setTimeout(function() {
+        statusEl.classList.remove('visible');
+        setTimeout(function() { statusEl.textContent = ''; }, 300);
+      }, 2000);
+    }
   })
-  .catch(function(err) { alert(err.message); });
+  .catch(function(err) {
+    if (btn) { btn.disabled = false; btn.innerHTML = originalLabel; }
+    alert(err.message);
+  });
 }
 
 // ── MAKE REPORT ──
 function makeReport() {
   var btn = document.getElementById('btn-report');
+  var saveBtn = document.querySelector('.btn-save');
+  var originalLabel = btn.innerHTML;
   btn.disabled = true;
-  btn.textContent = 'En cours...';
+  btn.textContent = 'Sauvegarde...';
+  if (saveBtn) saveBtn.disabled = true;
 
   var data = collectPipelineData();
   fetch('/api/coachee/' + coacheeId, {
@@ -327,7 +394,9 @@ function makeReport() {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data)
   })
-  .then(function() {
+  .then(function(r) {
+    if (!r.ok) throw new Error('Erreur de sauvegarde');
+    btn.textContent = 'G\u00e9n\u00e9ration...';
     return fetch('/api/coachee/' + coacheeId + '/report', { method: 'POST' });
   })
   .then(function(r) {
@@ -335,12 +404,14 @@ function makeReport() {
     return r.json();
   })
   .then(function() {
+    if (saveBtn) saveBtn.disabled = false;
     document.getElementById('report-status-text').innerHTML = '<br><span class="status-badge queued" style="margin-top:8px;display:inline-block;">En attente de g\u00e9n\u00e9ration...</span>';
     pollReportStatus();
   })
   .catch(function(err) {
     btn.disabled = false;
-    btn.textContent = 'Cr\u00e9er le rapport';
+    btn.innerHTML = originalLabel;
+    if (saveBtn) saveBtn.disabled = false;
     alert(err.message);
   });
 }
@@ -372,6 +443,8 @@ function pollReportStatus() {
 // ── LOAD DATA ──
 function populateForm(data) {
   document.getElementById('prenom').value = data.prenom || '';
+  var headerPrenom = document.getElementById('header-prenom');
+  if (headerPrenom) headerPrenom.textContent = data.prenom || '...';
   document.getElementById('nom').value = data.nom || '';
   document.getElementById('date_naissance').value = data.date_naissance ? data.date_naissance.slice(0, 10) : '';
   document.getElementById('ecole_nom').value = data.ecole_nom || '';
@@ -468,6 +541,33 @@ function logout() {
     window.location.href = '/coach';
   });
 }
+
+// ── DYNAMIC HEADER PRENOM ──
+document.addEventListener('DOMContentLoaded', function() {
+  var prenomInput = document.getElementById('prenom');
+  var headerPrenom = document.getElementById('header-prenom');
+  if (prenomInput && headerPrenom) {
+    prenomInput.addEventListener('input', function() {
+      headerPrenom.textContent = prenomInput.value.trim() || '...';
+    });
+  }
+
+  // Collapse sections 2–9 on load
+  var sections = document.querySelectorAll('.form-wrapper .section');
+  sections.forEach(function(s, i) {
+    if (i === 0) return;
+    var header = s.querySelector('.section-header');
+    var body = s.querySelector('.section-body');
+    if (body && header) {
+      body.style.maxHeight = '0px';
+      body.style.opacity = '0';
+      body.style.padding = '0 24px';
+      body.classList.add('collapsed');
+      header.classList.add('collapsed');
+    }
+  });
+  updateToggleAllBtn();
+});
 
 // Load on page load
 fetch('/api/coachee/' + coacheeId)

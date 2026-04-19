@@ -4,20 +4,23 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>BRENSO &mdash; Questionnaire</title>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/css/questionnaire.css">
 </head>
 <body>
 
-<header class="page-header">
-  <div class="logo">
-    <div class="logo-circle">B</div>
-    <div>
-      <div class="logo-name">BRENSO</div>
+<div class="page-header-wrap">
+  <header class="page-header">
+    <div class="logo">
+      <div class="logo-g">B</div>
+      <span class="logo-name">BRENSO</span>
     </div>
-  </div>
-  <div class="page-subtitle">Ton <span>questionnaire</span> d'orientation</div>
-</header>
+    <div class="header-rapport">
+      <span>Questionnaire</span> d'orientation
+    </div>
+    <div class="header-right-group"></div>
+  </header>
+</div>
 
 <div class="form-wrapper">
 
@@ -39,79 +42,101 @@
 
   <!-- STEP 1 : Identite -->
   <div class="step active" id="step-1">
-    <div class="field-group" style="animation-delay:0.05s">
-      <label>Pr&eacute;nom</label>
-      <input type="text" id="q_prenom" name="given-name" autocomplete="given-name"
-             autocapitalize="words" placeholder="ex. Sofia" required>
-      <div class="error-msg">Ce champ est requis</div>
-    </div>
-    <div class="field-group" style="animation-delay:0.10s">
-      <label>Nom</label>
-      <input type="text" id="q_nom" name="family-name" autocomplete="family-name"
-             autocapitalize="words" placeholder="ex. Dupont" required>
-      <div class="error-msg">Ce champ est requis</div>
-    </div>
-    <div class="field-group" style="animation-delay:0.15s">
-      <label>Date de naissance</label>
-      <input type="date" id="q_anniversaire" required>
-      <div class="error-msg">Ce champ est requis</div>
-    </div>
-
-    <div class="btn-row">
-      <button class="btn btn-next" onclick="goStep(2)">Suivant</button>
+    <div class="step-card pink-accent">
+      <div class="step-card-header">
+        <span class="step-tag pink">01</span>
+        <span class="step-title">Identit&eacute;</span>
+      </div>
+      <div class="fields-area">
+        <div class="field-group" style="animation-delay:0.05s">
+          <label>Pr&eacute;nom</label>
+          <input type="text" id="q_prenom" name="given-name" autocomplete="given-name"
+                 autocapitalize="words" placeholder="ex. Sofia" required>
+          <div class="error-msg">Ce champ est requis</div>
+        </div>
+        <div class="field-group" style="animation-delay:0.10s">
+          <label>Nom</label>
+          <input type="text" id="q_nom" name="family-name" autocomplete="family-name"
+                 autocapitalize="words" placeholder="ex. Dupont" required>
+          <div class="error-msg">Ce champ est requis</div>
+        </div>
+        <div class="field-group" style="animation-delay:0.15s">
+          <label>Date de naissance</label>
+          <input type="date" id="q_anniversaire" required>
+          <div class="error-msg">Ce champ est requis</div>
+        </div>
+      </div>
+      <div class="btn-row">
+        <div class="btn btn-spacer"></div>
+        <button class="btn btn-next" onclick="goStep(2)">Suivant</button>
+      </div>
     </div>
   </div>
 
   <!-- STEP 2 : Ecole -->
   <div class="step" id="step-2">
-    <div class="field-group" style="animation-delay:0.05s">
-      <label>&Eacute;cole ou Universit&eacute;</label>
-      <input type="text" id="q_ecole" placeholder="ex. Ath&eacute;n&eacute;e Royal d'Ixelles">
-      <div class="hint">Le nom de ton &eacute;cole, coll&egrave;ge ou universit&eacute;</div>
-    </div>
-    <div class="field-group" style="animation-delay:0.10s">
-      <label>Ann&eacute;e scolaire</label>
-      <input type="text" id="q_annee" placeholder="ex. 5e secondaire, 1&egrave;re bac">
-      <div class="hint">En quelle ann&eacute;e es-tu actuellement ?</div>
-    </div>
-    <div class="field-group" style="animation-delay:0.15s">
-      <label>Orientation actuelle</label>
-      <input type="text" id="q_orientation" placeholder="ex. Sciences &eacute;conomiques, Latin-Maths">
-      <div class="hint">Ta fili&egrave;re, option ou section actuelle</div>
-    </div>
-
-    <div class="btn-row">
-      <button class="btn btn-back" onclick="goStep(1)">Retour</button>
-      <button class="btn btn-next" onclick="goStep(3)">Suivant</button>
+    <div class="step-card teal-accent">
+      <div class="step-card-header">
+        <span class="step-tag">02</span>
+        <span class="step-title">&Eacute;cole &amp; Parcours</span>
+      </div>
+      <div class="fields-area">
+        <div class="field-group" style="animation-delay:0.05s">
+          <label>&Eacute;cole ou Universit&eacute;</label>
+          <input type="text" id="q_ecole" placeholder="ex. Ath&eacute;n&eacute;e Royal d'Ixelles">
+          <div class="hint">Le nom de ton &eacute;cole, coll&egrave;ge ou universit&eacute;</div>
+        </div>
+        <div class="field-group" style="animation-delay:0.10s">
+          <label>Ann&eacute;e scolaire</label>
+          <input type="text" id="q_annee" placeholder="ex. 5e secondaire, 1&egrave;re bac">
+          <div class="hint">En quelle ann&eacute;e es-tu actuellement ?</div>
+        </div>
+        <div class="field-group" style="animation-delay:0.15s">
+          <label>Orientation actuelle</label>
+          <input type="text" id="q_orientation" placeholder="ex. Sciences &eacute;conomiques, Latin-Maths">
+          <div class="hint">Ta fili&egrave;re, option ou section actuelle</div>
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-back" onclick="goStep(1)">Retour</button>
+        <button class="btn btn-next" onclick="goStep(3)">Suivant</button>
+      </div>
     </div>
   </div>
 
   <!-- STEP 3 : Loisirs + envoi -->
   <div class="step" id="step-3">
-    <div class="field-group" style="animation-delay:0.05s">
-      <label>Loisirs et centres d'int&eacute;r&ecirc;t</label>
-      <textarea id="q_loisirs" placeholder="Sports, musique, jeux vid&eacute;o, lecture, b&eacute;n&eacute;volat, voyages..."></textarea>
-      <div class="hint">Tout ce que tu aimes faire en dehors de l'&eacute;cole</div>
-    </div>
-    <div class="field-group" style="animation-delay:0.10s">
-      <label>Choix ou orientations envisag&eacute;es</label>
-      <textarea id="q_choix" placeholder="Des pistes que tu as d&eacute;j&agrave; en t&ecirc;te ? Des m&eacute;tiers qui t'attirent ?"></textarea>
-      <div class="hint">Pas d'inqui&eacute;tude si tu n'as pas encore d'id&eacute;e &mdash; c'est pour &ccedil;a qu'on se voit !</div>
-    </div>
-
-    <div class="btn-row">
-      <button class="btn btn-back" onclick="goStep(2)">Retour</button>
-    </div>
-    <div style="margin-top:12px">
-      <button class="btn-submit" onclick="submitForm()">Envoyer mes r&eacute;ponses</button>
+    <div class="step-card slate-accent">
+      <div class="step-card-header">
+        <span class="step-tag slate">03</span>
+        <span class="step-title">Loisirs &amp; Envies</span>
+      </div>
+      <div class="fields-area">
+        <div class="field-group" style="animation-delay:0.05s">
+          <label>Loisirs et centres d'int&eacute;r&ecirc;t</label>
+          <textarea id="q_loisirs" placeholder="Sports, musique, jeux vid&eacute;o, lecture, b&eacute;n&eacute;volat, voyages..."></textarea>
+          <div class="hint">Tout ce que tu aimes faire en dehors de l'&eacute;cole</div>
+        </div>
+        <div class="field-group" style="animation-delay:0.10s">
+          <label>Choix ou orientations envisag&eacute;es</label>
+          <textarea id="q_choix" placeholder="Des pistes que tu as d&eacute;j&agrave; en t&ecirc;te ? Des m&eacute;tiers qui t'attirent ?"></textarea>
+          <div class="hint">Pas d'inqui&eacute;tude si tu n'as pas encore d'id&eacute;e &mdash; c'est pour &ccedil;a qu'on se voit !</div>
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-back" onclick="goStep(2)">Retour</button>
+        <button class="btn btn-submit" onclick="submitForm()">Envoyer au coach</button>
+      </div>
     </div>
   </div>
 
   <!-- SUCCESS -->
   <div class="success-screen" id="success">
-    <div class="check">&#10003;</div>
-    <h2>Merci <span id="success-name"></span> !</h2>
-    <p>Tes r&eacute;ponses ont bien &eacute;t&eacute; enregistr&eacute;es.<br>On se voit bient&ocirc;t pour la premi&egrave;re s&eacute;ance !</p>
+    <div class="success-card">
+      <div class="check">&#10003;</div>
+      <h2>Merci <span id="success-name"></span>&nbsp;!</h2>
+      <p>Tes r&eacute;ponses ont bien &eacute;t&eacute; enregistr&eacute;es.<br>On se voit bient&ocirc;t pour la premi&egrave;re s&eacute;ance !</p>
+    </div>
   </div>
 
 </div>
