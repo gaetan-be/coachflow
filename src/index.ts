@@ -15,6 +15,8 @@ export function createApp(): express.Application {
 
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
+  // Serve the old public/ static files (css, img, etc.) and the React build
+  app.use(express.static(path.join(__dirname, '..', 'public', 'dist')));
   app.use(express.static(path.join(__dirname, '..', 'public')));
 
   app.set('trust proxy', 1);
@@ -36,6 +38,16 @@ export function createApp(): express.Application {
   app.use('/', publicRoutes);
   app.use('/', authRoutes);
   app.use('/', backofficeRoutes);
+
+  // SPA fallback: serve React's index.html for all non-API, non-asset routes
+  app.get('*', (_req: express.Request, res: express.Response) => {
+    const spaIndex = path.join(__dirname, '..', 'public', 'dist', 'index.html');
+    res.sendFile(spaIndex, (err) => {
+      if (err) {
+        res.status(404).send('Not found');
+      }
+    });
+  });
 
   return app;
 }

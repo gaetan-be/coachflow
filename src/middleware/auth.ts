@@ -10,6 +10,8 @@ export function requireAuth(req: Request, res: Response, next: NextFunction): vo
   if (req.session.coachId) {
     next();
   } else {
-    res.redirect('/coach');
+    // Return 401 JSON for API routes (consumed by React SPA)
+    // The SPA handles the redirect to /coach via its RequireAuth component
+    res.status(401).json({ error: 'Non authentifié.' });
   }
 }

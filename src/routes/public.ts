@@ -1,24 +1,11 @@
 import { Router, Request, Response } from 'express';
-import path from 'path';
 import { pool } from '../db';
 import { questionnaireRateLimit } from '../middleware/rateLimit';
 
 export const publicRoutes = Router();
 
-// Front page
-publicRoutes.get('/', (_req: Request, res: Response) => {
-  res.sendFile(path.join(__dirname, '..', '..', 'public', 'views', 'home.html'));
-});
-
-// Terms & GDPR page
-publicRoutes.get('/terms', (_req: Request, res: Response) => {
-  res.sendFile(path.join(__dirname, '..', '..', 'public', 'views', 'terms.html'));
-});
-
-// Serve questionnaire page
-publicRoutes.get('/hello', (_req: Request, res: Response) => {
-  res.sendFile(path.join(__dirname, '..', '..', 'public', 'views', 'questionnaire.html'));
-});
+// NOTE: /, /terms, /hello are now handled by the React SPA catch-all in index.ts
+// These routes only exist for the API endpoints below.
 
 // Submit questionnaire
 publicRoutes.post('/api/questionnaire', questionnaireRateLimit, async (req: Request, res: Response) => {

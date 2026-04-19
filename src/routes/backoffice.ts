@@ -1,5 +1,4 @@
 import { Router, Request, Response } from 'express';
-import path from 'path';
 import bcrypt from 'bcrypt';
 import { pool } from '../db';
 import { requireAuth } from '../middleware/auth';
@@ -20,20 +19,8 @@ backofficeRoutes.use('/api/coachee', requireAuth);
 backofficeRoutes.use('/api/coachees', requireAuth);
 backofficeRoutes.use('/api/coach', requireAuth);
 
-// List page
-backofficeRoutes.get('/backoffice', (_req: Request, res: Response) => {
-  res.sendFile(path.join(__dirname, '..', '..', 'public', 'views', 'list.html'));
-});
-
-// Pipeline page
-backofficeRoutes.get('/backoffice/coachee/:id', (_req: Request, res: Response) => {
-  res.sendFile(path.join(__dirname, '..', '..', 'public', 'views', 'pipeline.html'));
-});
-
-// Profile page
-backofficeRoutes.get('/backoffice/profile', (_req: Request, res: Response) => {
-  res.sendFile(path.join(__dirname, '..', '..', 'public', 'views', 'profile.html'));
-});
+// NOTE: /backoffice pages are now served by React SPA catch-all in index.ts
+// The requireAuth middleware still guards all /api/coachee, /api/coachees, /api/coach routes
 
 // API: List all coachees
 backofficeRoutes.get('/api/coachees', async (req: Request, res: Response) => {

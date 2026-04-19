@@ -1,13 +1,10 @@
 import { Router, Request, Response } from 'express';
-import path from 'path';
 import bcrypt from 'bcrypt';
 import { pool } from '../db';
 
 export const authRoutes = Router();
 
-authRoutes.get('/coach', (_req: Request, res: Response) => {
-  res.sendFile(path.join(__dirname, '..', '..', 'public', 'views', 'login.html'));
-});
+// NOTE: /coach page is now served by React SPA catch-all
 
 authRoutes.post('/api/login', async (req: Request, res: Response) => {
   try {
