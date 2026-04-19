@@ -39,7 +39,7 @@ app.use('/', backofficeRoutes);
 
 async function start() {
   await runMigrations();
-  startWorker();
+  await startWorker();
   app.listen(config.port, () => {
     console.log(`Brenso running on http://localhost:${config.port}`);
   });

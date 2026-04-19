@@ -1,53 +1,12 @@
-:root {
-  --navy: #202C34;
-  --teal: #40A2C0;
-  --teal-soft: #40A2C012;
-  --pop: #EA226C;
-  --muted: #6B7580;
-  --line: #EAEDEF;
-  --line-soft: #F4F6F7;
-  --white: #FFFFFF;
-}
-
-* { margin:0; padding:0; box-sizing:border-box; }
-
-html, body {
-  height: 100%;
-  font-family: 'DM Sans', system-ui, sans-serif;
-  color: var(--navy);
-  -webkit-font-smoothing: antialiased;
-}
+html, body { height: 100%; }
 
 body {
-  background: #F6F7F9;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 100vh;
   position: relative;
   overflow: hidden;
-}
-
-body::before {
-  content: '';
-  position: fixed;
-  top: -200px; right: -150px;
-  width: 650px; height: 650px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(64,162,192,0.08) 0%, transparent 70%);
-  pointer-events: none;
-  z-index: 0;
-}
-body::after {
-  content: '';
-  position: fixed;
-  bottom: -200px; left: -100px;
-  width: 500px; height: 500px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(107,157,181,0.06) 0%, transparent 70%);
-  pointer-events: none;
-  z-index: 0;
 }
 
 .login-card {

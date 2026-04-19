@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>BRENSO &mdash; Backoffice</title>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/base.css">
 <link rel="stylesheet" href="/css/backoffice.css">
 </head>
 <body>
@@ -61,14 +62,20 @@ fetch('/api/coachees')
     }
 
     var html = '<table class="coachee-table"><thead><tr>';
-    html += '<th>Nom</th><th>Date de soumission</th><th>Statut rapport</th>';
+    html += '<th>Nom</th><th>Date de soumission</th><th>Statut rapport</th><th></th>';
     html += '</tr></thead><tbody>';
 
     data.forEach(function(c) {
+      var downloadCell = c.report_status === 'done'
+        ? '<a class="btn-report-download" href="/api/coachee/' + c.id + '/report/download" onclick="event.stopPropagation()" title="T\u00e9l\u00e9charger le rapport">'
+          + '<img src="/img/word.svg" width="16" height="16" alt="">'
+          + 'Rapport</a>'
+        : '';
       html += '<tr onclick="window.location.href=\'/backoffice/coachee/' + c.id + '\'">';
       html += '<td>' + c.prenom + ' ' + c.nom + '</td>';
       html += '<td>' + formatDate(c.created_at) + '</td>';
       html += '<td>' + statusLabel(c.report_status) + '</td>';
+      html += '<td>' + downloadCell + '</td>';
       html += '</tr>';
     });
 

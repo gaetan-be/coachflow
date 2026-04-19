@@ -42,8 +42,9 @@ async function processQueue(): Promise<void> {
   }
 }
 
-export function startWorker(): void {
-  // Run every 30 seconds
+export async function startWorker(): Promise<void> {
+  // Reset jobs stuck in 'processing' from a previous crash
+  await pool.query("UPDATE coachee_report SET status = 'queued' WHERE status = 'processing'");
   cron.schedule('*/30 * * * * *', processQueue);
   console.log('Report worker started (every 30s).');
 }

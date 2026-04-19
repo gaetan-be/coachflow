@@ -5,6 +5,12 @@ import { requireAuth } from '../middleware/auth';
 
 export const backofficeRoutes = Router();
 
+async function assertOwnership(coacheeId: string, coachId: number, res: Response): Promise<boolean> {
+  const check = await pool.query('SELECT id FROM coachee WHERE id = $1 AND coach_id = $2', [coacheeId, coachId]);
+  if (check.rows.length === 0) { res.status(404).json({ error: 'Coachee non trouvé.' }); return false; }
+  return true;
+}
+
 // All backoffice routes require auth
 backofficeRoutes.use('/backoffice', requireAuth);
 backofficeRoutes.use('/api/coachee', requireAuth);
@@ -41,7 +47,13 @@ backofficeRoutes.get('/api/coachees', async (req: Request, res: Response) => {
 backofficeRoutes.get('/api/coachee/:id', async (req: Request, res: Response) => {
   try {
     const result = await pool.query(`
-      SELECT c.*,
+      SELECT c.id, c.coach_id, c.prenom, c.nom, c.date_naissance, c.ecole_nom,
+             c.code_postal, c.date_seance, c.loisirs, c.choix,
+             c.ennea_base, c.ennea_sous_type, c.mbti, c.riasec,
+             c.words_ennea, c.words_mbti, c.words_riasec, c.notes_coach,
+             c.valeurs, c.competences, c.besoins, c.words_comp_besoins,
+             c.metiers, c.words_metiers, c.plan_action, c.words_plan_action,
+             c.created_at, c.updated_at,
              (SELECT r.status FROM coachee_report r WHERE r.coachee_id = c.id ORDER BY r.created_at DESC LIMIT 1) as report_status
       FROM coachee c
       WHERE c.id = $1 AND c.coach_id = $2
@@ -103,15 +115,7 @@ backofficeRoutes.put('/api/coachee/:id', async (req: Request, res: Response) => 
 // API: Queue report
 backofficeRoutes.post('/api/coachee/:id/report', async (req: Request, res: Response) => {
   try {
-    // Verify coachee belongs to coach
-    const check = await pool.query(
-      'SELECT id FROM coachee WHERE id = $1 AND coach_id = $2',
-      [req.params.id, req.session.coachId]
-    );
-    if (check.rows.length === 0) {
-      res.status(404).json({ error: 'Coachee non trouvé.' });
-      return;
-    }
+    if (!await assertOwnership(req.params.id, req.session.coachId!, res)) return;
 
     // Check if already queued/processing
     const existing = await pool.query(
