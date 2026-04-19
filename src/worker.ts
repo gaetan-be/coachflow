@@ -4,12 +4,13 @@ import { processReport } from './services/report';
 
 let isProcessing = false;
 
-async function processQueue(): Promise<void> {
+export async function processQueue(
+  processor: (id: number) => Promise<void> = processReport
+): Promise<void> {
   if (isProcessing) return;
   isProcessing = true;
 
   try {
-    // Pick oldest queued report
     const result = await pool.query(`
       UPDATE coachee_report
       SET status = 'processing'
@@ -27,7 +28,7 @@ async function processQueue(): Promise<void> {
     console.log(`Processing report ${reportId}...`);
 
     try {
-      await processReport(reportId);
+      await processor(reportId);
       console.log(`Report ${reportId} completed.`);
     } catch (err) {
       console.error(`Report ${reportId} failed:`, err);
@@ -43,8 +44,7 @@ async function processQueue(): Promise<void> {
 }
 
 export async function startWorker(): Promise<void> {
-  // Reset jobs stuck in 'processing' from a previous crash
   await pool.query("UPDATE coachee_report SET status = 'queued' WHERE status = 'processing'");
-  cron.schedule('*/30 * * * * *', processQueue);
+  cron.schedule('*/30 * * * * *', () => processQueue());
   console.log('Report worker started (every 30s).');
 }

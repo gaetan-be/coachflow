@@ -9,37 +9,41 @@ import { authRoutes } from './routes/auth';
 import { backofficeRoutes } from './routes/backoffice';
 import { startWorker } from './worker';
 
-const app = express();
-const PgStore = connectPgSimple(session);
+export function createApp(): express.Application {
+  const app = express();
+  const PgStore = connectPgSimple(session);
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use(express.static(path.join(__dirname, '..', 'public')));
+  app.use(express.json());
+  app.use(express.urlencoded({ extended: true }));
+  app.use(express.static(path.join(__dirname, '..', 'public')));
 
-app.set('trust proxy', 1);
+  app.set('trust proxy', 1);
 
-app.use(
-  session({
-    store: new PgStore({ pool, tableName: 'session' }),
-    secret: config.sessionSecret,
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-      maxAge: 24 * 60 * 60 * 1000, // 24h
-      httpOnly: true,
-      sameSite: 'lax',
-    },
-  })
-);
+  app.use(
+    session({
+      store: new PgStore({ pool, tableName: 'session' }),
+      secret: config.sessionSecret,
+      resave: false,
+      saveUninitialized: false,
+      cookie: {
+        maxAge: 24 * 60 * 60 * 1000,
+        httpOnly: true,
+        sameSite: 'lax',
+      },
+    })
+  );
 
-// Routes
-app.use('/', publicRoutes);
-app.use('/', authRoutes);
-app.use('/', backofficeRoutes);
+  app.use('/', publicRoutes);
+  app.use('/', authRoutes);
+  app.use('/', backofficeRoutes);
+
+  return app;
+}
 
 async function start() {
   await runMigrations();
   await startWorker();
+  const app = createApp();
   app.listen(config.port, () => {
     console.log(`Brenso running on http://localhost:${config.port}`);
   });

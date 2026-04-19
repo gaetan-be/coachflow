@@ -105,3 +105,6 @@ CLI debug: `npx ts-node src/scripts/generate-report.ts <coachee_id>`
 **`coachee_report`**: id, coachee_id (FK), status ('queued'|'processing'|'done'|'error'), report_data (BYTEA), error_message, created_at, completed_at
 
 **`session`**: connect-pg-simple session store
+
+# Additional documentation
+Can be found in the docs/ directory.
