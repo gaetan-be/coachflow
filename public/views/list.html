@@ -20,7 +20,22 @@
       Liste des <span>coach&eacute;es</span>
     </div>
     <div class="header-right-group">
-      <button class="header-dashboard" onclick="logout()">D&eacute;connexion</button>
+      <div class="profile-menu" id="profile-menu">
+        <button class="profile-avatar" id="profile-avatar-btn" onclick="toggleProfileMenu()" aria-label="Mon profil">B</button>
+        <div class="profile-popover" id="profile-popover" hidden>
+          <div class="popover-top">
+            <span class="popover-name" id="popover-name">&hellip;</span>
+            <span class="popover-plan" id="popover-plan"></span>
+          </div>
+          <div class="popover-credits" id="popover-credits">
+            <div class="credit-bar-wrap"><div class="credit-bar-fill" id="credit-bar-fill"></div></div>
+            <span class="credit-label" id="credit-label">&hellip;</span>
+          </div>
+          <div class="popover-sep"></div>
+          <a href="/backoffice/profile" class="popover-link">Mon profil &rarr;</a>
+          <button class="popover-link popover-logout" onclick="logout()">D&eacute;connexion</button>
+        </div>
+      </div>
     </div>
   </header>
 </div>
@@ -35,6 +50,44 @@ function logout() {
     window.location.href = '/coach';
   });
 }
+
+(function() {
+  fetch('/api/coach/me').then(function(r) { return r.json(); }).then(function(d) {
+    var initial = d.name ? d.name.charAt(0).toUpperCase() : 'C';
+    document.getElementById('profile-avatar-btn').textContent = initial;
+    document.getElementById('popover-name').textContent = d.name || '';
+    if (d.plan_display_name) {
+      document.getElementById('popover-plan').textContent = d.plan_display_name;
+      document.getElementById('popover-plan').style.display = '';
+    } else {
+      document.getElementById('popover-plan').style.display = 'none';
+    }
+    var creditsEl = document.getElementById('popover-credits');
+    if (d.plan) {
+      var total = d.allocations.reduce(function(s, a) { return s + a.amount; }, 0);
+      var used  = d.allocations.reduce(function(s, a) { return s + a.used;   }, 0);
+      var pct   = total > 0 ? Math.round((used / total) * 100) : 0;
+      document.getElementById('credit-bar-fill').style.width = pct + '%';
+      document.getElementById('credit-label').textContent = d.balance + ' cr\u00e9dit' + (d.balance !== 1 ? 's' : '') + ' restant' + (d.balance !== 1 ? 's' : '');
+      creditsEl.style.display = '';
+    } else {
+      creditsEl.style.display = 'none';
+    }
+  });
+
+  function toggleProfileMenu() {
+    var pop = document.getElementById('profile-popover');
+    pop.hidden = !pop.hidden;
+  }
+  window.toggleProfileMenu = toggleProfileMenu;
+
+  document.addEventListener('click', function(e) {
+    var menu = document.getElementById('profile-menu');
+    if (menu && !menu.contains(e.target)) {
+      document.getElementById('profile-popover').hidden = true;
+    }
+  });
+})();
 
 function statusLabel(s) {
   if (!s) return '<span class="status-badge new">Nouveau</span>';

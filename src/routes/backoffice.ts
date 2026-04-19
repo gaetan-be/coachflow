@@ -1,5 +1,6 @@
 import { Router, Request, Response } from 'express';
 import path from 'path';
+import bcrypt from 'bcrypt';
 import { pool } from '../db';
 import { requireAuth } from '../middleware/auth';
 import { getCoachCredits, consumeCredit } from '../services/credits';
@@ -27,6 +28,11 @@ backofficeRoutes.get('/backoffice', (_req: Request, res: Response) => {
 // Pipeline page
 backofficeRoutes.get('/backoffice/coachee/:id', (_req: Request, res: Response) => {
   res.sendFile(path.join(__dirname, '..', '..', 'public', 'views', 'pipeline.html'));
+});
+
+// Profile page
+backofficeRoutes.get('/backoffice/profile', (_req: Request, res: Response) => {
+  res.sendFile(path.join(__dirname, '..', '..', 'public', 'views', 'profile.html'));
 });
 
 // API: List all coachees
@@ -150,6 +156,75 @@ backofficeRoutes.post('/api/coachee/:id/report', async (req: Request, res: Respo
     res.json({ ok: true });
   } catch (err) {
     console.error('Queue report error:', err);
+    res.status(500).json({ error: 'Erreur serveur.' });
+  }
+});
+
+// API: Coach identity + plan + credits (used by header dropdown)
+backofficeRoutes.get('/api/coach/me', async (req: Request, res: Response) => {
+  try {
+    const coachId = req.session.coachId!;
+    const [coachResult, credits, plan] = await Promise.all([
+      pool.query('SELECT name, email FROM coach WHERE id = $1', [coachId]),
+      getCoachCredits(coachId),
+      getCoachPlan(coachId),
+    ]);
+    const coach = coachResult.rows[0];
+    res.json({
+      name: coach.name,
+      email: coach.email,
+      plan: plan.plan_name,
+      plan_display_name: plan.plan_display_name,
+      features: plan.features,
+      balance: credits.balance,
+      allocations: credits.allocations,
+    });
+  } catch (err) {
+    console.error('Get coach/me error:', err);
+    res.status(500).json({ error: 'Erreur serveur.' });
+  }
+});
+
+// API: Report history across all coachees
+backofficeRoutes.get('/api/coach/reports', async (req: Request, res: Response) => {
+  try {
+    const result = await pool.query(`
+      SELECT r.id AS report_id, c.id AS coachee_id, c.prenom, c.nom,
+             r.status, r.created_at, r.completed_at, r.error_message
+      FROM coachee_report r
+      JOIN coachee c ON c.id = r.coachee_id
+      WHERE c.coach_id = $1
+      ORDER BY r.created_at DESC
+    `, [req.session.coachId]);
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Get coach/reports error:', err);
+    res.status(500).json({ error: 'Erreur serveur.' });
+  }
+});
+
+// API: Change password
+backofficeRoutes.put('/api/coach/password', async (req: Request, res: Response) => {
+  try {
+    const { current_password, new_password } = req.body;
+    if (!current_password || !new_password || new_password.length < 8) {
+      res.status(400).json({ error: 'Données invalides.' });
+      return;
+    }
+
+    const result = await pool.query('SELECT password_hash FROM coach WHERE id = $1', [req.session.coachId]);
+    const coach = result.rows[0];
+    const valid = await bcrypt.compare(current_password, coach.password_hash);
+    if (!valid) {
+      res.status(401).json({ error: 'Mot de passe actuel incorrect.' });
+      return;
+    }
+
+    const newHash = await bcrypt.hash(new_password, 10);
+    await pool.query('UPDATE coach SET password_hash = $1 WHERE id = $2', [newHash, req.session.coachId]);
+    res.json({ ok: true });
+  } catch (err) {
+    console.error('Change password error:', err);
     res.status(500).json({ error: 'Erreur serveur.' });
   }
 });
