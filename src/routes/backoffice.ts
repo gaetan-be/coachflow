@@ -2,6 +2,8 @@ import { Router, Request, Response } from 'express';
 import path from 'path';
 import { pool } from '../db';
 import { requireAuth } from '../middleware/auth';
+import { getCoachCredits, consumeCredit } from '../services/credits';
+import { getCoachPlan } from '../services/plans';
 
 export const backofficeRoutes = Router();
 
@@ -15,6 +17,7 @@ async function assertOwnership(coacheeId: string, coachId: number, res: Response
 backofficeRoutes.use('/backoffice', requireAuth);
 backofficeRoutes.use('/api/coachee', requireAuth);
 backofficeRoutes.use('/api/coachees', requireAuth);
+backofficeRoutes.use('/api/coach', requireAuth);
 
 // List page
 backofficeRoutes.get('/backoffice', (_req: Request, res: Response) => {
@@ -115,7 +118,8 @@ backofficeRoutes.put('/api/coachee/:id', async (req: Request, res: Response) => 
 // API: Queue report
 backofficeRoutes.post('/api/coachee/:id/report', async (req: Request, res: Response) => {
   try {
-    if (!await assertOwnership(req.params.id, req.session.coachId!, res)) return;
+    const coachId = req.session.coachId!;
+    if (!await assertOwnership(req.params.id, coachId, res)) return;
 
     // Check if already queued/processing
     const existing = await pool.query(
@@ -127,14 +131,46 @@ backofficeRoutes.post('/api/coachee/:id/report', async (req: Request, res: Respo
       return;
     }
 
+    // Credit check: coaches without a plan bypass entirely
+    const { plan_name } = await getCoachPlan(coachId);
+    let allocationId: number | null = null;
+    if (plan_name !== null) {
+      allocationId = await consumeCredit(coachId);
+      if (allocationId === null) {
+        res.status(402).json({ error: 'Aucun crédit disponible.' });
+        return;
+      }
+    }
+
     await pool.query(
-      'INSERT INTO coachee_report (coachee_id, status) VALUES ($1, $2)',
-      [req.params.id, 'queued']
+      'INSERT INTO coachee_report (coachee_id, status, credit_allocation_id) VALUES ($1, $2, $3)',
+      [req.params.id, 'queued', allocationId]
     );
 
     res.json({ ok: true });
   } catch (err) {
     console.error('Queue report error:', err);
+    res.status(500).json({ error: 'Erreur serveur.' });
+  }
+});
+
+// API: Get coach credits and plan info
+backofficeRoutes.get('/api/coach/credits', async (req: Request, res: Response) => {
+  try {
+    const coachId = req.session.coachId!;
+    const [credits, plan] = await Promise.all([
+      getCoachCredits(coachId),
+      getCoachPlan(coachId),
+    ]);
+    res.json({
+      plan: plan.plan_name,
+      plan_display_name: plan.plan_display_name,
+      features: plan.features,
+      balance: credits.balance,
+      allocations: credits.allocations,
+    });
+  } catch (err) {
+    console.error('Get credits error:', err);
     res.status(500).json({ error: 'Erreur serveur.' });
   }
 });

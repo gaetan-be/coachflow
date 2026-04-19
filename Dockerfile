@@ -12,7 +12,6 @@ RUN npm install --production=false
 COPY tsconfig.json ./
 COPY src/ ./src/
 COPY public/ ./public/
-COPY templates/ ./templates/
 
 # Include claude-tpl-maker with its own dependencies
 COPY claude-tpl-maker/ ./claude-tpl-maker/
