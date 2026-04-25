@@ -15,7 +15,6 @@ export function createApp(): express.Application {
 
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
-  // Serve the old public/ static files (css, img, etc.) and the React build
   app.use(express.static(path.join(__dirname, '..', 'public', 'dist')));
   app.use(express.static(path.join(__dirname, '..', 'public')));
 
@@ -61,7 +60,9 @@ async function start() {
   });
 }
 
-start().catch((err) => {
-  console.error('Failed to start:', err);
-  process.exit(1);
-});
+if (!process.env.VITEST) {
+  start().catch((err) => {
+    console.error('Failed to start:', err);
+    process.exit(1);
+  });
+}

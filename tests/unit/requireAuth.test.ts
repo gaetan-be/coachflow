@@ -6,8 +6,10 @@ function makeReq(coachId?: number): Request {
   return { session: { coachId } } as unknown as Request;
 }
 
-function makeRes(): { redirect: ReturnType<typeof vi.fn>; status: ReturnType<typeof vi.fn> } {
-  return { redirect: vi.fn(), status: vi.fn() };
+function makeRes() {
+  const res = { redirect: vi.fn(), json: vi.fn(), status: vi.fn() };
+  res.status.mockReturnValue(res);
+  return res;
 }
 
 describe('requireAuth', () => {
@@ -22,14 +24,15 @@ describe('requireAuth', () => {
     expect(res.redirect).not.toHaveBeenCalled();
   });
 
-  it('redirects to /coach when session has no coachId', () => {
+  it('returns 401 JSON when session has no coachId', () => {
     const req = makeReq(undefined);
     const res = makeRes() as unknown as Response;
     const next = vi.fn() as NextFunction;
 
     requireAuth(req, res, next);
 
-    expect(res.redirect).toHaveBeenCalledWith('/coach');
+    expect(res.status).toHaveBeenCalledWith(401);
+    expect(res.json).toHaveBeenCalledWith({ error: 'Non authentifié.' });
     expect(next).not.toHaveBeenCalled();
   });
 });

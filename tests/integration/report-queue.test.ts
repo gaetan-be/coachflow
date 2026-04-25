@@ -87,12 +87,19 @@ describe('GET /api/coachee/:id/report/download', () => {
     );
     const agent = await loginAgent(coach);
 
-    const res = await agent.get(`/api/coachee/${coachee.id}/report/download`);
+    const res = await agent
+      .get(`/api/coachee/${coachee.id}/report/download`)
+      .buffer(true)
+      .parse((r, cb) => {
+        const chunks: Buffer[] = [];
+        r.on('data', (c: Buffer) => chunks.push(c));
+        r.on('end', () => cb(null, Buffer.concat(chunks)));
+      });
     expect(res.status).toBe(200);
     expect(res.headers['content-type']).toContain('wordprocessingml.document');
     expect(res.headers['content-disposition']).toContain('attachment');
     expect(res.headers['content-disposition']).toContain('Alice_Dupont.docx');
-    expect(Buffer.from(res.body)).toEqual(fakeDocx);
+    expect(res.body).toEqual(fakeDocx);
   });
 
   it('returns 404 when no done report exists', async () => {

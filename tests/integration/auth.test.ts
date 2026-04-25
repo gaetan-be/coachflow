@@ -68,30 +68,25 @@ describe('POST /api/logout', () => {
 });
 
 describe('Protected route guards', () => {
-  it('redirects GET /backoffice to /coach without session', async () => {
-    const res = await request(app).get('/backoffice');
-    expect(res.status).toBe(302);
-    expect(res.headers.location).toBe('/coach');
-  });
-
-  it('redirects GET /api/coachees to /coach without session', async () => {
+  it('returns 401 for GET /api/coachees without session', async () => {
     const res = await request(app).get('/api/coachees');
-    expect(res.status).toBe(302);
-    expect(res.headers.location).toBe('/coach');
+    expect(res.status).toBe(401);
+    expect(res.body.error).toBeDefined();
   });
 
-  it('redirects GET /api/coachee/:id to /coach without session', async () => {
+  it('returns 401 for GET /api/coachee/:id without session', async () => {
     const res = await request(app).get('/api/coachee/1');
-    expect(res.status).toBe(302);
-    expect(res.headers.location).toBe('/coach');
+    expect(res.status).toBe(401);
+    expect(res.body.error).toBeDefined();
   });
 
-  it('allows access to /backoffice after login', async () => {
+  it('returns coachees list after login', async () => {
     const coach = await seedCoach();
     const agent = request.agent(app);
     await agent.post('/api/login').send({ email: coach.email, password: coach.password });
 
-    const res = await agent.get('/backoffice');
+    const res = await agent.get('/api/coachees');
     expect(res.status).toBe(200);
+    expect(Array.isArray(res.body)).toBe(true);
   });
 });

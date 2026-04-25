@@ -8,6 +8,8 @@ export default defineConfig({
     environment: 'node',
     pool: 'forks',
     singleFork: true,
+    fileParallelism: false,
+    include: ['tests/unit/**/*.test.ts', 'tests/integration/**/*.test.ts'],
     coverage: {
       provider: 'v8',
       include: ['src/**/*.ts'],
