@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { cva, type VariantProps } from 'class-variance-authority';
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 
 const badgeVariants = cva(
@@ -33,13 +34,8 @@ export { Badge, badgeVariants };
 export type ReportStatus = 'queued' | 'processing' | 'done' | 'error' | null | undefined;
 
 export function ReportBadge({ status }: { status: ReportStatus }) {
-  if (!status) return <Badge variant="new">Nouveau</Badge>;
-  const labels: Record<string, string> = {
-    queued: 'En attente',
-    processing: 'En cours',
-    done: 'Terminé',
-    error: 'Erreur',
-  };
+  const { t } = useTranslation();
+  if (!status) return <Badge variant="new">{t('enums.reportStatus.new')}</Badge>;
   const variants: Record<string, 'queued' | 'processing' | 'done' | 'error'> = {
     queued: 'queued',
     processing: 'processing',
@@ -48,7 +44,7 @@ export function ReportBadge({ status }: { status: ReportStatus }) {
   };
   return (
     <Badge variant={variants[status] ?? 'new'}>
-      {labels[status] ?? status}
+      {t(`enums.reportStatus.${status}`)}
     </Badge>
   );
 }

@@ -93,6 +93,40 @@ describe('POST /api/questionnaire', () => {
     expect(res.status).toBe(500);
   });
 
+  describe('language', () => {
+    it('defaults coachee.language to fr when not provided', async () => {
+      await seedCoach();
+      const res = await request(app)
+        .post('/api/questionnaire')
+        .set('X-Forwarded-For', '10.0.2.1')
+        .send(validBody);
+
+      const row = await testPool.query('SELECT language FROM coachee WHERE id = $1', [res.body.id]);
+      expect(row.rows[0].language).toBe('fr');
+    });
+
+    it('persists language=nl when submitted from /welkom', async () => {
+      await seedCoach();
+      const res = await request(app)
+        .post('/api/questionnaire')
+        .set('X-Forwarded-For', '10.0.2.2')
+        .send({ ...validBody, language: 'nl' });
+
+      expect(res.status).toBe(200);
+      const row = await testPool.query('SELECT language FROM coachee WHERE id = $1', [res.body.id]);
+      expect(row.rows[0].language).toBe('nl');
+    });
+
+    it('rejects invalid language with 400', async () => {
+      await seedCoach();
+      const res = await request(app)
+        .post('/api/questionnaire')
+        .set('X-Forwarded-For', '10.0.2.3')
+        .send({ ...validBody, language: 'de' });
+      expect(res.status).toBe(400);
+    });
+  });
+
   describe('rate limiting', () => {
     it('returns 429 after 5 submissions from the same IP', async () => {
       await seedCoach();

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { BackofficeHeader } from '@/components/layout/BackofficeHeader';
 import { ReportBadge, type ReportStatus } from '@/components/ui/badge';
 import { formatDate } from '@/lib/utils';
@@ -12,6 +13,7 @@ interface Coachee {
 }
 
 export function ListPage() {
+  const { t } = useTranslation();
   const [coachees, setCoachees] = useState<Coachee[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -19,7 +21,7 @@ export function ListPage() {
   useEffect(() => {
     fetch('/api/coachees', { credentials: 'include' })
       .then((r) => {
-        if (!r.ok) throw new Error('Erreur');
+        if (!r.ok) throw new Error('fetch failed');
         return r.json();
       })
       .then((data: Coachee[]) => {
@@ -27,19 +29,19 @@ export function ListPage() {
         setLoading(false);
       })
       .catch(() => {
-        setError('Impossible de charger les coachées.');
+        setError(t('list.errorLoad'));
         setLoading(false);
       });
-  }, []);
+  }, [t]);
 
   return (
     <div className="min-h-screen bg-[#F6F7F9]">
       <BackofficeHeader
         title={
           <>
-            Liste des{' '}
+            {t('list.title1')}{' '}
             <span className="font-[Cormorant_Garamond,serif] text-[17px] font-semibold italic text-[#EA226C]">
-              coachées
+              {t('list.title2')}
             </span>
           </>
         }
@@ -58,8 +60,8 @@ export function ListPage() {
 
         {!loading && !error && coachees.length === 0 && (
           <div className="text-center py-16 text-[14px] text-[#6B7580] leading-relaxed">
-            Aucun coachee pour le moment.<br />
-            Les questionnaires soumis apparaîtront ici.
+            {t('list.empty1')}<br />
+            {t('list.empty2')}
           </div>
         )}
 
@@ -68,9 +70,9 @@ export function ListPage() {
             <table className="w-full border-collapse">
               <thead>
                 <tr>
-                  {['Nom', 'Date de soumission', 'Statut rapport', ''].map((h) => (
+                  {[t('list.colName'), t('list.colSubmittedAt'), t('list.colReportStatus'), ''].map((h, i) => (
                     <th
-                      key={h}
+                      key={i}
                       className="text-[9px] font-semibold tracking-[2px] uppercase text-[#6B7580]
                                  px-4 py-3 text-left border-b border-[#EAEDEF] bg-[#FAFBFC]"
                     >
@@ -106,7 +108,7 @@ export function ListPage() {
                                      hover:bg-[rgba(76,175,130,0.18)] hover:border-[#4caf82] hover:-translate-y-px"
                         >
                           <img src="/img/word.svg" width="16" height="16" alt="" />
-                          Rapport
+                          {t('list.report')}
                         </a>
                       )}
                     </td>

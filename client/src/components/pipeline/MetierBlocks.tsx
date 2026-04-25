@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import type { Metier, Formation } from './types';
 
 interface MetierBlocksProps {
@@ -6,6 +7,8 @@ interface MetierBlocksProps {
 }
 
 export function MetierBlocks({ metiers, onChange }: MetierBlocksProps) {
+  const { t } = useTranslation();
+
   function addMetier() {
     onChange([
       ...metiers,
@@ -57,7 +60,7 @@ export function MetierBlocks({ metiers, onChange }: MetierBlocksProps) {
             >
               {i + 1}
             </div>
-            <label className="flex-1 m-0 text-[11px] font-normal text-[#6B7580]">Piste métier</label>
+            <label className="flex-1 m-0 text-[11px] font-normal text-[#6B7580]">{t('pipeline.metierLabel')}</label>
             <button
               type="button"
               onClick={() => removeMetier(i)}
@@ -69,26 +72,26 @@ export function MetierBlocks({ metiers, onChange }: MetierBlocksProps) {
           </div>
 
           <div className="flex flex-col gap-3">
-            <FieldGroup label="Nom du métier">
+            <FieldGroup label={t('pipeline.metierName')}>
               <input
                 type="text"
                 value={m.nom}
                 onChange={(e) => updateMetier(i, { nom: e.target.value })}
-                placeholder="ex. Game Designer, UX Designer..."
+                placeholder={t('pipeline.metierNamePlaceholder')}
                 className={inputCls}
               />
             </FieldGroup>
 
-            <FieldGroup label="Mots-clés / pourquoi ça matche">
+            <FieldGroup label={t('pipeline.metierKeywords')}>
               <textarea
                 value={m.motscles}
                 onChange={(e) => updateMetier(i, { motscles: e.target.value })}
-                placeholder="Résolution de problèmes complexes, créativité appliquée..."
+                placeholder={t('pipeline.metierKeywordsPlaceholder')}
                 className={cn(inputCls, 'min-h-[72px] resize-none')}
               />
             </FieldGroup>
 
-            <FieldGroup label="Formations / Écoles">
+            <FieldGroup label={t('pipeline.metierFormations')}>
               <div className="flex flex-col gap-2">
                 {m.formations.map((f, fi) => (
                   <div key={fi} className="flex gap-2 items-center">
@@ -96,14 +99,14 @@ export function MetierBlocks({ metiers, onChange }: MetierBlocksProps) {
                       type="text"
                       value={f.ecole}
                       onChange={(e) => updateFormation(i, fi, { ecole: e.target.value })}
-                      placeholder="Nom de l'école / université"
+                      placeholder={t('pipeline.metierSchoolPlaceholder')}
                       className={cn(inputCls, 'flex-1')}
                     />
                     <input
                       type="text"
                       value={f.ville}
                       onChange={(e) => updateFormation(i, fi, { ville: e.target.value })}
-                      placeholder="Ville"
+                      placeholder={t('pipeline.metierCityPlaceholder')}
                       className={cn(inputCls, 'max-w-[140px]')}
                     />
                     <button
@@ -125,7 +128,7 @@ export function MetierBlocks({ metiers, onChange }: MetierBlocksProps) {
                            transition-all hover:border-[#6B9DB5] hover:text-[#6B9DB5] hover:bg-[rgba(107,157,181,0.05)]
                            min-h-9"
               >
-                + Ajouter une formation
+                {t('pipeline.metierAddFormation')}
               </button>
             </FieldGroup>
           </div>
@@ -141,7 +144,7 @@ export function MetierBlocks({ metiers, onChange }: MetierBlocksProps) {
                    transition-all hover:border-[#6B9DB5] hover:bg-[rgba(107,157,181,0.06)] hover:-translate-y-px
                    min-h-12"
       >
-        + Ajouter un métier
+        {t('pipeline.metierAdd')}
       </button>
     </div>
   );

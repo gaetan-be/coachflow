@@ -1,8 +1,10 @@
 import { useState, useEffect, createContext, useContext } from 'react';
+import i18n from '@/i18n';
 
 export interface CoachMe {
   name: string;
   email: string;
+  language: 'fr' | 'nl';
   plan: string | null;
   plan_display_name: string | null;
   features: Record<string, boolean>;
@@ -50,7 +52,14 @@ export function useAuthState(): AuthState {
         return r.json();
       })
       .then((data) => {
-        if (data) setCoach(data as CoachMe);
+        if (data) {
+          const me = data as CoachMe;
+          setCoach(me);
+          // Coach preference wins over the public-side localStorage value
+          if (me.language && i18n.resolvedLanguage !== me.language) {
+            i18n.changeLanguage(me.language);
+          }
+        }
         setLoading(false);
       })
       .catch(() => {

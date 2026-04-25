@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { BackofficeHeader } from '@/components/layout/BackofficeHeader';
+import { LanguageSwitcher } from '@/components/layout/LanguageSwitcher';
 import { PipelineSection } from '@/components/pipeline/PipelineSection';
 import { ReportBadge, type ReportStatus } from '@/components/ui/badge';
 import { formatDateLong } from '@/lib/utils';
-import type { CoachMe } from '@/hooks/useAuth';
+import { useAuth, type CoachMe } from '@/hooks/useAuth';
 
 interface Report {
   report_id: number;
@@ -17,6 +19,8 @@ interface Report {
 }
 
 export function ProfilePage() {
+  const { t } = useTranslation();
+  const { coach } = useAuth();
   const [currentPw, setCurrentPw] = useState('');
   const [newPw, setNewPw] = useState('');
   const [pwFeedback, setPwFeedback] = useState<{ msg: string; ok: boolean } | null>(null);
@@ -32,20 +36,21 @@ export function ProfilePage() {
         setReportsLoading(false);
       })
       .catch(() => setReportsLoading(false));
-
-    fetch('/api/coach/me', { credentials: 'include' })
-      .then((r) => r.json())
-      .then((d: CoachMe) => setCoachMe(d));
   }, []);
+
+  // Mirror auth-context coach into local state for UI like credits
+  useEffect(() => {
+    if (coach) setCoachMe(coach);
+  }, [coach]);
 
   async function changePassword() {
     setPwFeedback(null);
     if (!currentPw || !newPw) {
-      setPwFeedback({ msg: 'Veuillez remplir les deux champs.', ok: false });
+      setPwFeedback({ msg: t('profile.passwordFillBoth'), ok: false });
       return;
     }
     if (newPw.length < 8) {
-      setPwFeedback({ msg: 'Le nouveau mot de passe doit contenir au moins 8 caractères.', ok: false });
+      setPwFeedback({ msg: t('profile.passwordTooShort'), ok: false });
       return;
     }
     const res = await fetch('/api/coach/password', {
@@ -56,9 +61,9 @@ export function ProfilePage() {
     });
     const d = await res.json();
     if (!res.ok) {
-      setPwFeedback({ msg: d.error ?? 'Une erreur est survenue.', ok: false });
+      setPwFeedback({ msg: d.error ?? t('common.errorGeneric'), ok: false });
     } else {
-      setPwFeedback({ msg: 'Mot de passe mis à jour avec succès.', ok: true });
+      setPwFeedback({ msg: t('profile.passwordSuccess'), ok: true });
       setCurrentPw('');
       setNewPw('');
     }
@@ -72,9 +77,9 @@ export function ProfilePage() {
       <BackofficeHeader
         title={
           <>
-            Mon{' '}
+            {t('profile.title1')}{' '}
             <span className="font-[Cormorant_Garamond,serif] text-[17px] font-semibold italic text-[#EA226C]">
-              profil
+              {t('profile.title2')}
             </span>
           </>
         }
@@ -84,40 +89,34 @@ export function ProfilePage() {
       <div className="max-w-[860px] mx-auto mt-12 px-8 max-md:px-4 max-md:mt-6 relative z-[1]">
 
         {/* 1 — Mes crédits */}
-        <PipelineSection title="Mes crédits" accent="teal" defaultOpen>
+        <PipelineSection title={t('profile.sectionCredits')} accent="teal" defaultOpen>
           {!coachMe ? (
-            <p className="text-[13px] text-[#6B7580]">Chargement…</p>
+            <p className="text-[13px] text-[#6B7580]">{t('common.loading')}</p>
           ) : !coachMe.plan ? (
             <div className="bg-[rgba(64,162,192,0.03)] border border-[rgba(64,162,192,0.25)] rounded-[14px] p-5">
-              <div className="text-[13px] font-medium text-[#202C34]">Accès illimité</div>
-              <p className="text-[12px] text-[#6B7580] mt-2">Ce compte n'est pas soumis aux crédits.</p>
+              <div className="text-[13px] font-medium text-[#202C34]">{t('profile.unlimitedAccess')}</div>
+              <p className="text-[12px] text-[#6B7580] mt-2">{t('profile.unlimitedNote')}</p>
             </div>
           ) : coachMe.allocations.length === 0 ? (
-            <p className="text-[13px] text-[#6B7580]">Aucune allocation de crédits.</p>
+            <p className="text-[13px] text-[#6B7580]">{t('profile.noAllocations')}</p>
           ) : (
             <div className="flex flex-col gap-3">
               {coachMe.allocations.map((a) => {
                 const bal = a.amount - a.used;
                 const pct = a.amount > 0 ? Math.round((a.used / a.amount) * 100) : 0;
-                const srcLabel: Record<string, string> = {
-                  subscription: 'Abonnement',
-                  promo: 'Promotion',
-                  manual: 'Attribution manuelle',
-                  purchase: 'Achat',
-                };
                 return (
                   <div key={a.id} className="bg-white border border-[#EAEDEF] rounded-[14px] p-5">
                     <div className="flex items-center justify-between gap-3 mb-3">
                       <span className="text-[13px] font-medium text-[#202C34]">
-                        {srcLabel[a.source] ?? a.source}
+                        {t(`enums.allocationSource.${a.source}`, { defaultValue: a.source })}
                         {a.note ? ` — ${a.note}` : ''}
                       </span>
                       {a.valid_until ? (
                         <span className="text-[11px] text-[#6B7580] whitespace-nowrap">
-                          expire le {formatDateLong(a.valid_until)}
+                          {t('profile.expiresOn', { date: formatDateLong(a.valid_until) })}
                         </span>
                       ) : (
-                        <span className="text-[11px] text-[#4caf82] whitespace-nowrap">sans expiration</span>
+                        <span className="text-[11px] text-[#4caf82] whitespace-nowrap">{t('profile.noExpiration')}</span>
                       )}
                     </div>
                     <div className="flex items-center gap-3.5">
@@ -125,33 +124,52 @@ export function ProfilePage() {
                         <div className="h-full bg-[#40A2C0] rounded-full transition-[width] duration-400" style={{ width: `${pct}%` }} />
                       </div>
                       <span className="text-[12px] text-[#6B7580] whitespace-nowrap min-w-[120px] text-right">
-                        {bal} / {a.amount} restant{bal !== 1 ? 's' : ''}
+                        {t('profile.remaining', { count: bal, bal, amount: a.amount })}
                       </span>
                     </div>
                   </div>
                 );
               })}
               <div className="text-[12px] text-[#6B7580] mt-1">
-                Total : <strong className="text-[#202C34]">{coachMe.balance}</strong> crédit{coachMe.balance !== 1 ? 's' : ''} restant{coachMe.balance !== 1 ? 's' : ''}
-                {' '}sur {totalCredits} au total ({usedCredits} utilisé{usedCredits !== 1 ? 's' : ''})
+                {t('profile.totalSummary', {
+                  count: coachMe.balance,
+                  balance: coachMe.balance,
+                  total: totalCredits,
+                  used: usedCredits,
+                })}
               </div>
             </div>
           )}
         </PipelineSection>
 
-        {/* 2 — Historique des rapports */}
-        <PipelineSection title="Historique des rapports" accent="teal">
+        {/* 2 — Préférences (langue) */}
+        <PipelineSection title={t('profile.sectionPreferences')} accent="teal">
+          <div className="flex items-start justify-between gap-6 max-md:flex-col">
+            <div className="flex-1">
+              <div className="text-[9px] font-semibold tracking-[2px] uppercase text-[#202C34] mb-1.5">
+                {t('profile.preferencesLanguageLabel')}
+              </div>
+              <p className="text-[12px] text-[#6B7580] leading-snug">
+                {t('profile.preferencesLanguageHint')}
+              </p>
+            </div>
+            <LanguageSwitcher mode="coach" />
+          </div>
+        </PipelineSection>
+
+        {/* 3 — Historique des rapports */}
+        <PipelineSection title={t('profile.sectionHistory')} accent="teal">
           {reportsLoading ? (
-            <p className="text-[13px] text-[#6B7580]">Chargement…</p>
+            <p className="text-[13px] text-[#6B7580]">{t('common.loading')}</p>
           ) : reports.length === 0 ? (
-            <p className="text-[13px] text-[#6B7580]">Aucun rapport généré pour le moment.</p>
+            <p className="text-[13px] text-[#6B7580]">{t('profile.noReports')}</p>
           ) : (
             <div className="bg-white border border-[#EAEDEF] rounded-2xl overflow-hidden">
               <table className="w-full border-collapse">
                 <thead>
                   <tr>
-                    {['Coachée', 'Date', 'Statut', ''].map((h) => (
-                      <th key={h} className="text-[9px] font-semibold tracking-[2px] uppercase text-[#6B7580] px-4 py-3 text-left border-b border-[#EAEDEF] bg-[#FAFBFC]">
+                    {[t('profile.colCoachee'), t('profile.colDate'), t('profile.colStatus'), ''].map((h, i) => (
+                      <th key={i} className="text-[9px] font-semibold tracking-[2px] uppercase text-[#6B7580] px-4 py-3 text-left border-b border-[#EAEDEF] bg-[#FAFBFC]">
                         {h}
                       </th>
                     ))}
@@ -174,11 +192,11 @@ export function ProfilePage() {
                             className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-medium text-[#4caf82] bg-[rgba(76,175,130,0.08)] border border-[rgba(76,175,130,0.3)] rounded-full no-underline hover:bg-[rgba(76,175,130,0.18)]"
                           >
                             <img src="/img/word.svg" width="16" height="16" alt="" />
-                            Rapport
+                            {t('list.report')}
                           </a>
                         ) : r.status === 'error' && r.error_message ? (
                           <span className="text-[11px] text-[#EA226C]" title={r.error_message}>
-                            ⚠ détail
+                            {t('profile.errorDetail')}
                           </span>
                         ) : null}
                       </td>
@@ -190,25 +208,25 @@ export function ProfilePage() {
           )}
         </PipelineSection>
 
-        {/* 3 — Changer le mot de passe */}
-        <PipelineSection title="Changer le mot de passe" accent="teal">
+        {/* 4 — Changer le mot de passe */}
+        <PipelineSection title={t('profile.sectionPassword')} accent="teal">
           <div className="grid grid-cols-2 gap-5 max-w-[480px] max-md:grid-cols-1">
-            <FieldGroup label="Mot de passe actuel">
+            <FieldGroup label={t('profile.labelCurrentPassword')}>
               <input
                 type="password"
                 value={currentPw}
                 onChange={(e) => setCurrentPw(e.target.value)}
-                placeholder="Votre mot de passe actuel"
+                placeholder={t('profile.placeholderCurrentPassword')}
                 autoComplete="current-password"
                 className={inputCls}
               />
             </FieldGroup>
-            <FieldGroup label="Nouveau mot de passe">
+            <FieldGroup label={t('profile.labelNewPassword')}>
               <input
                 type="password"
                 value={newPw}
                 onChange={(e) => setNewPw(e.target.value)}
-                placeholder="8 caractères minimum"
+                placeholder={t('profile.placeholderNewPassword')}
                 autoComplete="new-password"
                 className={inputCls}
               />
@@ -222,7 +240,7 @@ export function ProfilePage() {
                          border-[1.5px] border-[#40A2C0] rounded-full text-[11px] font-semibold tracking-[1.5px] uppercase
                          cursor-pointer transition-all min-h-12 hover:bg-[rgba(64,162,192,0.08)] hover:-translate-y-0.5"
             >
-              Mettre à jour
+              {t('profile.submitPassword')}
             </button>
             {pwFeedback && (
               <span className={`text-[12px] font-medium ${pwFeedback.ok ? 'text-[#4caf82]' : 'text-[#EA226C]'}`}>

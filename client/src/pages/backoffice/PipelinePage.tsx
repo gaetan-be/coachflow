@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { BackofficeHeader } from '@/components/layout/BackofficeHeader';
 import { PipelineSection } from '@/components/pipeline/PipelineSection';
 import { WordDial } from '@/components/pipeline/WordDial';
@@ -10,20 +11,14 @@ import { cn } from '@/lib/utils';
 import type { PipelineData, Metier } from '@/components/pipeline/types';
 
 const ENNEA_VALS = ['1', '2', '3', '4', '5', '6', '7', '8', '9'];
-const RIASEC_VALS = [
-  { val: 'R', name: 'Réaliste' },
-  { val: 'I', name: 'Investigateur' },
-  { val: 'A', name: 'Artistique' },
-  { val: 'S', name: 'Social' },
-  { val: 'E', name: 'Entreprenant' },
-  { val: 'C', name: 'Conventionnel' },
-];
+const RIASEC_VALS = ['R', 'I', 'A', 'S', 'E', 'C'] as const;
 const MBTI_GROUPS = [
-  { group: 'ei', head: 'Énergie', options: [{ val: 'E', name: 'Extraversion' }, { val: 'I', name: 'Introversion' }] },
-  { group: 'sn', head: 'Perception', options: [{ val: 'S', name: 'Sensation' }, { val: 'N', name: 'Intuition' }] },
-  { group: 'tf', head: 'Jugement', options: [{ val: 'T', name: 'Pensée' }, { val: 'F', name: 'Sentiment' }] },
-  { group: 'jp', head: 'Mode de vie', options: [{ val: 'J', name: 'Jugement' }, { val: 'P', name: 'Perception' }] },
+  { group: 'ei', headKey: 'enums.mbti.groupEi', options: ['E', 'I'] as const },
+  { group: 'sn', headKey: 'enums.mbti.groupSn', options: ['S', 'N'] as const },
+  { group: 'tf', headKey: 'enums.mbti.groupTf', options: ['T', 'F'] as const },
+  { group: 'jp', headKey: 'enums.mbti.groupJp', options: ['J', 'P'] as const },
 ];
+const ENNEA_SUBTYPES = ['Social', 'Survie', 'Tete-a-tete'] as const;
 
 const DEFAULT_DATA: PipelineData = {
   prenom: '', nom: '', date_naissance: '', ecole_nom: '', code_postal: '',
@@ -36,6 +31,7 @@ const DEFAULT_DATA: PipelineData = {
 };
 
 export function PipelinePage() {
+  const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
@@ -62,7 +58,7 @@ export function PipelinePage() {
     if (!id) return;
     fetch(`/api/coachee/${id}`, { credentials: 'include' })
       .then((r) => {
-        if (!r.ok) throw new Error('Coachee non trouvé');
+        if (!r.ok) throw new Error('not found');
         return r.json();
       })
       .then((d: PipelineData & { report_status?: string }) => {
@@ -90,7 +86,7 @@ export function PipelinePage() {
         }
       })
       .catch(() => {
-        alert('Coachee non trouvé');
+        alert(t('pipeline.errorNotFound'));
         navigate('/backoffice');
       });
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -128,11 +124,11 @@ export function PipelinePage() {
         credentials: 'include',
         body: JSON.stringify(collectPayload()),
       });
-      if (!res.ok) throw new Error('Erreur de sauvegarde');
-      setSaveStatus('Sauvegardé ✓');
+      if (!res.ok) throw new Error(t('pipeline.errorSave'));
+      setSaveStatus(t('common.saved'));
       setTimeout(() => setSaveStatus(''), 2500);
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Erreur');
+      alert(err instanceof Error ? err.message : t('common.error'));
     } finally {
       setSaving(false);
     }
@@ -161,33 +157,30 @@ export function PipelinePage() {
     if (reporting) return;
     setReporting(true);
     try {
-      // 1. Save first
       const saveRes = await fetch(`/api/coachee/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
         body: JSON.stringify(collectPayload()),
       });
-      if (!saveRes.ok) throw new Error('Erreur de sauvegarde');
+      if (!saveRes.ok) throw new Error(t('pipeline.errorSave'));
 
-      // 2. Queue report
       const reportRes = await fetch(`/api/coachee/${id}/report`, {
         method: 'POST',
         credentials: 'include',
       });
       if (!reportRes.ok) {
         const j = await reportRes.json();
-        throw new Error(j.error ?? 'Erreur');
+        throw new Error(j.error ?? t('common.error'));
       }
       setReportStatus('queued');
       startPolling();
     } catch (err) {
       setReporting(false);
-      alert(err instanceof Error ? err.message : 'Erreur');
+      alert(err instanceof Error ? err.message : t('common.error'));
     }
   }
 
-  // Ennea toggle
   function toggleEnnea(val: string) {
     setEnneaOrder((prev) => {
       const idx = prev.indexOf(val);
@@ -197,7 +190,6 @@ export function PipelinePage() {
     });
   }
 
-  // RIASEC toggle
   function toggleRiasec(val: string) {
     setRiasecOrder((prev) => {
       const idx = prev.indexOf(val);
@@ -207,7 +199,6 @@ export function PipelinePage() {
     });
   }
 
-  // MBTI toggle
   function toggleMbti(group: string, val: string) {
     setMbtiSel((prev) => ({ ...prev, [group]: prev[group] === val ? '' : val }));
   }
@@ -219,7 +210,7 @@ export function PipelinePage() {
       <BackofficeHeader
         title={
           <>
-            Le rapport de{' '}
+            {t('pipeline.title1')}{' '}
             <span className="font-[Cormorant_Garamond,serif] text-[17px] font-semibold italic text-[#EA226C]">
               {prenom}
             </span>
@@ -232,40 +223,40 @@ export function PipelinePage() {
       <div className="max-w-[860px] mx-auto mt-12 px-8 max-md:px-4 max-md:mt-6 relative z-[1]">
 
         {/* ── Section 01: Identité ── */}
-        <PipelineSection number="01" title="Identité du jeune" accent="pink" defaultOpen>
+        <PipelineSection number="01" title={t('pipeline.section1')} accent="pink" defaultOpen>
           <div className="grid grid-cols-2 gap-x-8 gap-y-5 max-md:grid-cols-1">
-            <FieldGroup label="Prénom">
+            <FieldGroup label={t('pipeline.labelFirstname')}>
               <input type="text" value={data.prenom} onChange={(e) => { setField('prenom', e.target.value); }}
-                placeholder="ex. Sofia" className={inputCls} />
+                placeholder={t('pipeline.placeholderFirstname')} className={inputCls} />
             </FieldGroup>
-            <FieldGroup label="Date de séance">
+            <FieldGroup label={t('pipeline.labelSessionDate')}>
               <input type="date" value={data.date_seance ?? ''} onChange={(e) => setField('date_seance', e.target.value)}
                 className={inputCls} />
             </FieldGroup>
-            <FieldGroup label="Nom">
+            <FieldGroup label={t('pipeline.labelLastname')}>
               <input type="text" value={data.nom} onChange={(e) => setField('nom', e.target.value)}
-                placeholder="ex. Dupont" className={inputCls} />
+                placeholder={t('pipeline.placeholderLastname')} className={inputCls} />
             </FieldGroup>
-            <FieldGroup label="École / Niveau">
+            <FieldGroup label={t('pipeline.labelSchoolLevel')}>
               <input type="text" value={data.ecole_nom} onChange={(e) => setField('ecole_nom', e.target.value)}
-                placeholder="ex. Athénée Royal, 5e secondaire" className={inputCls} />
+                placeholder={t('pipeline.placeholderSchoolLevel')} className={inputCls} />
             </FieldGroup>
-            <FieldGroup label="Date de naissance">
+            <FieldGroup label={t('pipeline.labelBirthdate')}>
               <input type="date" value={data.date_naissance ?? ''} onChange={(e) => setField('date_naissance', e.target.value)}
                 className={inputCls} />
             </FieldGroup>
-            <FieldGroup label="Choix / Orientations envisagées">
+            <FieldGroup label={t('pipeline.labelChoices')}>
               <textarea value={data.choix ?? ''} onChange={(e) => setField('choix', e.target.value)}
-                placeholder="Pistes déjà envisagées par le jeune ou sa famille..."
+                placeholder={t('pipeline.placeholderChoices')}
                 className={cn(inputCls, 'min-h-[72px] resize-none')} />
             </FieldGroup>
-            <FieldGroup label="Code postal">
+            <FieldGroup label={t('pipeline.labelZip')}>
               <input type="text" value={data.code_postal ?? ''} onChange={(e) => setField('code_postal', e.target.value)}
-                placeholder="ex. 1050" className={inputCls} />
+                placeholder={t('pipeline.placeholderZip')} className={inputCls} />
             </FieldGroup>
-            <FieldGroup label="Loisirs / Centres d'intérêt">
+            <FieldGroup label={t('pipeline.labelHobbies')}>
               <textarea value={data.loisirs ?? ''} onChange={(e) => setField('loisirs', e.target.value)}
-                placeholder="Sports, musique, jeux, bénévolat..."
+                placeholder={t('pipeline.placeholderHobbies')}
                 className={cn(inputCls, 'min-h-[72px] resize-none')} />
             </FieldGroup>
           </div>
@@ -279,14 +270,14 @@ export function PipelinePage() {
                        text-[11px] font-medium cursor-pointer transition-all min-h-[30px]
                        hover:border-[#40A2C0] hover:text-[#40A2C0] hover:bg-[rgba(64,162,192,0.04)]"
           >
-            ▼ Tout déplier
+            {t('pipeline.expandAll')}
           </button>
         </div>
 
         {/* ── Section 02: Enneagramme ── */}
-        <PipelineSection number="02" title="Enneagramme — Bases & Sous-type" accent="teal">
+        <PipelineSection number="02" title={t('pipeline.section2')} accent="teal">
           <label className="text-[9px] font-semibold tracking-[2px] uppercase text-[#202C34] block mb-2.5">
-            Types de base (1–9) — clique dans l'ordre d'importance (max 3)
+            {t('pipeline.enneaInstructions')}
           </label>
           <div className="flex gap-2 flex-wrap mb-4">
             {ENNEA_VALS.map((val) => {
@@ -327,10 +318,10 @@ export function PipelinePage() {
 
           <div className="mt-5 pt-5 border-t border-[#EAEDEF]">
             <label className="text-[9px] font-semibold tracking-[2px] uppercase text-[#202C34] block mb-2">
-              Sous-type
+              {t('pipeline.enneaSubtype')}
             </label>
             <div className="flex gap-2 flex-wrap">
-              {['Social', 'Survie', 'Tete-a-tete'].map((s) => (
+              {ENNEA_SUBTYPES.map((s) => (
                 <button
                   key={s}
                   type="button"
@@ -342,29 +333,29 @@ export function PipelinePage() {
                       : 'border-[#EAEDEF] bg-white text-[#6B7580] hover:border-[#40A2C0] hover:text-[#40A2C0] hover:bg-[rgba(64,162,192,0.06)]',
                   )}
                 >
-                  {s === 'Tete-a-tete' ? 'Tête-à-tête' : s}
+                  {t(`enums.enneaSubtype.${s}`)}
                 </button>
               ))}
             </div>
           </div>
 
           <WordDial
-            label="Mots condensé"
-            sublabel="Chapitre Enneagramme"
+            label={t('pipeline.wordCondensed')}
+            sublabel={t('pipeline.chapterEnnea')}
             value={data.words_ennea}
             onChange={(v) => setField('words_ennea', v)}
           />
         </PipelineSection>
 
         {/* ── Section 03: MBTI ── */}
-        <PipelineSection number="03" title="MBTI — Profil typologique" accent="teal">
+        <PipelineSection number="03" title={t('pipeline.section3')} accent="teal">
           <div className="grid grid-cols-4 gap-3 max-md:grid-cols-2">
-            {MBTI_GROUPS.map(({ group, head, options }) => (
+            {MBTI_GROUPS.map(({ group, headKey, options }) => (
               <div key={group} className="flex flex-col gap-1.5">
                 <div className="text-[8px] font-semibold tracking-[2px] uppercase text-[#6B7580] pb-1 border-b border-[#EAEDEF] mb-1">
-                  {head}
+                  {t(headKey)}
                 </div>
-                {options.map(({ val, name }) => (
+                {options.map((val) => (
                   <button
                     key={val}
                     type="button"
@@ -391,7 +382,7 @@ export function PipelinePage() {
                         mbtiSel[group] === val ? 'text-[#7f77dd]' : 'text-[#BFC5CC]')}>
                         {val}
                       </div>
-                      <div className="text-[9px] text-[#6B7580]">{name}</div>
+                      <div className="text-[9px] text-[#6B7580]">{t(`enums.mbti.${val}`)}</div>
                     </div>
                   </button>
                 ))}
@@ -401,7 +392,7 @@ export function PipelinePage() {
 
           <div className="mt-5 pt-4 border-t border-[#EAEDEF] flex items-center gap-3">
             <span className="text-[9px] font-semibold tracking-[2px] uppercase text-[#6B7580]">
-              Type résultant
+              {t('pipeline.mbtiResultLabel')}
             </span>
             <span className="font-[Cormorant_Garamond,serif] text-[28px] text-[#7f77dd] tracking-[4px]">
               {mbtiString
@@ -411,20 +402,20 @@ export function PipelinePage() {
           </div>
 
           <WordDial
-            label="Mots condensé"
-            sublabel="Chapitre MBTI"
+            label={t('pipeline.wordCondensed')}
+            sublabel={t('pipeline.chapterMbti')}
             value={data.words_mbti}
             onChange={(v) => setField('words_mbti', v)}
           />
         </PipelineSection>
 
         {/* ── Section 04: RIASEC ── */}
-        <PipelineSection number="04" title="RIASEC — Profil d'intérêts" accent="teal">
+        <PipelineSection number="04" title={t('pipeline.section4')} accent="teal">
           <p className="text-[11px] text-[#6B7580] mb-5 leading-relaxed">
-            Clique pour sélectionner les types dominants (max 3 — dans l'ordre de priorité)
+            {t('pipeline.riasecInstructions')}
           </p>
           <div className="flex gap-3 justify-between items-start flex-wrap">
-            {RIASEC_VALS.map(({ val, name }) => {
+            {RIASEC_VALS.map((val) => {
               const rank = riasecOrder.indexOf(val);
               const isSelected = rank >= 0;
               return (
@@ -467,7 +458,7 @@ export function PipelinePage() {
                     )}
                   </div>
                   <span className="text-[9px] font-semibold tracking-[1px] uppercase text-[#6B7580] text-center">
-                    {name}
+                    {t(`enums.riasec.${val}`)}
                   </span>
                 </div>
               );
@@ -475,101 +466,101 @@ export function PipelinePage() {
           </div>
 
           <WordDial
-            label="Mots condensé"
-            sublabel="Chapitre RIASEC"
+            label={t('pipeline.wordCondensed')}
+            sublabel={t('pipeline.chapterRiasec')}
             value={data.words_riasec}
             onChange={(v) => setField('words_riasec', v)}
           />
         </PipelineSection>
 
         {/* ── Section 05: Valeurs ── */}
-        <PipelineSection number="05" title="Valeurs du jeune" accent="slate">
+        <PipelineSection number="05" title={t('pipeline.section5')} accent="slate">
           <label className="text-[9px] font-semibold tracking-[2px] uppercase text-[#202C34] block mb-2">
-            Valeurs identifiées en séance — une par une, tape Entrée pour ajouter
+            {t('pipeline.valuesInstructions')}
           </label>
           <TagInput
             tags={valeurs}
             onChange={setValeurs}
-            placeholder="ex. Créativité"
+            placeholder={t('pipeline.valuesPlaceholder')}
             color="green"
           />
         </PipelineSection>
 
         {/* ── Section 06: Compétences & Besoins ── */}
-        <PipelineSection number="06" title="Compétences clés & Besoins fondamentaux" accent="slate">
+        <PipelineSection number="06" title={t('pipeline.section6')} accent="slate">
           <div className="flex flex-col gap-4">
             <div>
               <label className="text-[9px] font-semibold tracking-[2px] uppercase text-[#202C34] block mb-2">
-                Compétences clés observées — tape Entrée pour ajouter
+                {t('pipeline.skillsInstructions')}
               </label>
               <TagInput
                 tags={competences}
                 onChange={setCompetences}
-                placeholder="ex. Résolution de problèmes"
+                placeholder={t('pipeline.skillsPlaceholder')}
                 color="teal"
               />
             </div>
 
             <div className="pt-5 mt-1 border-t border-[#EAEDEF]">
               <div className="text-[10px] font-semibold tracking-[2px] uppercase text-[#6B9DB5] mb-3">
-                Besoins fondamentaux — tape Entrée pour ajouter
+                {t('pipeline.needsInstructions')}
               </div>
               <TagInput
                 tags={besoins}
                 onChange={setBesoins}
-                placeholder="ex. Autonomie, Feedback sincère"
+                placeholder={t('pipeline.needsPlaceholder')}
                 color="slate"
               />
             </div>
           </div>
 
           <WordDial
-            label="Mots condensé"
-            sublabel="Chapitre Compétences & Besoins"
+            label={t('pipeline.wordCondensed')}
+            sublabel={t('pipeline.chapterCompBesoins')}
             value={data.words_comp_besoins}
             onChange={(v) => setField('words_comp_besoins', v)}
           />
         </PipelineSection>
 
         {/* ── Section 07: Métiers ── */}
-        <PipelineSection number="07" title="Pistes de métiers & formations" accent="slate">
+        <PipelineSection number="07" title={t('pipeline.section7')} accent="slate">
           <MetierBlocks metiers={metiers} onChange={setMetiers} />
           <WordDial
-            label="Mots condensé"
-            sublabel="Chapitre Métiers"
+            label={t('pipeline.wordCondensed')}
+            sublabel={t('pipeline.chapterMetiers')}
             value={data.words_metiers}
             onChange={(v) => setField('words_metiers', v)}
           />
         </PipelineSection>
 
         {/* ── Section 08: Plan d'action ── */}
-        <PipelineSection number="08" title="Plan d'action" accent="slate">
+        <PipelineSection number="08" title={t('pipeline.section8')} accent="slate">
           <label className="text-[9px] font-semibold tracking-[2px] uppercase text-[#202C34] block mb-2">
-            Étapes concrètes pour le jeune
+            {t('pipeline.planActionLabel')}
           </label>
           <textarea
             value={data.plan_action ?? ''}
             onChange={(e) => setField('plan_action', e.target.value)}
-            placeholder={"Visiter les écoles, rencontrer un professionnel, explorer l'IA, consulter des sites...\n\nCes étapes seront structurées dans le rapport final."}
+            placeholder={t('pipeline.planActionPlaceholder')}
             className={cn(inputCls, 'min-h-[120px] resize-none')}
           />
           <WordDial
-            label="Mots condensé"
-            sublabel="Chapitre Plan d'action"
+            label={t('pipeline.wordCondensed')}
+            sublabel={t('pipeline.chapterPlanAction')}
             value={data.words_plan_action}
             onChange={(v) => setField('words_plan_action', v)}
           />
         </PipelineSection>
 
         {/* ── Section 09: Notes du coach ── */}
-        <PipelineSection number="09" title="Notes du coach & Conclusion" accent="pink">
+        <PipelineSection number="09" title={t('pipeline.section9')} accent="pink">
           <label className="text-[9px] font-semibold tracking-[2px] uppercase text-[#202C34] block mb-2">
-            Observations libres, hypothèses, pistes retenues
+            {t('pipeline.notesLabel')}
           </label>
           <textarea
             value={data.notes_coach ?? ''}
             onChange={(e) => setField('notes_coach', e.target.value)}
-            placeholder={"Impressions de séance, éléments clés du parcours, points à approfondir...\n\nCes notes seront intégrées dans le rapport final."}
+            placeholder={t('pipeline.notesPlaceholder')}
             className={cn(inputCls, 'min-h-[120px] resize-none')}
           />
         </PipelineSection>
@@ -582,8 +573,8 @@ export function PipelinePage() {
                        shadow-[0_2px_12px_rgba(64,162,192,0.06)] flex-wrap"
           >
             <div className="text-[12px] text-[#6B7580] leading-relaxed flex-1">
-              <strong className="text-[#202C34] font-medium">Pipeline prêt ?</strong><br />
-              Sauvegarde les données, puis génère le rapport Word avec les profils et notes.
+              <strong className="text-[#202C34] font-medium">{t('pipeline.ctaReadyTitle')}</strong><br />
+              {t('pipeline.ctaReadyText')}
 
               {reportStatus && (
                 <div className="mt-2">
@@ -598,7 +589,7 @@ export function PipelinePage() {
                                border border-[rgba(76,175,130,0.25)] rounded-full text-[#4caf82] text-xs font-medium
                                no-underline transition-all hover:bg-[rgba(76,175,130,0.15)]"
                   >
-                    Télécharger le rapport
+                    {t('pipeline.downloadReport')}
                   </a>
                 </div>
               )}
@@ -614,7 +605,7 @@ export function PipelinePage() {
                            cursor-pointer transition-all min-h-12 hover:bg-[rgba(64,162,192,0.08)] hover:-translate-y-0.5
                            disabled:opacity-60 disabled:cursor-not-allowed"
               >
-                {saving ? 'Sauvegarde...' : 'Sauvegarder'}
+                {saving ? t('common.saving') : t('common.save')}
               </button>
               <button
                 type="button"
@@ -626,7 +617,7 @@ export function PipelinePage() {
                            hover:bg-[#40A2C0] hover:-translate-y-0.5 hover:shadow-[0_8px_28px_rgba(64,162,192,0.35)]
                            disabled:opacity-60 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none"
               >
-                {reporting ? 'Génération...' : 'Créer le rapport'}
+                {reporting ? t('pipeline.generating') : t('pipeline.createReport')}
                 <span className="w-[18px] h-[18px] rounded-full bg-[rgba(64,162,192,0.15)] flex items-center justify-center text-[11px]">
                   →
                 </span>

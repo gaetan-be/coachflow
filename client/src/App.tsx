@@ -21,6 +21,7 @@ export default function App() {
           <Route path="/" element={<HomePage />} />
           <Route path="/terms" element={<TermsPage />} />
           <Route path="/hello" element={<QuestionnairePage />} />
+          <Route path="/welkom" element={<QuestionnairePage />} />
           <Route path="/coach" element={<LoginPage />} />
 
           {/* Protected backoffice routes */}

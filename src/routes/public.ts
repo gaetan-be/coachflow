@@ -10,11 +10,20 @@ export const publicRoutes = Router();
 // Submit questionnaire
 publicRoutes.post('/api/questionnaire', questionnaireRateLimit, async (req: Request, res: Response) => {
   try {
-    const { prenom, nom, date_naissance, ecole_nom, annee_scolaire, orientation_actuelle, loisirs, choix } = req.body;
+    const { prenom, nom, date_naissance, ecole_nom, annee_scolaire, orientation_actuelle, loisirs, choix, language } = req.body;
 
     if (!prenom || !nom || !date_naissance) {
       res.status(400).json({ error: 'Prénom, nom et date de naissance sont requis.' });
       return;
+    }
+
+    let lang: 'fr' | 'nl' = 'fr';
+    if (language !== undefined) {
+      if (language !== 'fr' && language !== 'nl') {
+        res.status(400).json({ error: 'Langue invalide.' });
+        return;
+      }
+      lang = language;
     }
 
     // Get the single coach
@@ -26,10 +35,10 @@ publicRoutes.post('/api/questionnaire', questionnaireRateLimit, async (req: Requ
     const coachId = coachResult.rows[0].id;
 
     const result = await pool.query(
-      `INSERT INTO coachee (coach_id, prenom, nom, date_naissance, ecole_nom, annee_scolaire, orientation_actuelle, loisirs, choix)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+      `INSERT INTO coachee (coach_id, prenom, nom, date_naissance, ecole_nom, annee_scolaire, orientation_actuelle, loisirs, choix, language)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
        RETURNING id`,
-      [coachId, prenom.trim(), nom.trim(), date_naissance, ecole_nom || null, annee_scolaire || null, orientation_actuelle || null, loisirs || null, choix || null]
+      [coachId, prenom.trim(), nom.trim(), date_naissance, ecole_nom || null, annee_scolaire || null, orientation_actuelle || null, loisirs || null, choix || null, lang]
     );
 
     res.json({ id: result.rows[0].id });

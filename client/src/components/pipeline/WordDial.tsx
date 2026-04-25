@@ -1,3 +1,5 @@
+import { useTranslation } from 'react-i18next';
+
 interface WordDialProps {
   label: string;
   sublabel: string;
@@ -17,6 +19,7 @@ export function WordDial({
   max = 350,
   step = 50,
 }: WordDialProps) {
+  const { t } = useTranslation();
   return (
     <div className="mt-5 px-5 py-4 bg-[rgba(107,157,181,0.03)] border border-[rgba(107,157,181,0.15)] rounded-xl flex items-center gap-4">
       <div className="min-w-[110px]">
@@ -41,7 +44,7 @@ export function WordDial({
       <div className="min-w-[64px] text-center font-[Cormorant_Garamond,serif] text-[22px] font-normal tracking-[1px] text-[#6B9DB5] leading-none">
         {value}
         <span className="block font-[DM_Sans,sans-serif] text-[8px] font-normal tracking-[1px] uppercase text-[#6B7580] mt-0.5">
-          mots
+          {t('pipeline.wordsUnit')}
         </span>
       </div>
     </div>

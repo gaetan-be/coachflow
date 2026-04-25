@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/hooks/useAuth';
 import { cn } from '@/lib/utils';
 
@@ -13,6 +14,7 @@ interface BackofficeHeaderProps {
 }
 
 export function BackofficeHeader({ title, saveStatus, showBack }: BackofficeHeaderProps) {
+  const { t } = useTranslation();
   const { coach } = useAuth();
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -76,7 +78,7 @@ export function BackofficeHeader({ title, saveStatus, showBack }: BackofficeHead
                          border border-[rgba(64,162,192,0.25)] rounded-full transition-all
                          hover:bg-[rgba(64,162,192,0.06)] hover:border-[#40A2C0] inline-flex items-center"
             >
-              ← Liste
+              {t('backofficeHeader.backToList')}
             </Link>
           )}
 
@@ -84,7 +86,7 @@ export function BackofficeHeader({ title, saveStatus, showBack }: BackofficeHead
           <div className="relative" ref={menuRef}>
             <button
               onClick={() => setOpen((o) => !o)}
-              aria-label="Mon profil"
+              aria-label={t('backofficeHeader.ariaProfile')}
               className="w-[34px] h-[34px] rounded-full border-2 border-[#40A2C0] bg-[rgba(64,162,192,0.12)]
                          shadow-[0_0_14px_rgba(64,162,192,0.30)] flex items-center justify-center
                          font-[Cormorant_Garamond,serif] text-base font-semibold text-[#40A2C0]
@@ -121,7 +123,7 @@ export function BackofficeHeader({ title, saveStatus, showBack }: BackofficeHead
                       />
                     </div>
                     <span className="text-[11px] text-[#6B7580] whitespace-nowrap flex-shrink-0">
-                      {coach.balance} crédit{coach.balance !== 1 ? 's' : ''} restant{coach.balance !== 1 ? 's' : ''}
+                      {t('backofficeHeader.creditsRemaining', { count: coach.balance })}
                     </span>
                   </div>
                 )}
@@ -134,14 +136,14 @@ export function BackofficeHeader({ title, saveStatus, showBack }: BackofficeHead
                              hover:bg-[rgba(64,162,192,0.06)] hover:text-[#40A2C0] transition-colors"
                   onClick={() => setOpen(false)}
                 >
-                  Mon profil →
+                  {t('backofficeHeader.myProfile')}
                 </Link>
                 <button
                   onClick={handleLogout}
                   className="block w-full px-4 py-2 text-[13px] text-[#6B7580] text-left bg-none border-none
                              cursor-pointer hover:bg-[rgba(234,34,108,0.04)] hover:text-[#EA226C] transition-colors"
                 >
-                  Déconnexion
+                  {t('backofficeHeader.logout')}
                 </button>
               </div>
             )}

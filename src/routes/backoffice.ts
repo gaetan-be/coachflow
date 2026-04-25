@@ -147,19 +147,41 @@ backofficeRoutes.post('/api/coachee/:id/report', async (req: Request, res: Respo
   }
 });
 
+function detectLanguageFromHeader(header: string | undefined): 'fr' | 'nl' {
+  if (!header) return 'fr';
+  // Accept-Language is a comma-separated list of tags with optional q-values.
+  // We only care whether 'nl' appears with a higher q than 'fr'.
+  const tags = header.split(',').map(s => {
+    const [tag, ...params] = s.trim().split(';');
+    const qParam = params.find(p => p.trim().startsWith('q='));
+    const q = qParam ? parseFloat(qParam.split('=')[1]) : 1;
+    return { lang: tag.toLowerCase().split('-')[0], q: isNaN(q) ? 1 : q };
+  });
+  const nl = tags.find(t => t.lang === 'nl');
+  const fr = tags.find(t => t.lang === 'fr');
+  if (nl && (!fr || nl.q > fr.q)) return 'nl';
+  return 'fr';
+}
+
 // API: Coach identity + plan + credits (used by header dropdown)
 backofficeRoutes.get('/api/coach/me', async (req: Request, res: Response) => {
   try {
     const coachId = req.session.coachId!;
     const [coachResult, credits, plan] = await Promise.all([
-      pool.query('SELECT name, email FROM coach WHERE id = $1', [coachId]),
+      pool.query('SELECT name, email, language FROM coach WHERE id = $1', [coachId]),
       getCoachCredits(coachId),
       getCoachPlan(coachId),
     ]);
     const coach = coachResult.rows[0];
+    let language: 'fr' | 'nl' = coach.language;
+    if (!language) {
+      language = detectLanguageFromHeader(req.headers['accept-language']);
+      await pool.query('UPDATE coach SET language = $1 WHERE id = $2', [language, coachId]);
+    }
     res.json({
       name: coach.name,
       email: coach.email,
+      language,
       plan: plan.plan_name,
       plan_display_name: plan.plan_display_name,
       features: plan.features,
@@ -168,6 +190,22 @@ backofficeRoutes.get('/api/coach/me', async (req: Request, res: Response) => {
     });
   } catch (err) {
     console.error('Get coach/me error:', err);
+    res.status(500).json({ error: 'Erreur serveur.' });
+  }
+});
+
+// API: Update coach profile (currently only language; extend with display name, etc. later)
+backofficeRoutes.put('/api/coach/profile', async (req: Request, res: Response) => {
+  try {
+    const { language } = req.body;
+    if (language !== 'fr' && language !== 'nl') {
+      res.status(400).json({ error: 'Langue invalide.' });
+      return;
+    }
+    await pool.query('UPDATE coach SET language = $1 WHERE id = $2', [language, req.session.coachId]);
+    res.json({ ok: true, language });
+  } catch (err) {
+    console.error('Update coach profile error:', err);
     res.status(500).json({ error: 'Erreur serveur.' });
   }
 });

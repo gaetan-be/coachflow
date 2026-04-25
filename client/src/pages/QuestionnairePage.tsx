@@ -1,5 +1,6 @@
 import { useState, useEffect, type FormEvent } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 
 interface FormData {
@@ -19,6 +20,15 @@ const DRAFT_KEY = 'brenso_questionnaire_draft';
 const TOTAL_STEPS = 3;
 
 export function QuestionnairePage() {
+  const { t, i18n } = useTranslation();
+  const { pathname } = useLocation();
+
+  // URL locks the language: /hello = fr, /welkom = nl
+  const lang: 'fr' | 'nl' = pathname === '/welkom' ? 'nl' : 'fr';
+  useEffect(() => {
+    if (i18n.resolvedLanguage !== lang) i18n.changeLanguage(lang);
+  }, [lang, i18n]);
+
   const [step, setStep] = useState(1);
   const [submitted, setSubmitted] = useState(false);
   const [submittedName, setSubmittedName] = useState('');
@@ -85,17 +95,17 @@ export function QuestionnairePage() {
       const res = await fetch('/api/questionnaire', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
+        body: JSON.stringify({ ...form, language: lang }),
       });
       if (!res.ok) {
         const j = await res.json();
-        throw new Error(j.error ?? 'Erreur');
+        throw new Error(j.error ?? t('common.error'));
       }
       setSubmittedName(form.prenom);
       localStorage.removeItem(DRAFT_KEY);
       setSubmitted(true);
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Erreur');
+      alert(err instanceof Error ? err.message : t('common.error'));
     } finally {
       setLoading(false);
     }
@@ -117,11 +127,11 @@ export function QuestionnairePage() {
               ✓
             </div>
             <h2 className="font-[Cormorant_Garamond,serif] text-3xl font-normal text-[#202C34] mb-3">
-              Merci {submittedName}&nbsp;!
+              {t('questionnaire.successTitle', { name: submittedName })}
             </h2>
             <p className="text-[14px] text-[#6B7580] leading-relaxed">
-              Tes réponses ont bien été enregistrées.<br />
-              On se voit bientôt pour la première séance&nbsp;!
+              {t('questionnaire.successBody1')}<br />
+              {t('questionnaire.successBody2')}
             </p>
           </div>
         </div>
@@ -137,11 +147,10 @@ export function QuestionnairePage() {
         {/* Intro card */}
         <div className="bg-white border border-[#EAEDEF] rounded-2xl p-8 shadow-[0_1px_4px_rgba(32,44,52,0.04)]">
           <h2 className="font-[Cormorant_Garamond,serif] text-2xl text-[#202C34] font-normal mb-3">
-            Bienvenue&nbsp;!
+            {t('questionnaire.welcomeTitle')}
           </h2>
           <p className="text-[14px] text-[#6B7580] leading-relaxed">
-            Avant notre première rencontre, j'aimerais mieux te connaître.
-            Remplis ce petit questionnaire — ça prend 2 minutes.
+            {t('questionnaire.welcomeBody')}
           </p>
         </div>
 
@@ -163,18 +172,18 @@ export function QuestionnairePage() {
           {step === 1 && (
             <StepCard
               number="01"
-              title="Identité"
+              title={t('questionnaire.step1Title')}
               accent="pink"
               footer={
                 <div className="flex justify-end">
                   <StepBtn type="button" onClick={() => goStep(2)} accent="pink">
-                    Suivant
+                    {t('common.next')}
                   </StepBtn>
                 </div>
               }
             >
               <FieldGroup error={errors.prenom}>
-                <FieldLabel>Prénom</FieldLabel>
+                <FieldLabel>{t('questionnaire.labelFirstname')}</FieldLabel>
                 <input
                   type="text"
                   value={form.prenom}
@@ -182,7 +191,7 @@ export function QuestionnairePage() {
                   name="given-name"
                   autoComplete="given-name"
                   autoCapitalize="words"
-                  placeholder="ex. Sofia"
+                  placeholder={t('questionnaire.placeholderFirstname')}
                   required
                   className={fieldClass(!!errors.prenom)}
                 />
@@ -190,7 +199,7 @@ export function QuestionnairePage() {
               </FieldGroup>
 
               <FieldGroup error={errors.nom}>
-                <FieldLabel>Nom</FieldLabel>
+                <FieldLabel>{t('questionnaire.labelLastname')}</FieldLabel>
                 <input
                   type="text"
                   value={form.nom}
@@ -198,7 +207,7 @@ export function QuestionnairePage() {
                   name="family-name"
                   autoComplete="family-name"
                   autoCapitalize="words"
-                  placeholder="ex. Dupont"
+                  placeholder={t('questionnaire.placeholderLastname')}
                   required
                   className={fieldClass(!!errors.nom)}
                 />
@@ -206,7 +215,7 @@ export function QuestionnairePage() {
               </FieldGroup>
 
               <FieldGroup error={errors.date_naissance}>
-                <FieldLabel>Date de naissance</FieldLabel>
+                <FieldLabel>{t('questionnaire.labelBirthdate')}</FieldLabel>
                 <input
                   type="date"
                   value={form.date_naissance}
@@ -223,53 +232,53 @@ export function QuestionnairePage() {
           {step === 2 && (
             <StepCard
               number="02"
-              title="École & Parcours"
+              title={t('questionnaire.step2Title')}
               accent="teal"
               footer={
                 <div className="flex justify-between">
                   <StepBtn type="button" onClick={() => goStep(1)} variant="back">
-                    Retour
+                    {t('common.back')}
                   </StepBtn>
                   <StepBtn type="button" onClick={() => goStep(3)} accent="teal">
-                    Suivant
+                    {t('common.next')}
                   </StepBtn>
                 </div>
               }
             >
               <FieldGroup>
-                <FieldLabel>École ou Université</FieldLabel>
+                <FieldLabel>{t('questionnaire.labelSchool')}</FieldLabel>
                 <input
                   type="text"
                   value={form.ecole_nom}
                   onChange={(e) => set('ecole_nom', e.target.value)}
-                  placeholder="ex. Athénée Royal d'Ixelles"
+                  placeholder={t('questionnaire.placeholderSchool')}
                   className={fieldClass()}
                 />
-                <FieldHint>Le nom de ton école, collège ou université</FieldHint>
+                <FieldHint>{t('questionnaire.labelSchoolHint')}</FieldHint>
               </FieldGroup>
 
               <FieldGroup>
-                <FieldLabel>Année scolaire</FieldLabel>
+                <FieldLabel>{t('questionnaire.labelSchoolYear')}</FieldLabel>
                 <input
                   type="text"
                   value={form.annee_scolaire}
                   onChange={(e) => set('annee_scolaire', e.target.value)}
-                  placeholder="ex. 5e secondaire, 1ère bac"
+                  placeholder={t('questionnaire.placeholderSchoolYear')}
                   className={fieldClass()}
                 />
-                <FieldHint>En quelle année es-tu actuellement&nbsp;?</FieldHint>
+                <FieldHint>{t('questionnaire.labelSchoolYearHint')}</FieldHint>
               </FieldGroup>
 
               <FieldGroup>
-                <FieldLabel>Orientation actuelle</FieldLabel>
+                <FieldLabel>{t('questionnaire.labelOrientation')}</FieldLabel>
                 <input
                   type="text"
                   value={form.orientation_actuelle}
                   onChange={(e) => set('orientation_actuelle', e.target.value)}
-                  placeholder="ex. Sciences économiques, Latin-Maths"
+                  placeholder={t('questionnaire.placeholderOrientation')}
                   className={fieldClass()}
                 />
-                <FieldHint>Ta filière, option ou section actuelle</FieldHint>
+                <FieldHint>{t('questionnaire.labelOrientationHint')}</FieldHint>
               </FieldGroup>
             </StepCard>
           )}
@@ -278,40 +287,40 @@ export function QuestionnairePage() {
           {step === 3 && (
             <StepCard
               number="03"
-              title="Loisirs & Envies"
+              title={t('questionnaire.step3Title')}
               accent="slate"
               footer={
                 <div className="flex justify-between">
                   <StepBtn type="button" onClick={() => goStep(2)} variant="back">
-                    Retour
+                    {t('common.back')}
                   </StepBtn>
                   <StepBtn type="submit" disabled={loading} accent="slate">
-                    {loading ? 'Envoi en cours…' : 'Envoyer au coach'}
+                    {loading ? t('questionnaire.submitting') : t('questionnaire.submit')}
                   </StepBtn>
                 </div>
               }
             >
               <FieldGroup>
-                <FieldLabel>Loisirs et centres d'intérêt</FieldLabel>
+                <FieldLabel>{t('questionnaire.labelHobbies')}</FieldLabel>
                 <textarea
                   value={form.loisirs}
                   onChange={(e) => set('loisirs', e.target.value)}
-                  placeholder="Sports, musique, jeux vidéo, lecture, bénévolat, voyages..."
+                  placeholder={t('questionnaire.placeholderHobbies')}
                   className={cn(fieldClass(), 'min-h-[88px] resize-none')}
                 />
-                <FieldHint>Tout ce que tu aimes faire en dehors de l'école</FieldHint>
+                <FieldHint>{t('questionnaire.labelHobbiesHint')}</FieldHint>
               </FieldGroup>
 
               <FieldGroup>
-                <FieldLabel>Choix ou orientations envisagées</FieldLabel>
+                <FieldLabel>{t('questionnaire.labelChoices')}</FieldLabel>
                 <textarea
                   value={form.choix}
                   onChange={(e) => set('choix', e.target.value)}
-                  placeholder="Des pistes que tu as déjà en tête ? Des métiers qui t'attirent ?"
+                  placeholder={t('questionnaire.placeholderChoices')}
                   className={cn(fieldClass(), 'min-h-[88px] resize-none')}
                 />
                 <FieldHint>
-                  Pas d'inquiétude si tu n'as pas encore d'idée — c'est pour ça qu'on se voit&nbsp;!
+                  {t('questionnaire.labelChoicesHint')}
                 </FieldHint>
               </FieldGroup>
             </StepCard>
@@ -323,6 +332,7 @@ export function QuestionnairePage() {
 }
 
 function PageHeader() {
+  const { t } = useTranslation();
   return (
     <div className="sticky top-0 z-[100] bg-white/92 backdrop-blur-[16px] border-b border-[#EAEDEF] shadow-[0_1px_8px_rgba(32,44,52,0.04)]">
       <header className="grid grid-cols-[1fr_auto_1fr] items-center gap-4 px-12 py-5 max-md:px-5">
@@ -333,8 +343,8 @@ function PageHeader() {
           <span className="font-[Cormorant_Garamond,serif] text-lg text-[#202C34] tracking-tight">BRENSO</span>
         </Link>
         <div className="text-[14px] text-[#6B7580] whitespace-nowrap">
-          <span className="font-[Cormorant_Garamond,serif] text-[17px] font-semibold italic text-[#EA226C]">Questionnaire</span>{' '}
-          d'orientation
+          <span className="font-[Cormorant_Garamond,serif] text-[17px] font-semibold italic text-[#EA226C]">{t('questionnaire.headerTitle')}</span>{' '}
+          {t('questionnaire.headerSubtitle')}
         </div>
         <div />
       </header>
@@ -410,7 +420,8 @@ function FieldHint({ children }: { children: React.ReactNode }) {
 }
 
 function FieldError() {
-  return <p className="text-[11px] text-[#EA226C]">Ce champ est requis</p>;
+  const { t } = useTranslation();
+  return <p className="text-[11px] text-[#EA226C]">{t('common.fieldRequired')}</p>;
 }
 
 function fieldClass(hasError = false) {
