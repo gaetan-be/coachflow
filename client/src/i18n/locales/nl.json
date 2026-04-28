@@ -317,6 +317,7 @@
   "pipeline": {
     "title1": "Het rapport van",
     "expandAll": "▼ Alles uitklappen",
+    "collapseAll": "▲ Alles inklappen",
     "section1": "Identiteit van de jongere",
     "labelFirstname": "Voornaam",
     "labelLastname": "Naam",

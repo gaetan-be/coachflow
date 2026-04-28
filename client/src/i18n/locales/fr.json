@@ -317,6 +317,7 @@
   "pipeline": {
     "title1": "Le rapport de",
     "expandAll": "▼ Tout déplier",
+    "collapseAll": "▲ Tout replier",
     "section1": "Identité du jeune",
     "labelFirstname": "Prénom",
     "labelLastname": "Nom",

@@ -43,8 +43,11 @@ backofficeRoutes.get('/api/coachees', async (req: Request, res: Response) => {
 backofficeRoutes.get('/api/coachee/:id', async (req: Request, res: Response) => {
   try {
     const result = await pool.query(`
-      SELECT c.id, c.coach_id, c.prenom, c.nom, c.date_naissance, c.ecole_nom,
-             c.code_postal, c.date_seance, c.loisirs, c.choix,
+      SELECT c.id, c.coach_id, c.prenom, c.nom,
+             to_char(c.date_naissance, 'YYYY-MM-DD') AS date_naissance,
+             c.ecole_nom, c.code_postal,
+             to_char(c.date_seance, 'YYYY-MM-DD') AS date_seance,
+             c.loisirs, c.choix,
              c.ennea_base, c.ennea_sous_type, c.mbti, c.riasec,
              c.words_ennea, c.words_mbti, c.words_riasec, c.notes_coach,
              c.valeurs, c.competences, c.besoins, c.words_comp_besoins,

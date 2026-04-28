@@ -40,6 +40,13 @@ export function PipelinePage() {
   const [saveStatus, setSaveStatus] = useState('');
   const [saving, setSaving] = useState(false);
   const [reporting, setReporting] = useState(false);
+  const [allOpen, setAllOpen] = useState(false);
+  const [foldSignal, setFoldSignal] = useState(0);
+
+  function toggleAll() {
+    setAllOpen((o) => !o);
+    setFoldSignal((s) => s + 1);
+  }
 
   // Derived local state for multi-select pickers
   const [enneaOrder, setEnneaOrder] = useState<string[]>([]);
@@ -266,16 +273,17 @@ export function PipelinePage() {
         <div className="flex justify-end pb-2">
           <button
             type="button"
+            onClick={toggleAll}
             className="px-3.5 py-1.5 rounded-full border border-[#EAEDEF] bg-white text-[#6B7580]
                        text-[11px] font-medium cursor-pointer transition-all min-h-[30px]
                        hover:border-[#40A2C0] hover:text-[#40A2C0] hover:bg-[rgba(64,162,192,0.04)]"
           >
-            {t('pipeline.expandAll')}
+            {allOpen ? t('pipeline.collapseAll') : t('pipeline.expandAll')}
           </button>
         </div>
 
         {/* ── Section 02: Enneagramme ── */}
-        <PipelineSection number="02" title={t('pipeline.section2')} accent="teal">
+        <PipelineSection number="02" title={t('pipeline.section2')} accent="teal" forceState={allOpen} forceSignal={foldSignal}>
           <label className="text-[9px] font-semibold tracking-[2px] uppercase text-[#202C34] block mb-2.5">
             {t('pipeline.enneaInstructions')}
           </label>
@@ -348,7 +356,7 @@ export function PipelinePage() {
         </PipelineSection>
 
         {/* ── Section 03: MBTI ── */}
-        <PipelineSection number="03" title={t('pipeline.section3')} accent="teal">
+        <PipelineSection number="03" title={t('pipeline.section3')} accent="teal" forceState={allOpen} forceSignal={foldSignal}>
           <div className="grid grid-cols-4 gap-3 max-md:grid-cols-2">
             {MBTI_GROUPS.map(({ group, headKey, options }) => (
               <div key={group} className="flex flex-col gap-1.5">
@@ -410,7 +418,7 @@ export function PipelinePage() {
         </PipelineSection>
 
         {/* ── Section 04: RIASEC ── */}
-        <PipelineSection number="04" title={t('pipeline.section4')} accent="teal">
+        <PipelineSection number="04" title={t('pipeline.section4')} accent="teal" forceState={allOpen} forceSignal={foldSignal}>
           <p className="text-[11px] text-[#6B7580] mb-5 leading-relaxed">
             {t('pipeline.riasecInstructions')}
           </p>
@@ -474,7 +482,7 @@ export function PipelinePage() {
         </PipelineSection>
 
         {/* ── Section 05: Valeurs ── */}
-        <PipelineSection number="05" title={t('pipeline.section5')} accent="slate">
+        <PipelineSection number="05" title={t('pipeline.section5')} accent="slate" forceState={allOpen} forceSignal={foldSignal}>
           <label className="text-[9px] font-semibold tracking-[2px] uppercase text-[#202C34] block mb-2">
             {t('pipeline.valuesInstructions')}
           </label>
@@ -487,7 +495,7 @@ export function PipelinePage() {
         </PipelineSection>
 
         {/* ── Section 06: Compétences & Besoins ── */}
-        <PipelineSection number="06" title={t('pipeline.section6')} accent="slate">
+        <PipelineSection number="06" title={t('pipeline.section6')} accent="slate" forceState={allOpen} forceSignal={foldSignal}>
           <div className="flex flex-col gap-4">
             <div>
               <label className="text-[9px] font-semibold tracking-[2px] uppercase text-[#202C34] block mb-2">
@@ -523,7 +531,7 @@ export function PipelinePage() {
         </PipelineSection>
 
         {/* ── Section 07: Métiers ── */}
-        <PipelineSection number="07" title={t('pipeline.section7')} accent="slate">
+        <PipelineSection number="07" title={t('pipeline.section7')} accent="slate" forceState={allOpen} forceSignal={foldSignal}>
           <MetierBlocks metiers={metiers} onChange={setMetiers} />
           <WordDial
             label={t('pipeline.wordCondensed')}
@@ -534,7 +542,7 @@ export function PipelinePage() {
         </PipelineSection>
 
         {/* ── Section 08: Plan d'action ── */}
-        <PipelineSection number="08" title={t('pipeline.section8')} accent="slate">
+        <PipelineSection number="08" title={t('pipeline.section8')} accent="slate" forceState={allOpen} forceSignal={foldSignal}>
           <label className="text-[9px] font-semibold tracking-[2px] uppercase text-[#202C34] block mb-2">
             {t('pipeline.planActionLabel')}
           </label>
@@ -553,7 +561,7 @@ export function PipelinePage() {
         </PipelineSection>
 
         {/* ── Section 09: Notes du coach ── */}
-        <PipelineSection number="09" title={t('pipeline.section9')} accent="pink">
+        <PipelineSection number="09" title={t('pipeline.section9')} accent="pink" forceState={allOpen} forceSignal={foldSignal}>
           <label className="text-[9px] font-semibold tracking-[2px] uppercase text-[#202C34] block mb-2">
             {t('pipeline.notesLabel')}
           </label>

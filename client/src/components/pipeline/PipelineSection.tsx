@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { cn } from '@/lib/utils';
 
 interface PipelineSectionProps {
@@ -6,6 +6,12 @@ interface PipelineSectionProps {
   title: string;
   accent?: 'pink' | 'teal' | 'slate' | 'default';
   defaultOpen?: boolean;
+  /**
+   * Force the section open/closed when `forceSignal` changes.
+   * Increment `forceSignal` whenever the parent wants to push a new value.
+   */
+  forceState?: boolean;
+  forceSignal?: number;
   children: React.ReactNode;
 }
 
@@ -45,10 +51,20 @@ export function PipelineSection({
   title,
   accent = 'default',
   defaultOpen = false,
+  forceState,
+  forceSignal,
   children,
 }: PipelineSectionProps) {
   const [open, setOpen] = useState(defaultOpen);
   const a = accentMap[accent];
+  const lastSignal = useRef(forceSignal);
+
+  useEffect(() => {
+    if (forceSignal === undefined || forceState === undefined) return;
+    if (lastSignal.current === forceSignal) return; // skip initial mount
+    lastSignal.current = forceSignal;
+    setOpen(forceState);
+  }, [forceSignal, forceState]);
 
   return (
     <div

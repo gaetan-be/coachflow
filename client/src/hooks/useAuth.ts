@@ -54,11 +54,23 @@ export function useAuthState(): AuthState {
       .then((data) => {
         if (data) {
           const me = data as CoachMe;
-          setCoach(me);
-          // Coach preference wins over the public-side localStorage value
-          if (me.language && i18n.resolvedLanguage !== me.language) {
+          // The user's most recent localStorage choice wins: if it differs from the
+          // coach's stored language, push it to the server so the profile reflects
+          // the language they're actually using right now.
+          const stored = localStorage.getItem('brenso_lang');
+          if ((stored === 'fr' || stored === 'nl') && stored !== me.language) {
+            fetch('/api/coach/profile', {
+              method: 'PUT',
+              credentials: 'include',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ language: stored }),
+            }).catch(() => { /* best-effort */ });
+            me.language = stored;
+          } else if (me.language && i18n.resolvedLanguage !== me.language) {
+            // No localStorage override — apply the server preference
             i18n.changeLanguage(me.language);
           }
+          setCoach(me);
         }
         setLoading(false);
       })
