@@ -202,13 +202,14 @@ function epilogueBand(title) {
 }
 
 function buildDocHeader(q) {
+  const brandName = q.brand_name || 'BRENSO';
   const subtitle = isAdult(q) ? "Rapport de bilan professionnel" : "Rapport d'orientation";
   return new Header({ children:[
     new Paragraph({
       border:{bottom:{style:BorderStyle.SINGLE,size:4,color:C.blue}}, spacing:{after:60},
       tabStops:[{type:TabStopType.RIGHT,position:PAGE.cw}],
       children:[
-        r("BRENSO",{bold:true,size:17,color:C.blue}),
+        r(brandName,{bold:true,size:17,color:C.blue}),
         r("  Coaching & Training",{size:17,color:C.mid}),
         r("\t",{size:17}),
         r(subtitle,{size:16,italic:true,color:C.mid}),
@@ -217,18 +218,21 @@ function buildDocHeader(q) {
   ]});
 }
 
-const docFooter = new Footer({ children:[
-  new Paragraph({
-    border:{top:{style:BorderStyle.SINGLE,size:2,color:C.greyBorder}}, spacing:{before:60},
-    tabStops:[{type:TabStopType.RIGHT,position:PAGE.cw}],
-    children:[
-      r("Document confidentiel  ·  BRENSO Coaching & Training  ·  Ixelles",{size:16,color:C.mid}),
-      r("\t",{size:16}),
-      r("p. ",{size:16,color:C.mid}),
-      new TextRun({children:[PageNumber.CURRENT],size:16,color:C.blue,bold:true,font:"Calibri"}),
-    ],
-  }),
-]});
+function buildDocFooter(q) {
+  const brandName = q.brand_name || 'BRENSO';
+  return new Footer({ children:[
+    new Paragraph({
+      border:{top:{style:BorderStyle.SINGLE,size:2,color:C.greyBorder}}, spacing:{before:60},
+      tabStops:[{type:TabStopType.RIGHT,position:PAGE.cw}],
+      children:[
+        r(`Document confidentiel  ·  ${brandName} Coaching & Training`,{size:16,color:C.mid}),
+        r("\t",{size:16}),
+        r("p. ",{size:16,color:C.mid}),
+        new TextRun({children:[PageNumber.CURRENT],size:16,color:C.blue,bold:true,font:"Calibri"}),
+      ],
+    }),
+  ]});
+}
 
 // ── PROFILE BRANCHING (young vs adult) ─────────────────────────────────────
 
@@ -313,7 +317,9 @@ function buildSystemPrompt(q, dominant, fiches, wordTarget, chapterName, context
   const others = Object.keys(fiches).filter(k => k !== dominant);
   const reportKind = isAdult(q) ? "bilan / repositionnement professionnel" : "rapport d'orientation personnalisé";
 
-  return `Tu es un expert en bilan d'orientation pour BRENSO Coaching & Training (Bénédicte Vanden Bossche, Ixelles).
+  const brandName = q.brand_name || 'BRENSO';
+  const coachName = q.coach_name || 'Bénédicte Vanden Bossche';
+  return `Tu es un expert en bilan d'orientation pour ${brandName} Coaching & Training (${coachName}, Ixelles).
 
 Tu génères du contenu pour le chapitre "${chapterName}" d'un ${reportKind}.
 
@@ -576,7 +582,7 @@ async function genChapter08(q) {
 
 async function genEpilogue(q, context) {
   const voiceTag = isAdult(q) ? "en vous" : "en tu";
-  const system = `Tu es Bénédicte Vanden Bossche, coach d'orientation BRENSO.
+  const system = `Tu es ${q.coach_name || 'Bénédicte Vanden Bossche'}, coach d'orientation ${q.brand_name || 'BRENSO'}.
 Tu génères le mot de clôture et une phrase forte pour ${q.prenom}.
 ${voiceRule(q)}
 La phrase forte est mémorisable, ${voiceTag}, issue de l'analyse globale du profil.
@@ -604,6 +610,8 @@ Retourne ce JSON :
 function buildDocument(q, chapters) {
   const { ch01, ch02, ch03, ch04, ch05, ch06, ch07, ch08, epilogue } = chapters;
   const prenom = q.prenom;
+  const brandName = q.brand_name || 'BRENSO';
+  const coachName = q.coach_name || 'Bénédicte Vanden Bossche';
   const dateRapport = new Date().toLocaleDateString('fr-BE', {day:'2-digit',month:'long',year:'numeric'});
 
   const children = [
@@ -614,7 +622,7 @@ function buildDocument(q, chapters) {
     new Paragraph({
       border:{bottom:{style:BorderStyle.SINGLE,size:10,color:C.blue}},
       spacing:{before:0,after:320},
-      children:[r("BRENSO Coaching & Training",{size:22,color:C.blue})],
+      children:[r(brandName+" Coaching & Training",{size:22,color:C.blue})],
     }),
     blank(280),
     p([r("Préparé pour",{size:19,color:C.mid,italic:true})],{spacing:{after:40}}),
@@ -630,7 +638,7 @@ function buildDocument(q, chapters) {
     p([r("MBTI : ",{size:19,color:C.mid}),r(q.mbti,{size:19,bold:true})],{spacing:{after:60}}),
     p([r("RIASEC : ",{size:19,color:C.mid}),r(q.riasec,{size:19,bold:true})],{spacing:{after:60}}),
     blank(400),
-    p([r("Coach : ",{size:19,color:C.mid}),r("Bénédicte Vanden Bossche",{size:19,bold:true})],{spacing:{after:60}}),
+    p([r("Coach : ",{size:19,color:C.mid}),r(coachName,{size:19,bold:true})],{spacing:{after:60}}),
     p([r("Date du rapport : ",{size:19,color:C.mid}),r(dateRapport,{size:19})],{spacing:{after:60}}),
 
     // ── 01 PERSONNALITÉ
@@ -749,18 +757,18 @@ function buildDocument(q, chapters) {
     new Paragraph({
       border:{bottom:{style:BorderStyle.SINGLE,size:6,color:C.blue}},
       spacing:{before:0,after:320},
-      children:[r("BRENSO",{size:36,bold:true,color:C.blue})],
+      children:[r(brandName,{size:36,bold:true,color:C.blue})],
     }),
     p([r("Coaching & Training",{size:24,color:C.mid,italic:true})],{spacing:{after:60}}),
     blank(200),
-    p([r("Bénédicte Vanden Bossche",{size:22,bold:true})],{spacing:{after:60}}),
-    p([r("Coach d'orientation certifiée",{size:20,italic:true,color:C.mid})],{spacing:{after:60}}),
-    p([r("Ixelles, Belgique",{size:19,color:C.mid})],{spacing:{after:60}}),
+    p([r(coachName,{size:22,bold:true})],{spacing:{after:60}}),
+    // p([r("Coach d'orientation certifiée",{size:20,italic:true,color:C.mid})],{spacing:{after:60}}),
+    // p([r("Ixelles, Belgique",{size:19,color:C.mid})],{spacing:{after:60}}),
     blank(80),
-    new Paragraph({border:{top:{style:BorderStyle.SINGLE,size:2,color:C.greyBorder}},spacing:{before:80,after:80},children:[r("",{size:4})]}),
-    p([r("www.brenso.be",{size:19,color:C.blue})],{spacing:{after:40}}),
-    p([r("contact@brenso.be",{size:19,color:C.mid})],{spacing:{after:40}}),
-    blank(400),
+    // new Paragraph({border:{top:{style:BorderStyle.SINGLE,size:2,color:C.greyBorder}},spacing:{before:80,after:80},children:[r("",{size:4})]}),
+    // p([r("www.brenso.be",{size:19,color:C.blue})],{spacing:{after:40}}),
+    // p([r("contact@brenso.be",{size:19,color:C.mid})],{spacing:{after:40}}),
+    // blank(400),
     p([r("Ce document est confidentiel. Il est destiné exclusivement à ",{size:17,color:C.mid})],{spacing:{after:0}}),
     p([r(prenom+" "+q.nom+(isAdult(q) ? "." : " et à ses parents ou représentants légaux."),{size:17,color:C.mid})],{spacing:{after:0}}),
   ];
@@ -774,7 +782,7 @@ function buildDocument(q, chapters) {
     sections:[{
       properties:{ page:{ size:{width:PAGE.w,height:PAGE.h}, margin:{top:PAGE.mTop,bottom:PAGE.mBottom,left:PAGE.mLeft,right:PAGE.mRight} } },
       headers:{ default:buildDocHeader(q) },
-      footers:{ default:docFooter },
+      footers:{ default:buildDocFooter(q) },
       children,
     }],
   });

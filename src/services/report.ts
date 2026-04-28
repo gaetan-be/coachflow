@@ -47,7 +47,8 @@ export function renderDocxWithClaude(data: any): Promise<Buffer> {
 
 export async function processReport(reportId: number): Promise<void> {
   const reportResult = await pool.query(`
-    SELECT r.id, r.coachee_id, c.*, coach.email as coach_email
+    SELECT r.id, r.coachee_id, c.*, coach.email as coach_email,
+           coach.name as coach_name, coach.brand_name as coach_brand_name
     FROM coachee_report r
     JOIN coachee c ON c.id = r.coachee_id
     JOIN coach ON coach.id = c.coach_id

@@ -11,6 +11,8 @@ export function calculateAge(dateNaissance: string): number {
 export function mapCoacheeToJson(data: any): Record<string, any> {
   return {
     profile_type: data.profile_type || 'young',
+    coach_name: data.coach_name || '',
+    brand_name: data.coach_brand_name || '',
     prenom: data.prenom || '',
     nom: data.nom || '',
     anniversaire: data.date_naissance
