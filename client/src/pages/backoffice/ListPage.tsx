@@ -71,7 +71,7 @@ export function ListPage() {
             <table className="w-full border-collapse">
               <thead>
                 <tr>
-                  {[t('list.colName'), t('list.colSubmittedAt'), t('list.colReportStatus'), '', t('list.colProfileType')].map((h, i) => (
+                  {[t('list.colName'), t('list.colProfileType'), t('list.colSubmittedAt'), t('list.colReportStatus'), ''].map((h, i) => (
                     <th
                       key={i}
                       className="text-[9px] font-semibold tracking-[2px] uppercase text-[#6B7580]
@@ -91,6 +91,9 @@ export function ListPage() {
                   >
                     <td className="px-4 py-3.5 text-[13px] font-medium text-[#202C34]">
                       {c.prenom} {c.nom}
+                    </td>
+                    <td className="px-4 py-3.5 text-[13px] text-[#6B7580]">
+                      {c.profile_type === 'adult' ? t('list.profileTypeAdult') : t('list.profileTypeYoung')}
                     </td>
                     <td className="px-4 py-3.5 text-[13px] text-[#6B7580]">
                       {formatDate(c.created_at)}
@@ -113,9 +116,6 @@ export function ListPage() {
                         </a>
                       )}
                     </td>
-                    <td className="px-4 py-3.5">
-                      <ProfileTypeBadge type={c.profile_type} />
-                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -124,21 +124,5 @@ export function ListPage() {
         )}
       </div>
     </div>
-  );
-}
-
-function ProfileTypeBadge({ type }: { type: 'young' | 'adult' }) {
-  const { t } = useTranslation();
-  const isAdult = type === 'adult';
-  return (
-    <span
-      className={
-        isAdult
-          ? 'inline-block px-2.5 py-1 text-[10px] font-semibold tracking-[1px] uppercase rounded-full text-[#338BA3] bg-[rgba(64,162,192,0.10)] border border-[rgba(64,162,192,0.30)]'
-          : 'inline-block px-2.5 py-1 text-[10px] font-semibold tracking-[1px] uppercase rounded-full text-[#5a8a9f] bg-[rgba(107,157,181,0.10)] border border-[rgba(107,157,181,0.30)]'
-      }
-    >
-      {isAdult ? t('list.profileTypeAdult') : t('list.profileTypeYoung')}
-    </span>
   );
 }

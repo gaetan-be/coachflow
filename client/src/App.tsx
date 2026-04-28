@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AuthContext, useAuthState } from '@/hooks/useAuth';
 import { BrandingContext, useBrandingState } from '@/hooks/useBranding';
@@ -15,6 +16,10 @@ import { ProfilePage } from '@/pages/backoffice/ProfilePage';
 export default function App() {
   const authState = useAuthState();
   const branding = useBrandingState();
+
+  useEffect(() => {
+    document.title = branding.brand_name;
+  }, [branding.brand_name]);
 
   return (
     <BrandingContext.Provider value={branding}>
