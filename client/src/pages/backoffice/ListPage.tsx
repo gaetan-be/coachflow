@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { BackofficeHeader } from '@/components/layout/BackofficeHeader';
+import { PipelineSection } from '@/components/pipeline/PipelineSection';
 import { ReportBadge, type ReportStatus } from '@/components/ui/badge';
-import { formatDate } from '@/lib/utils';
+import { cn, formatDate } from '@/lib/utils';
 
 interface Coachee {
   id: number;
@@ -49,6 +50,8 @@ export function ListPage() {
       />
 
       <div className="max-w-[900px] mx-auto mt-12 px-8 pb-16 relative z-[1] max-md:px-4 max-md:mt-6">
+        <LinkCreator />
+
         {loading && (
           <div className="flex items-center justify-center py-16">
             <div className="w-8 h-8 rounded-full border-2 border-[#40A2C0] border-t-transparent animate-spin" />
@@ -124,5 +127,79 @@ export function ListPage() {
         )}
       </div>
     </div>
+  );
+}
+
+function LinkCreator() {
+  const { t, i18n } = useTranslation();
+  const [lang, setLang] = useState<'fr' | 'nl'>(
+    i18n.language.startsWith('nl') ? 'nl' : 'fr'
+  );
+  const [profileType, setProfileType] = useState<'young' | 'adult'>('young');
+  const [copied, setCopied] = useState(false);
+
+  const path =
+    profileType === 'adult'
+      ? lang === 'nl' ? '/pro/welkom' : '/pro/hello'
+      : lang === 'nl' ? '/welkom' : '/hello';
+  const url = `${window.location.origin}${path}`;
+
+  function handleCopy() {
+    navigator.clipboard.writeText(url).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  }
+
+  const pillBase = 'px-3.5 py-1.5 text-[12px] font-medium rounded-full border transition-all';
+  const pillActive = 'bg-[#EA226C] text-white border-[#EA226C]';
+  const pillIdle = 'bg-white text-[#6B7580] border-[#EAEDEF] hover:border-[rgba(234,34,108,0.4)] hover:text-[#EA226C]';
+
+  return (
+    <PipelineSection accent="pink" title={t('list.linkCreatorTitle')}>
+      <div className="space-y-3">
+        <div className="flex items-center gap-3">
+          <span className="text-[12px] font-medium text-[#6B7580] shrink-0">{t('list.linkLang')}</span>
+          <div className="flex gap-1.5">
+            {(['fr', 'nl'] as const).map((l) => (
+              <button key={l} type="button" onClick={() => setLang(l)}
+                className={cn(pillBase, lang === l ? pillActive : pillIdle)}>
+                {l === 'fr' ? t('list.linkLangFr') : t('list.linkLangNl')}
+              </button>
+            ))}
+          </div>
+
+          <span className="text-[#EAEDEF] mx-2">|</span>
+
+          <span className="text-[12px] font-medium text-[#6B7580] shrink-0">{t('list.linkType')}</span>
+          <div className="flex gap-1.5">
+            {(['young', 'adult'] as const).map((tp) => (
+              <button key={tp} type="button" onClick={() => setProfileType(tp)}
+                className={cn(pillBase, profileType === tp ? pillActive : pillIdle)}>
+                {tp === 'young' ? t('list.profileTypeYoung') : t('list.profileTypeAdult')}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <span className="flex-1 px-4 py-2 bg-[#F6F7F9] border border-[#EAEDEF] rounded-xl text-[13px] font-mono text-[#202C34] select-all truncate min-w-0">
+            {url}
+          </span>
+          <button
+            type="button"
+            onClick={handleCopy}
+            className={cn(
+              'px-4 py-2 text-[12px] font-semibold rounded-xl border transition-all shrink-0',
+              copied
+                ? 'bg-[rgba(76,175,130,0.10)] text-[#4caf82] border-[rgba(76,175,130,0.40)]'
+                : 'bg-[rgba(234,34,108,0.08)] text-[#EA226C] border-[rgba(234,34,108,0.30)] hover:bg-[rgba(234,34,108,0.15)]'
+            )}
+          >
+            {copied ? t('list.linkCopied') : t('list.linkCopy')}
+          </button>
+        </div>
+      </div>
+    </PipelineSection>
   );
 }

@@ -331,7 +331,14 @@
     "colProfileType": "Type",
     "profileTypeYoung": "Jongere",
     "profileTypeAdult": "Volwassene",
-    "report": "Rapport"
+    "report": "Rapport",
+    "linkCreatorTitle": "Maak een uitnodigingslink",
+    "linkLang": "Taal",
+    "linkType": "Type",
+    "linkLangFr": "Frans",
+    "linkLangNl": "Nederlands",
+    "linkCopy": "Kopiëren",
+    "linkCopied": "Gekopieerd!"
   },
   "pipeline": {
     "title1": "Het rapport van",
