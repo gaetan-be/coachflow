@@ -10,15 +10,25 @@ export function calculateAge(dateNaissance: string): number {
 /** Map DB coachee row to the JSON format expected by make-docx.sh / brenso-word skill. */
 export function mapCoacheeToJson(data: any): Record<string, any> {
   return {
+    profile_type: data.profile_type || 'young',
     prenom: data.prenom || '',
     nom: data.nom || '',
-    anniversaire: data.date_naissance || '',
+    anniversaire: data.date_naissance
+      ? new Date(data.date_naissance).toLocaleDateString('fr-BE', { day: '2-digit', month: '2-digit', year: 'numeric' })
+      : '',
     age: data.date_naissance ? calculateAge(data.date_naissance) : 0,
     zip: data.code_postal || '',
-    date_seance: data.date_seance || '',
+    date_seance: data.date_seance
+      ? new Date(data.date_seance).toLocaleDateString('fr-BE', { day: '2-digit', month: '2-digit', year: 'numeric' })
+      : '',
     ecole: data.ecole_nom || '',
     choix: data.choix || '',
     loisirs: data.loisirs || '',
+    entreprise: data.entreprise || '',
+    role: data.role || '',
+    situation: data.situation
+      ? String(data.situation).split(',').filter(Boolean)
+      : [],
     ennea_bases: data.ennea_base
       ? String(data.ennea_base).split(',').filter(Boolean)
       : [],

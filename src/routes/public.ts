@@ -23,7 +23,12 @@ publicRoutes.get('/api/branding', (req: Request, res: Response) => {
 // Submit questionnaire — tenant comes from the Host header via resolveCoach
 publicRoutes.post('/api/questionnaire', questionnaireRateLimit, async (req: Request, res: Response) => {
   try {
-    const { prenom, nom, date_naissance, ecole_nom, annee_scolaire, orientation_actuelle, loisirs, choix, language } = req.body;
+    const {
+      prenom, nom, date_naissance,
+      ecole_nom, annee_scolaire, orientation_actuelle, choix,
+      entreprise, role, situation,
+      loisirs, language, profile_type,
+    } = req.body;
 
     if (!prenom || !nom || !date_naissance) {
       res.status(400).json({ error: 'Prénom, nom et date de naissance sont requis.' });
@@ -39,19 +44,41 @@ publicRoutes.post('/api/questionnaire', questionnaireRateLimit, async (req: Requ
       lang = language;
     }
 
-    // Get the single coach
-    const coachResult = await pool.query('SELECT id FROM coach LIMIT 1');
-    if (coachResult.rows.length === 0) {
+    let ptype: 'young' | 'adult' = 'young';
+    if (profile_type !== undefined) {
+      if (profile_type !== 'young' && profile_type !== 'adult') {
+        res.status(400).json({ error: 'Type de profil invalide.' });
+        return;
+      }
+      ptype = profile_type;
+    }
+
+    // Adult multi-select arrives as string[]; persist as comma-separated to match
+    // the convention used by ennea_base / riasec.
+    const situationStr = Array.isArray(situation)
+      ? situation.filter((s): s is string => typeof s === 'string').join(',') || null
+      : (typeof situation === 'string' ? situation : null);
+
+    // Coach is resolved from the Host header by resolveCoach middleware
+    if (!req.coach) {
       res.status(500).json({ error: 'Aucun coach configuré.' });
       return;
     }
-    const coachId = coachResult.rows[0].id;
+    const coachId = req.coach.id;
 
     const result = await pool.query(
-      `INSERT INTO coachee (coach_id, prenom, nom, date_naissance, ecole_nom, annee_scolaire, orientation_actuelle, loisirs, choix, language)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+      `INSERT INTO coachee (coach_id, prenom, nom, date_naissance,
+         ecole_nom, annee_scolaire, orientation_actuelle, choix,
+         entreprise, role, situation,
+         loisirs, language, profile_type)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
        RETURNING id`,
-      [coachId, prenom.trim(), nom.trim(), date_naissance, ecole_nom || null, annee_scolaire || null, orientation_actuelle || null, loisirs || null, choix || null, lang]
+      [
+        coachId, prenom.trim(), nom.trim(), date_naissance,
+        ecole_nom || null, annee_scolaire || null, orientation_actuelle || null, choix || null,
+        entreprise || null, role || null, situationStr,
+        loisirs || null, lang, ptype,
+      ]
     );
 
     res.json({ id: result.rows[0].id });

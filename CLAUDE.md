@@ -1,5 +1,5 @@
 # Project Brief Brenso
-A platform for a coach (Bénédicte Vanden Bossche) to gather initial information from young coachees and generate orientation reports.
+A platform for a coach to gather initial information from young coachees and generate orientation reports.
 The coach helps younger people select the right school according to their profile, using 3 methodologies: MBTI, RIASEC, and Enneagram.
 
 The website and backoffice are in French exclusively.

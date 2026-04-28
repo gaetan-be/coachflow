@@ -69,6 +69,7 @@ describe('PUT /api/coach/profile', () => {
   });
 
   it('rejects unauthenticated requests with 401', async () => {
+    await seedCoach();
     const res = await request(app)
       .put('/api/coach/profile')
       .send({ language: 'nl' });

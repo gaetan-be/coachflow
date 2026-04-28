@@ -26,7 +26,7 @@ backofficeRoutes.use('/api/coach', requireAuth);
 backofficeRoutes.get('/api/coachees', async (req: Request, res: Response) => {
   try {
     const result = await pool.query(`
-      SELECT c.id, c.prenom, c.nom, c.created_at,
+      SELECT c.id, c.prenom, c.nom, c.created_at, c.profile_type,
              (SELECT r.status FROM coachee_report r WHERE r.coachee_id = c.id ORDER BY r.created_at DESC LIMIT 1) as report_status
       FROM coachee c
       WHERE c.coach_id = $1
@@ -48,6 +48,7 @@ backofficeRoutes.get('/api/coachee/:id', async (req: Request, res: Response) => 
              c.ecole_nom, c.code_postal,
              to_char(c.date_seance, 'YYYY-MM-DD') AS date_seance,
              c.loisirs, c.choix,
+             c.profile_type, c.entreprise, c.role, c.situation,
              c.ennea_base, c.ennea_sous_type, c.mbti, c.riasec,
              c.words_ennea, c.words_mbti, c.words_riasec, c.notes_coach,
              c.valeurs, c.competences, c.besoins, c.words_comp_besoins,
@@ -77,8 +78,14 @@ backofficeRoutes.put('/api/coachee/:id', async (req: Request, res: Response) => 
       date_seance, choix, loisirs, ennea_base, ennea_sous_type,
       mbti, riasec, words_ennea, words_mbti, words_riasec, notes_coach,
       valeurs, competences, besoins, words_comp_besoins,
-      metiers, words_metiers, plan_action, words_plan_action
+      metiers, words_metiers, plan_action, words_plan_action,
+      entreprise, role, situation,
     } = req.body;
+
+    // Adult multi-select arrives as string[]; persist as comma-separated.
+    const situationStr = Array.isArray(situation)
+      ? situation.filter((s: unknown): s is string => typeof s === 'string').join(',') || null
+      : (typeof situation === 'string' ? (situation || null) : null);
 
     await pool.query(`
       UPDATE coachee SET
@@ -90,8 +97,9 @@ backofficeRoutes.put('/api/coachee/:id', async (req: Request, res: Response) => 
         valeurs = $17, competences = $18, besoins = $19, words_comp_besoins = $20,
         metiers = $21::jsonb, words_metiers = $22,
         plan_action = $23, words_plan_action = $24,
+        entreprise = $25, role = $26, situation = $27,
         updated_at = NOW()
-      WHERE id = $25 AND coach_id = $26
+      WHERE id = $28 AND coach_id = $29
     `, [
       prenom, nom, date_naissance, ecole_nom || null,
       code_postal || null, date_seance || null, choix || null, loisirs || null,
@@ -101,6 +109,7 @@ backofficeRoutes.put('/api/coachee/:id', async (req: Request, res: Response) => 
       valeurs || null, competences || null, besoins || null, words_comp_besoins || 250,
       metiers ? JSON.stringify(metiers) : null, words_metiers || 250,
       plan_action || null, words_plan_action || 200,
+      entreprise || null, role || null, situationStr,
       req.params.id, req.session.coachId
     ]);
 

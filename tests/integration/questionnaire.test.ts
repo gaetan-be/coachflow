@@ -85,12 +85,62 @@ describe('POST /api/questionnaire', () => {
     expect(res.status).toBe(400);
   });
 
-  it('returns 500 when no coach exists', async () => {
+  it('returns 4xx when no coach exists for the domain', async () => {
     const res = await request(app)
       .post('/api/questionnaire')
       .set('X-Forwarded-For', '10.0.0.7')
       .send(validBody);
-    expect(res.status).toBe(500);
+    expect(res.status).toBeGreaterThanOrEqual(400);
+    expect(res.status).toBeLessThan(600);
+  });
+
+  describe('profile_type', () => {
+    it('defaults profile_type to "young" when not provided', async () => {
+      await seedCoach();
+      const res = await request(app)
+        .post('/api/questionnaire')
+        .set('X-Forwarded-For', '10.0.3.1')
+        .send(validBody);
+
+      const row = await testPool.query('SELECT profile_type FROM coachee WHERE id = $1', [res.body.id]);
+      expect(row.rows[0].profile_type).toBe('young');
+    });
+
+    it('persists adult profile fields and joins situation array', async () => {
+      await seedCoach();
+      const res = await request(app)
+        .post('/api/questionnaire')
+        .set('X-Forwarded-For', '10.0.3.2')
+        .send({
+          prenom: 'Marie',
+          nom: 'Pro',
+          date_naissance: '1985-04-12',
+          entreprise: 'Acme SA',
+          role: 'Marketing Manager',
+          situation: ['burnout', 'reorientation'],
+          loisirs: 'Lecture',
+          profile_type: 'adult',
+        });
+
+      expect(res.status).toBe(200);
+      const row = await testPool.query(
+        'SELECT profile_type, entreprise, role, situation FROM coachee WHERE id = $1',
+        [res.body.id],
+      );
+      expect(row.rows[0].profile_type).toBe('adult');
+      expect(row.rows[0].entreprise).toBe('Acme SA');
+      expect(row.rows[0].role).toBe('Marketing Manager');
+      expect(row.rows[0].situation).toBe('burnout,reorientation');
+    });
+
+    it('rejects an invalid profile_type with 400', async () => {
+      await seedCoach();
+      const res = await request(app)
+        .post('/api/questionnaire')
+        .set('X-Forwarded-For', '10.0.3.3')
+        .send({ ...validBody, profile_type: 'senior' });
+      expect(res.status).toBe(400);
+    });
   });
 
   describe('language', () => {

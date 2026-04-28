@@ -33,8 +33,8 @@ export async function runMigrations(): Promise<void> {
   if (rows.length === 0) {
     const hash = await bcrypt.hash(config.coachPassword, 10);
     await pool.query(
-      'INSERT INTO coach (name, email, password_hash) VALUES ($1, $2, $3)',
-      [config.coachName, config.coachEmail, hash]
+      'INSERT INTO coach (name, email, password_hash, domain) VALUES ($1, $2, $3, $4)',
+      [config.coachName, config.coachEmail, hash, 'localhost']
     );
     console.log(`Seeded coach: ${config.coachEmail}`);
   }

@@ -25,6 +25,7 @@ describe('GET /api/coachees', () => {
     expect(res.body).toHaveLength(1);
     expect(res.body[0].prenom).toBe('Alice');
     expect(res.body[0].report_status).toBeNull();
+    expect(res.body[0].profile_type).toBe('young');
   });
 
   it('does not return coachees belonging to another coach', async () => {
@@ -131,6 +132,27 @@ describe('PUT /api/coachee/:id', () => {
 
     const getRes = await agent.get(`/api/coachee/${coachee.id}`);
     expect(getRes.body.metiers).toEqual([{ nom: 'Journaliste' }]);
+  });
+
+  it('persists adult-only fields when updated', async () => {
+    const coach = await seedCoach();
+    const coachee = await seedCoachee(coach.id);
+    const agent = await loginAgent(coach);
+
+    const adultPayload = {
+      ...updatePayload,
+      entreprise: 'BNP Paribas',
+      role: 'Account Manager',
+      situation: ['burnout', 'reorientation'],
+    };
+
+    const res = await agent.put(`/api/coachee/${coachee.id}`).send(adultPayload);
+    expect(res.status).toBe(200);
+
+    const getRes = await agent.get(`/api/coachee/${coachee.id}`);
+    expect(getRes.body.entreprise).toBe('BNP Paribas');
+    expect(getRes.body.role).toBe('Account Manager');
+    expect(getRes.body.situation).toBe('burnout,reorientation');
   });
 
   it('does not update coachee belonging to another coach', async () => {

@@ -10,6 +10,7 @@ export interface Metier {
 }
 
 export interface PipelineData {
+  profile_type: 'young' | 'adult';
   prenom: string;
   nom: string;
   date_naissance: string;
@@ -18,6 +19,9 @@ export interface PipelineData {
   date_seance: string;
   choix: string;
   loisirs: string;
+  entreprise: string | null;
+  role: string | null;
+  situation: string | null;
   ennea_base: string | null;
   ennea_sous_type: string | null;
   mbti: string | null;

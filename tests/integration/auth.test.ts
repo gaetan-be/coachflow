@@ -31,6 +31,7 @@ describe('POST /api/login', () => {
   });
 
   it('returns 401 for unknown email', async () => {
+    await seedCoach();
     const res = await request(app)
       .post('/api/login')
       .send({ email: 'unknown@test.be', password: 'irrelevant' });
@@ -39,6 +40,7 @@ describe('POST /api/login', () => {
   });
 
   it('returns 400 when email is missing', async () => {
+    await seedCoach();
     const res = await request(app)
       .post('/api/login')
       .send({ password: 'testpassword123' });
@@ -47,6 +49,7 @@ describe('POST /api/login', () => {
   });
 
   it('returns 400 when password is missing', async () => {
+    await seedCoach();
     const res = await request(app)
       .post('/api/login')
       .send({ email: 'coach@test.be' });
@@ -69,12 +72,14 @@ describe('POST /api/logout', () => {
 
 describe('Protected route guards', () => {
   it('returns 401 for GET /api/coachees without session', async () => {
+    await seedCoach();
     const res = await request(app).get('/api/coachees');
     expect(res.status).toBe(401);
     expect(res.body.error).toBeDefined();
   });
 
   it('returns 401 for GET /api/coachee/:id without session', async () => {
+    await seedCoach();
     const res = await request(app).get('/api/coachee/1');
     expect(res.status).toBe(401);
     expect(res.body.error).toBeDefined();

@@ -201,18 +201,21 @@ function epilogueBand(title) {
   ];
 }
 
-const docHeader = new Header({ children:[
-  new Paragraph({
-    border:{bottom:{style:BorderStyle.SINGLE,size:4,color:C.blue}}, spacing:{after:60},
-    tabStops:[{type:TabStopType.RIGHT,position:PAGE.cw}],
-    children:[
-      r("BRENSO",{bold:true,size:17,color:C.blue}),
-      r("  Coaching & Training",{size:17,color:C.mid}),
-      r("\t",{size:17}),
-      r("Rapport d'orientation",{size:16,italic:true,color:C.mid}),
-    ],
-  }),
-]});
+function buildDocHeader(q) {
+  const subtitle = isAdult(q) ? "Rapport de bilan professionnel" : "Rapport d'orientation";
+  return new Header({ children:[
+    new Paragraph({
+      border:{bottom:{style:BorderStyle.SINGLE,size:4,color:C.blue}}, spacing:{after:60},
+      tabStops:[{type:TabStopType.RIGHT,position:PAGE.cw}],
+      children:[
+        r("BRENSO",{bold:true,size:17,color:C.blue}),
+        r("  Coaching & Training",{size:17,color:C.mid}),
+        r("\t",{size:17}),
+        r(subtitle,{size:16,italic:true,color:C.mid}),
+      ],
+    }),
+  ]});
+}
 
 const docFooter = new Footer({ children:[
   new Paragraph({
@@ -226,6 +229,50 @@ const docFooter = new Footer({ children:[
     ],
   }),
 ]});
+
+// ── PROFILE BRANCHING (young vs adult) ─────────────────────────────────────
+
+function isAdult(q) { return q && q.profile_type === 'adult'; }
+
+function voiceRule(q) {
+  return isAdult(q)
+    ? 'TOUJOURS adresser la personne en VOUS (vous, votre, vos)'
+    : 'TOUJOURS adresser la personne en TU (tu, tes, ton, toi)';
+}
+
+function adultFrame(q) {
+  if (!isAdult(q)) return '';
+  const sit = Array.isArray(q.situation) ? q.situation.join(', ') : (q.situation || '');
+  return `\n\nContexte adulte (à intégrer dans la rédaction) :
+- Entreprise actuelle : ${q.entreprise || '—'}
+- Rôle / Poste : ${q.role || '—'}
+- Situation déclarée : ${sit || '—'}
+Le rapport vise un bilan ou repositionnement professionnel — pas une première orientation scolaire. Évite toute référence à l'école, aux études en cours, ou aux parents.`;
+}
+
+const TITLES_YOUNG = {
+  '01': 'Personnalité — Enneagramme',
+  '02': 'En contexte professionnel',
+  '03': 'Compétences — MBTI',
+  '04': 'Compétences clés',
+  '05': 'RIASEC — Profil d’intérêts',
+  '06': 'Besoins fondamentaux',
+  '07': 'Pistes de métiers & formations',
+  '08': 'Plan d’action',
+};
+const TITLES_ADULT = {
+  '01': 'Personnalité — Enneagramme',
+  '02': 'Dans votre contexte professionnel',
+  '03': 'Compétences — MBTI',
+  '04': 'Compétences clés',
+  '05': 'RIASEC — Profil d’intérêts',
+  '06': 'Besoins fondamentaux',
+  '07': 'Pistes de transition & repositionnement',
+  '08': 'Plan de transition professionnelle',
+};
+function chapterTitleFor(num, q) {
+  return (isAdult(q) ? TITLES_ADULT : TITLES_YOUNG)[num];
+}
 
 // ── API CLAUDE ──────────────────────────────────────────────────────────────
 
@@ -258,16 +305,17 @@ async function callClaude(systemPrompt, userPrompt) {
 
 // ── PROMPT BUILDER ───────────────────────────────────────────────────────────
 
-function buildSystemPrompt(dominant, fiches, wordTarget, chapterName, context) {
+function buildSystemPrompt(q, dominant, fiches, wordTarget, chapterName, context) {
   const min = Math.round(wordTarget * 0.95);
   const max = Math.round(wordTarget * 1.05);
 
   const ficheLabels = { ennea: "Enneagramme", mbti: "MBTI", riasec: "RIASEC" };
   const others = Object.keys(fiches).filter(k => k !== dominant);
+  const reportKind = isAdult(q) ? "bilan / repositionnement professionnel" : "rapport d'orientation personnalisé";
 
   return `Tu es un expert en bilan d'orientation pour BRENSO Coaching & Training (Bénédicte Vanden Bossche, Ixelles).
 
-Tu génères du contenu pour le chapitre "${chapterName}" d'un rapport d'orientation personnalisé.
+Tu génères du contenu pour le chapitre "${chapterName}" d'un ${reportKind}.
 
 ## Outil DOMINANT pour ce chapitre : ${ficheLabels[dominant]}
 La fiche ci-dessous est ta source principale. Elle structure l'essentiel du contenu.
@@ -281,7 +329,7 @@ Elles ne contredisent JAMAIS l'outil dominant sur les besoins fondamentaux.
 ${others.map(k => `### ${ficheLabels[k]}\n${fiches[k]}`).join("\n\n")}
 
 ## Règles de rédaction
-- TOUJOURS adresser la personne en TU (tu, tes, ton, toi)
+- ${voiceRule(q)}
 - TOUJOURS utiliser le prénom fourni dans les données
 - Phrases complètes, prose narrative — pas de listes sèches
 - Ton chaleureux, direct, orienté action
@@ -304,7 +352,7 @@ async function genChapter01(q, fiches, context) {
   const sousType = q.ennea_soustype || "";
   const words = q.words_ennea || 250;
 
-  const system = buildSystemPrompt("ennea", {
+  const system = buildSystemPrompt(q, "ennea", {
     ennea: `FICHE BASE ${base1} + SOUS-TYPE ${sousType}\n\n` +
            `Pondération : Base ${base1} = dominant (${base2 ? "70%" : "100%"}), ` +
            `${base2 ? `Base ${base2} = 25%, ` : ""}${q.ennea_bases[2] ? `Base ${q.ennea_bases[2]} = 10%` : ""}`,
@@ -312,7 +360,8 @@ async function genChapter01(q, fiches, context) {
     riasec:`Lettre dominante : ${q.riasec[0] || "?"} (très légère influence sur 1 formulation max)`,
   }, words, "01 · Personnalité — Enneagramme", context);
 
-  const user = `Données du questionnaire :
+  const user = `${adultFrame(q)}
+Données du questionnaire :
 Prénom : ${q.prenom}
 Enneagramme bases : ${q.ennea_bases.join(", ")} | Sous-type : ${sousType}
 MBTI : ${q.mbti} | RIASEC : ${q.riasec}
@@ -342,13 +391,14 @@ Retourne ce JSON exact :
 
 async function genChapter02(q, fiches, context) {
   const words = Math.round((q.words_ennea || 250) * 0.8);
-  const system = buildSystemPrompt("ennea", {
+  const system = buildSystemPrompt(q, "ennea", {
     ennea: `Base ${q.ennea_bases[0]} dominant — forces et besoins pro`,
     mbti:  `Type ${q.mbti} — légère influence sur le style de travail`,
     riasec:`Lettre ${q.riasec[0]} — légère influence sur l'environnement`,
   }, words, "02 · En contexte professionnel", context);
 
-  const user = `Prénom : ${q.prenom}
+  const user = `${adultFrame(q)}
+Prénom : ${q.prenom}
 Retourne ce JSON :
 {
   "callout": "synthèse IA — comment le profil se traduit en contexte pro (1-2 phrases en tu)",
@@ -363,13 +413,14 @@ Retourne ce JSON :
 
 async function genChapter03(q, fiches, context) {
   const words = q.words_mbti || 250;
-  const system = buildSystemPrompt("mbti", {
+  const system = buildSystemPrompt(q, "mbti", {
     mbti:  `Type complet : ${q.mbti} — dominant`,
     ennea: `Base ${q.ennea_bases[0]} — légère influence sur les besoins`,
     riasec:`Lettre ${q.riasec[0]} — très légère influence sur les secteurs`,
   }, words, "03 · Compétences — MBTI", context);
 
-  const user = `Prénom : ${q.prenom} | MBTI : ${q.mbti}
+  const user = `${adultFrame(q)}
+Prénom : ${q.prenom} | MBTI : ${q.mbti}
 Retourne ce JSON :
 {
   "callout": "ce que le type MBTI révèle sur ${q.prenom} (1-2 phrases percutantes, en tu)",
@@ -383,7 +434,7 @@ Retourne ce JSON :
     ["Type résultant", "${q.mbti} + nom"]
   ],
   "apprentissage_intro": "comment tu apprends le mieux (1-2 phrases)",
-  "apprentissage": ["style 1", "style 2", "ce qui te freine en contexte scolaire classique"]
+  "apprentissage": ["style 1", "style 2", "${isAdult(q) ? 'ce qui ralentit votre apprentissage en formation classique' : 'ce qui te freine en contexte scolaire classique'}"]
 }`;
 
   return JSON.parse(await callClaude(system, user));
@@ -391,13 +442,14 @@ Retourne ce JSON :
 
 async function genChapter04(q, fiches, context) {
   const words = q.words_comp_besoins || 250;
-  const system = buildSystemPrompt("mbti", {
+  const system = buildSystemPrompt(q, "mbti", {
     mbti:  `Type ${q.mbti} — dominant pour les compétences`,
     ennea: `Base ${q.ennea_bases[0]} — légère influence`,
     riasec:`Lettre ${q.riasec[0]} — très légère influence`,
   }, words, "04 · Compétences clés", context);
 
-  const user = `Prénom : ${q.prenom}
+  const user = `${adultFrame(q)}
+Prénom : ${q.prenom}
 Compétences saisies par le coach : ${(q.competences||[]).join(", ") || "non renseignées — à déduire du profil"}
 Retourne ce JSON :
 {
@@ -419,13 +471,14 @@ Retourne ce JSON :
 
 async function genChapter05(q, fiches, context) {
   const words = q.words_riasec || 200;
-  const system = buildSystemPrompt("riasec", {
+  const system = buildSystemPrompt(q, "riasec", {
     riasec:`Lettres : ${q.riasec} — lettre 1 dominante`,
     ennea: `Base ${q.ennea_bases[0]} — légère influence sur les besoins`,
     mbti:  `Type ${q.mbti} — très légère influence`,
   }, words, "05 · RIASEC", context);
 
-  const user = `Prénom : ${q.prenom} | RIASEC : ${q.riasec}
+  const user = `${adultFrame(q)}
+Prénom : ${q.prenom} | RIASEC : ${q.riasec}
 Retourne ce JSON :
 {
   "callout": "croisement des lettres dominantes — ce que ça révèle sur ${q.prenom} (1-2 phrases, en tu)",
@@ -448,13 +501,14 @@ Retourne ce JSON :
 
 async function genChapter06(q, fiches, context) {
   const words = q.words_comp_besoins || 250;
-  const system = buildSystemPrompt("ennea", {
+  const system = buildSystemPrompt(q, "ennea", {
     ennea: `Base ${q.ennea_bases[0]} — dominant pour les besoins fondamentaux`,
     mbti:  `Type ${q.mbti} — légère influence`,
     riasec:`Lettre ${q.riasec[0]} — légère influence sur l'environnement`,
   }, words, "06 · Besoins fondamentaux", context);
 
-  const user = `Prénom : ${q.prenom}
+  const user = `${adultFrame(q)}
+Prénom : ${q.prenom}
 Besoins saisis par le coach : ${(q.besoins||[]).join(", ") || "non renseignés — à déduire du profil"}
 Retourne ce JSON :
 {
@@ -476,7 +530,7 @@ Retourne ce JSON :
 
 async function genChapter07(q, fiches, context) {
   const words = q.words_metiers || 250;
-  const system = buildSystemPrompt("riasec", {
+  const system = buildSystemPrompt(q, "riasec", {
     riasec:`Lettres ${q.riasec} — dominant pour les pistes métiers`,
     ennea: `Base ${q.ennea_bases[0]} — légère influence sur l'argumentaire`,
     mbti:  `Type ${q.mbti} — légère influence sur le style de travail`,
@@ -487,7 +541,8 @@ async function genChapter07(q, fiches, context) {
     (m.formations?.length ? " | Formations: " + m.formations.map(f=>f.ecole+(f.ville?" – "+f.ville:"")).join(", ") : "")
   ).join("\n");
 
-  const user = `Prénom : ${q.prenom}
+  const user = `${adultFrame(q)}
+Prénom : ${q.prenom}
 Pistes du coach :\n${metiersCoach || "Non renseignées — à déduire du profil RIASEC/Enneagramme/MBTI"}
 
 Retourne ce JSON avec exactement ${(q.metiers||[]).length || 2} pistes :
@@ -520,10 +575,13 @@ async function genChapter08(q) {
 }
 
 async function genEpilogue(q, context) {
+  const voiceTag = isAdult(q) ? "en vous" : "en tu";
   const system = `Tu es Bénédicte Vanden Bossche, coach d'orientation BRENSO.
 Tu génères le mot de clôture et une phrase forte pour ${q.prenom}.
-La phrase forte est mémorisable, en tu, issue de l'analyse globale du profil.
+${voiceRule(q)}
+La phrase forte est mémorisable, ${voiceTag}, issue de l'analyse globale du profil.
 Elle doit pouvoir être relue dans 5 ans et rester vraie.
+${adultFrame(q)}
 
 Contexte du rapport complet :
 ${context}`;
@@ -533,9 +591,9 @@ ${context}`;
 
 Retourne ce JSON :
 {
-  "para1": "premier paragraphe du mot du coach — si notes présentes, les transcrire, sinon rédiger en cohérence avec le profil (3-5 phrases, en tu, adressé directement à ${q.prenom})",
+  "para1": "premier paragraphe du mot du coach — si notes présentes, les transcrire, sinon rédiger en cohérence avec le profil (3-5 phrases, ${voiceTag}, adressé directement à ${q.prenom})",
   "para2": "deuxième paragraphe optionnel — observations finales (2-3 phrases ou vide si non pertinent)",
-  "phrase_forte": "UNE phrase forte, en tu, mémorisable dans 5 ans — générée depuis l'analyse globale"
+  "phrase_forte": "UNE phrase forte, ${voiceTag}, mémorisable dans 5 ans — générée depuis l'analyse globale"
 }`;
 
   return JSON.parse(await callClaude(system, user));
@@ -552,7 +610,7 @@ function buildDocument(q, chapters) {
 
     // ── COUVERTURE
     blank(2000),
-    new Paragraph({spacing:{after:0}, children:[r("RAPPORT D'ORIENTATION",{size:46,bold:true,color:C.dark})]}),
+    new Paragraph({spacing:{after:0}, children:[r(isAdult(q) ? "RAPPORT DE BILAN PROFESSIONNEL" : "RAPPORT D'ORIENTATION",{size:46,bold:true,color:C.dark})]}),
     new Paragraph({
       border:{bottom:{style:BorderStyle.SINGLE,size:10,color:C.blue}},
       spacing:{before:0,after:320},
@@ -562,7 +620,12 @@ function buildDocument(q, chapters) {
     p([r("Préparé pour",{size:19,color:C.mid,italic:true})],{spacing:{after:40}}),
     p([r(prenom+" "+q.nom,{size:38,bold:true,color:C.blue})],{spacing:{after:120}}),
     p([r("Date de naissance : ",{size:19,color:C.mid}),r(q.anniversaire+(q.age?" ("+q.age+" ans)":""),{size:19,bold:true})],{spacing:{after:60}}),
-    p([r("Formation : ",{size:19,color:C.mid}),r(q.ecole||"—",{size:19,bold:true})],{spacing:{after:60}}),
+    ...(isAdult(q) ? [
+      p([r("Entreprise : ",{size:19,color:C.mid}),r(q.entreprise||"—",{size:19,bold:true})],{spacing:{after:60}}),
+      p([r("Rôle : ",{size:19,color:C.mid}),r(q.role||"—",{size:19,bold:true})],{spacing:{after:60}}),
+    ] : [
+      p([r("Formation : ",{size:19,color:C.mid}),r(q.ecole||"—",{size:19,bold:true})],{spacing:{after:60}}),
+    ]),
     p([r("Enneagramme : ",{size:19,color:C.mid}),r("Base "+q.ennea_bases.join(" · ")+" · "+q.ennea_soustype,{size:19,bold:true})],{spacing:{after:60}}),
     p([r("MBTI : ",{size:19,color:C.mid}),r(q.mbti,{size:19,bold:true})],{spacing:{after:60}}),
     p([r("RIASEC : ",{size:19,color:C.mid}),r(q.riasec,{size:19,bold:true})],{spacing:{after:60}}),
@@ -571,7 +634,7 @@ function buildDocument(q, chapters) {
     p([r("Date du rapport : ",{size:19,color:C.mid}),r(dateRapport,{size:19})],{spacing:{after:60}}),
 
     // ── 01 PERSONNALITÉ
-    br(), ...chapterBand("01","Personnalité — Enneagramme"),
+    br(), ...chapterBand("01", chapterTitleFor("01", q)),
     subhead("Profil Enneagramme"),
     callout(ch01.callout),
     blank(80),
@@ -587,7 +650,7 @@ function buildDocument(q, chapters) {
     ...ch01.mots_cles.map(m => bullet(m)),
 
     // ── 02 CONTEXTE PRO
-    br(), ...chapterBand("02","En contexte professionnel"),
+    br(), ...chapterBand("02", chapterTitleFor("02", q)),
     callout(ch02.callout),
     blank(80),
     subhead("Tes forces clés"),
@@ -599,7 +662,7 @@ function buildDocument(q, chapters) {
     ...ch02.besoins.map(b => bullet(b)),
 
     // ── 03 MBTI
-    br(), ...chapterBand("03","Compétences — MBTI"),
+    br(), ...chapterBand("03", chapterTitleFor("03", q)),
     subhead("Ton profil MBTI"),
     callout(ch03.callout),
     blank(80),
@@ -614,14 +677,14 @@ function buildDocument(q, chapters) {
     ...ch03.apprentissage.map(a => bullet(a)),
 
     // ── 04 COMPÉTENCES CLÉS
-    br(), ...chapterBand("04","Compétences clés"),
+    br(), ...chapterBand("04", chapterTitleFor("04", q)),
     blank(80),
     p([r(ch04.intro)]),
     blank(120),
     itemListTable(ch04.items),
 
     // ── 05 RIASEC
-    br(), ...chapterBand("05","RIASEC — Profil d'intérêts"),
+    br(), ...chapterBand("05", chapterTitleFor("05", q)),
     subhead("Ton profil dominant"),
     callout(ch05.callout),
     blank(80),
@@ -636,7 +699,7 @@ function buildDocument(q, chapters) {
     ...ch05.implications.map(i => bullet(i)),
 
     // ── 06 BESOINS FONDAMENTAUX
-    br(), ...chapterBand("06","Besoins fondamentaux"),
+    br(), ...chapterBand("06", chapterTitleFor("06", q)),
     blank(80),
     p([r(ch06.intro)]),
     blank(120),
@@ -647,7 +710,7 @@ function buildDocument(q, chapters) {
     ...ch06.checklist.map(c => bullet(c)),
 
     // ── 07 PISTES
-    br(), ...chapterBand("07","Pistes de métiers & formations"),
+    br(), ...chapterBand("07", chapterTitleFor("07", q)),
     blank(80),
     p([r(ch07.intro)]),
     ...(ch07.pistes || []).flatMap(piste => [
@@ -664,7 +727,7 @@ function buildDocument(q, chapters) {
     ]),
 
     // ── 08 PLAN D'ACTION
-    br(), ...chapterBand("08","Plan d'action"),
+    br(), ...chapterBand("08", chapterTitleFor("08", q)),
     blank(80),
     p([r(ch08.texte)]),
     ...(ch08.valeurs.length ? [
@@ -699,7 +762,7 @@ function buildDocument(q, chapters) {
     p([r("contact@brenso.be",{size:19,color:C.mid})],{spacing:{after:40}}),
     blank(400),
     p([r("Ce document est confidentiel. Il est destiné exclusivement à ",{size:17,color:C.mid})],{spacing:{after:0}}),
-    p([r(prenom+" "+q.nom+" et à ses parents ou représentants légaux.",{size:17,color:C.mid})],{spacing:{after:0}}),
+    p([r(prenom+" "+q.nom+(isAdult(q) ? "." : " et à ses parents ou représentants légaux."),{size:17,color:C.mid})],{spacing:{after:0}}),
   ];
 
   return new Document({
@@ -710,7 +773,7 @@ function buildDocument(q, chapters) {
     styles:{ default:{ document:{ run:{font:"Calibri",size:22,color:C.dark} } } },
     sections:[{
       properties:{ page:{ size:{width:PAGE.w,height:PAGE.h}, margin:{top:PAGE.mTop,bottom:PAGE.mBottom,left:PAGE.mLeft,right:PAGE.mRight} } },
-      headers:{ default:docHeader },
+      headers:{ default:buildDocHeader(q) },
       footers:{ default:docFooter },
       children,
     }],

@@ -21,14 +21,18 @@ const MBTI_GROUPS = [
 const ENNEA_SUBTYPES = ['Social', 'Survie', 'Tete-a-tete'] as const;
 
 const DEFAULT_DATA: PipelineData = {
+  profile_type: 'young',
   prenom: '', nom: '', date_naissance: '', ecole_nom: '', code_postal: '',
   date_seance: '', choix: '', loisirs: '',
+  entreprise: null, role: null, situation: null,
   ennea_base: null, ennea_sous_type: null, mbti: null, riasec: null,
   words_ennea: 250, words_mbti: 250, words_riasec: 200,
   valeurs: null, competences: null, besoins: null, words_comp_besoins: 250,
   metiers: null, words_metiers: 250,
   plan_action: '', words_plan_action: 200, notes_coach: '',
 };
+
+const SITUATION_KEYS = ['questionnement', 'burnout', 'reorientation', 'indecis'] as const;
 
 export function PipelinePage() {
   const { t } = useTranslation();
@@ -230,7 +234,12 @@ export function PipelinePage() {
       <div className="max-w-[860px] mx-auto mt-12 px-8 max-md:px-4 max-md:mt-6 relative z-[1]">
 
         {/* ── Section 01: Identité ── */}
-        <PipelineSection number="01" title={t('pipeline.section1')} accent="pink" defaultOpen>
+        <PipelineSection
+          number="01"
+          title={t(data.profile_type === 'adult' ? 'pipeline.section1Adult' : 'pipeline.section1')}
+          accent="pink"
+          defaultOpen
+        >
           <div className="grid grid-cols-2 gap-x-8 gap-y-5 max-md:grid-cols-1">
             <FieldGroup label={t('pipeline.labelFirstname')}>
               <input type="text" value={data.prenom} onChange={(e) => { setField('prenom', e.target.value); }}
@@ -244,19 +253,33 @@ export function PipelinePage() {
               <input type="text" value={data.nom} onChange={(e) => setField('nom', e.target.value)}
                 placeholder={t('pipeline.placeholderLastname')} className={inputCls} />
             </FieldGroup>
-            <FieldGroup label={t('pipeline.labelSchoolLevel')}>
-              <input type="text" value={data.ecole_nom} onChange={(e) => setField('ecole_nom', e.target.value)}
-                placeholder={t('pipeline.placeholderSchoolLevel')} className={inputCls} />
-            </FieldGroup>
+            {data.profile_type === 'adult' ? (
+              <FieldGroup label={t('pipeline.labelCompany')}>
+                <input type="text" value={data.entreprise ?? ''} onChange={(e) => setField('entreprise', e.target.value)}
+                  placeholder={t('pipeline.placeholderCompany')} className={inputCls} />
+              </FieldGroup>
+            ) : (
+              <FieldGroup label={t('pipeline.labelSchoolLevel')}>
+                <input type="text" value={data.ecole_nom} onChange={(e) => setField('ecole_nom', e.target.value)}
+                  placeholder={t('pipeline.placeholderSchoolLevel')} className={inputCls} />
+              </FieldGroup>
+            )}
             <FieldGroup label={t('pipeline.labelBirthdate')}>
               <input type="date" value={data.date_naissance ?? ''} onChange={(e) => setField('date_naissance', e.target.value)}
                 className={inputCls} />
             </FieldGroup>
-            <FieldGroup label={t('pipeline.labelChoices')}>
-              <textarea value={data.choix ?? ''} onChange={(e) => setField('choix', e.target.value)}
-                placeholder={t('pipeline.placeholderChoices')}
-                className={cn(inputCls, 'min-h-[72px] resize-none')} />
-            </FieldGroup>
+            {data.profile_type === 'adult' ? (
+              <FieldGroup label={t('pipeline.labelRole')}>
+                <input type="text" value={data.role ?? ''} onChange={(e) => setField('role', e.target.value)}
+                  placeholder={t('pipeline.placeholderRole')} className={inputCls} />
+              </FieldGroup>
+            ) : (
+              <FieldGroup label={t('pipeline.labelChoices')}>
+                <textarea value={data.choix ?? ''} onChange={(e) => setField('choix', e.target.value)}
+                  placeholder={t('pipeline.placeholderChoices')}
+                  className={cn(inputCls, 'min-h-[72px] resize-none')} />
+              </FieldGroup>
+            )}
             <FieldGroup label={t('pipeline.labelZip')}>
               <input type="text" value={data.code_postal ?? ''} onChange={(e) => setField('code_postal', e.target.value)}
                 placeholder={t('pipeline.placeholderZip')} className={inputCls} />
@@ -267,6 +290,41 @@ export function PipelinePage() {
                 className={cn(inputCls, 'min-h-[72px] resize-none')} />
             </FieldGroup>
           </div>
+
+          {data.profile_type === 'adult' && (
+            <div className="mt-5">
+              <FieldGroup label={t('pipeline.labelSituation')}>
+                <div className="flex flex-wrap gap-2">
+                  {SITUATION_KEYS.map((key) => {
+                    const current = (data.situation ?? '').split(',').filter(Boolean);
+                    const checked = current.includes(key);
+                    return (
+                      <label
+                        key={key}
+                        className={cn(
+                          'flex items-center gap-2 px-3 py-2 border rounded-xl cursor-pointer transition-all text-[13px]',
+                          checked
+                            ? 'border-[#6B9DB5] bg-[rgba(107,157,181,0.08)] text-[#202C34]'
+                            : 'border-[#EAEDEF] bg-white text-[#6B7580] hover:border-[rgba(107,157,181,0.4)]',
+                        )}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={checked}
+                          onChange={() => {
+                            const next = checked ? current.filter((s) => s !== key) : [...current, key];
+                            setField('situation', next.length ? next.join(',') : null);
+                          }}
+                          className="accent-[#6B9DB5] cursor-pointer"
+                        />
+                        {t(`enums.situation.${key}`)}
+                      </label>
+                    );
+                  })}
+                </div>
+              </FieldGroup>
+            </div>
+          )}
         </PipelineSection>
 
         {/* Toggle all button */}

@@ -6,7 +6,9 @@
       "Bash(grep -E \"\\\\.ts$\")",
       "Bash(docker volume *)",
       "Bash(docker system *)",
-      "Bash(docker restart *)"
+      "Bash(docker restart *)",
+      "Bash(docker exec *)",
+      "Bash(grep -v '^$')"
     ]
   }
 }

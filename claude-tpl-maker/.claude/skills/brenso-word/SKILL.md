@@ -4,7 +4,7 @@ description: >
   Skill de génération de rapports Word BRENSO avec design system figé et constance absolue.
   Déclenche OBLIGATOIREMENT dès que l'utilisateur mentionne "rapport Word BRENSO", "fiche
   orientation Word", "générer rapport jeune", "document Word orientation", "rapport [prénom]",
-  ou toute demande de livrable Word dans le contexte du pipeline BRENSO (Bénédicte Vanden Bossche).
+  ou toute demande de livrable Word dans le contexte du pipeline BRENSO.
   Ce skill est le chef d'orchestre : il appelle les 3 skills sources (brenso-enneagramme,
   brenso-mbti, brenso-riasec) via le script brenso-rapport.js.
 ---
@@ -66,6 +66,31 @@ Les word counts sont lus depuis le JSON :
 Chaque appel API reçoit un résumé des chapitres déjà rédigés (`context`).
 Cela garantit qu'un trait mentionné en ch01 est cohérent avec ce qui est
 dit en ch03, et que les pistes de ch07 résonnent avec les besoins de ch06.
+
+---
+
+## Profil jeune vs profil adulte
+
+Le script branche sur `profile_type` (`'young'` par défaut, `'adult'` pour les bilans
+professionnels). Les méthodologies (Ennéagramme, MBTI, RIASEC) sont identiques —
+seules la voix, la framing et les titres de quelques chapitres diffèrent.
+
+| Élément | Profil jeune | Profil adulte |
+|---------|--------------|---------------|
+| Voix d'adresse | TU / tu / tes / ton | VOUS / votre / vos |
+| Titre du rapport | Rapport d'orientation | Rapport de bilan professionnel |
+| En-tête de page | Rapport d'orientation | Rapport de bilan professionnel |
+| Couverture | Champ "Formation" (école) | Champs "Entreprise" + "Rôle" |
+| Page contact | "destiné à X et à ses parents ou représentants légaux" | "destiné à X." |
+| Chapitre 02 | "En contexte professionnel" | "Dans votre contexte professionnel" |
+| Chapitre 07 | "Pistes de métiers & formations" | "Pistes de transition & repositionnement" |
+| Chapitre 08 | "Plan d'action" | "Plan de transition professionnelle" |
+| Frame contextuel | Aucun | `entreprise`, `role`, `situation` injectés dans chaque user prompt |
+
+Helpers internes : `isAdult(q)`, `voiceRule(q)`, `adultFrame(q)`, `chapterTitleFor(num, q)`.
+
+Pour étoffer le contexte adulte (transitions de carrière, burn-out, repositionnement),
+voir `references/adult-context.md`.
 
 ---
 
