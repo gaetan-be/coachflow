@@ -12,7 +12,11 @@ RUN npm install --production=false
 COPY tsconfig.json ./
 COPY src/ ./src/
 COPY public/ ./public/
-COPY templates/ ./templates/
+
+# Copy React client and install its dependencies before build
+COPY client/package.json client/package-lock.json* ./client/
+RUN cd client && npm install --production=false
+COPY client/ ./client/
 
 # Include claude-tpl-maker with its own dependencies
 COPY claude-tpl-maker/ ./claude-tpl-maker/

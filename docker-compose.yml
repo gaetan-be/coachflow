@@ -16,6 +16,7 @@ services:
     build: .
     ports:
       - "3000:3000"
+      - "5173:5173"
     depends_on:
       - postgres
     env_file:
@@ -30,6 +31,10 @@ services:
       - ./public:/app/public
       - ./templates:/app/templates
       - ./claude-tpl-maker:/app/claude-tpl-maker
+      - ./client/src:/app/client/src
+      - ./client/public:/app/client/public
+      - ./client/index.html:/app/client/index.html
+      - ./client/vite.config.ts:/app/client/vite.config.ts
     command: npm run dev
 
 volumes:

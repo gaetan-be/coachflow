@@ -10,14 +10,16 @@ import { backofficeRoutes } from './routes/backoffice';
 import { resolveCoach } from './middleware/coach';
 import { startWorker } from './worker';
 
-const app = express();
-const PgStore = connectPgSimple(session);
+export function createApp(): express.Application {
+  const app = express();
+  const PgStore = connectPgSimple(session);
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use(express.static(path.join(__dirname, '..', 'public')));
+  app.use(express.json());
+  app.use(express.urlencoded({ extended: true }));
+  app.use(express.static(path.join(__dirname, '..', 'public', 'dist')));
+  app.use(express.static(path.join(__dirname, '..', 'public')));
 
-app.set('trust proxy', 1);
+  app.set('trust proxy', 1);
 
 app.use(
   session({
@@ -36,20 +38,35 @@ app.use(
 // Resolve the coach tenant from the Host header for every request
 app.use(resolveCoach);
 
-// Routes
-app.use('/', publicRoutes);
-app.use('/', authRoutes);
-app.use('/', backofficeRoutes);
+  app.use('/', publicRoutes);
+  app.use('/', authRoutes);
+  app.use('/', backofficeRoutes);
+
+  // SPA fallback: serve React's index.html for all non-API, non-asset routes
+  app.get('*', (_req: express.Request, res: express.Response) => {
+    const spaIndex = path.join(__dirname, '..', 'public', 'dist', 'index.html');
+    res.sendFile(spaIndex, (err) => {
+      if (err) {
+        res.status(404).send('Not found');
+      }
+    });
+  });
+
+  return app;
+}
 
 async function start() {
   await runMigrations();
-  startWorker();
+  await startWorker();
+  const app = createApp();
   app.listen(config.port, () => {
     console.log(`Brenso running on http://localhost:${config.port}`);
   });
 }
 
-start().catch((err) => {
-  console.error('Failed to start:', err);
-  process.exit(1);
-});
+if (!process.env.VITEST) {
+  start().catch((err) => {
+    console.error('Failed to start:', err);
+    process.exit(1);
+  });
+}

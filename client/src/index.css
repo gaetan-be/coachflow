@@ -1,0 +1,170 @@
+@import "tailwindcss";
+
+@theme {
+  --color-navy: #202C34;
+  --color-navy2: #2A3840;
+  --color-teal: #40A2C0;
+  --color-teal2: #338BA3;
+  --color-slate: #6B9DB5;
+  --color-gold: #BEA674;
+  --color-pop: #EA226C;
+  --color-green: #4caf82;
+  --color-purple: #7f77dd;
+  --color-muted: #6B7580;
+  --color-border: #EAEDEF;
+  --color-text: #202C34;
+  --color-line: #EAEDEF;
+  --color-line-soft: #F4F6F7;
+  --color-gray-bg: #E8EBEE;
+  --color-gray-light: #BFC5CC;
+
+  --font-sans: 'DM Sans', sans-serif;
+  --font-serif: 'Cormorant Garamond', Georgia, serif;
+  --font-display: 'Fraunces', Georgia, serif;
+}
+
+@layer base {
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background: #F6F7F9;
+    font-family: 'DM Sans', sans-serif;
+    color: #202C34;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+    position: relative;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    top: -200px;
+    right: -150px;
+    width: 650px;
+    height: 650px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(64, 162, 192, 0.08) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  body::after {
+    content: '';
+    position: fixed;
+    bottom: -200px;
+    left: -100px;
+    width: 500px;
+    height: 500px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(107, 157, 181, 0.06) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  #root {
+    position: relative;
+    z-index: 1;
+  }
+}
+
+/* ── Custom component styles that are too complex for utility classes ── */
+
+/* Word dial range inputs */
+.word-dial-range {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 4px;
+  border-radius: 2px;
+  outline: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  background: linear-gradient(to right, rgba(107, 157, 181, 0.25), rgba(107, 157, 181, 0.10));
+}
+
+.word-dial-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2px solid #6B9DB5;
+  background: #fff;
+  cursor: pointer;
+  box-shadow: 0 0 6px rgba(107, 157, 181, 0.25);
+  transition: all 0.2s;
+}
+
+.word-dial-range::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
+  box-shadow: 0 0 14px rgba(107, 157, 181, 0.4);
+}
+
+.word-dial-range::-moz-range-thumb {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2px solid #6B9DB5;
+  background: #fff;
+  cursor: pointer;
+}
+
+/* RIASEC circle rank styles */
+.riasec-rank-badge {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #40A2C0;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  top: -6px;
+  right: -6px;
+}
+
+/* Section collapse animation */
+.section-body-collapsed {
+  max-height: 0px !important;
+  opacity: 0 !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  overflow: hidden;
+}
+
+/* Fade up animation */
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-up {
+  animation: fadeUp 0.5s ease both;
+}
+
+/* Pulse for launch badge */
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(1.3); }
+}
+
+.pulse-dot {
+  animation: pulse-dot 2s infinite;
+}

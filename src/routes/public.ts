@@ -5,41 +5,41 @@ import { renderBranded } from '../util/renderBranded';
 
 export const publicRoutes = Router();
 
-// Front page
-publicRoutes.get('/', (req: Request, res: Response) => {
-  renderBranded(req, res, 'views/home.html');
-});
-
-// Terms & GDPR page
-publicRoutes.get('/terms', (req: Request, res: Response) => {
-  renderBranded(req, res, 'views/terms.html');
-});
-
-// Serve questionnaire page
-publicRoutes.get('/hello', (req: Request, res: Response) => {
-  renderBranded(req, res, 'views/questionnaire.html');
-});
+// NOTE: /, /terms, /hello are now handled by the React SPA catch-all in index.ts
+// These routes only exist for the API endpoints below.
 
 // Submit questionnaire — tenant comes from the Host header via resolveCoach
 publicRoutes.post('/api/questionnaire', questionnaireRateLimit, async (req: Request, res: Response) => {
   try {
-    if (!req.coach) {
-      res.status(500).json({ error: 'Aucun coach configuré.' });
-      return;
-    }
-
-    const { prenom, nom, date_naissance, ecole_nom, annee_scolaire, orientation_actuelle, loisirs, choix } = req.body;
+    const { prenom, nom, date_naissance, ecole_nom, annee_scolaire, orientation_actuelle, loisirs, choix, language } = req.body;
 
     if (!prenom || !nom || !date_naissance) {
       res.status(400).json({ error: 'Prénom, nom et date de naissance sont requis.' });
       return;
     }
 
+    let lang: 'fr' | 'nl' = 'fr';
+    if (language !== undefined) {
+      if (language !== 'fr' && language !== 'nl') {
+        res.status(400).json({ error: 'Langue invalide.' });
+        return;
+      }
+      lang = language;
+    }
+
+    // Get the single coach
+    const coachResult = await pool.query('SELECT id FROM coach LIMIT 1');
+    if (coachResult.rows.length === 0) {
+      res.status(500).json({ error: 'Aucun coach configuré.' });
+      return;
+    }
+    const coachId = coachResult.rows[0].id;
+
     const result = await pool.query(
-      `INSERT INTO coachee (coach_id, prenom, nom, date_naissance, ecole_nom, annee_scolaire, orientation_actuelle, loisirs, choix)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+      `INSERT INTO coachee (coach_id, prenom, nom, date_naissance, ecole_nom, annee_scolaire, orientation_actuelle, loisirs, choix, language)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
        RETURNING id`,
-      [req.coach.id, prenom.trim(), nom.trim(), date_naissance, ecole_nom || null, annee_scolaire || null, orientation_actuelle || null, loisirs || null, choix || null]
+      [coachId, prenom.trim(), nom.trim(), date_naissance, ecole_nom || null, annee_scolaire || null, orientation_actuelle || null, loisirs || null, choix || null, lang]
     );
 
     res.json({ id: result.rows[0].id });
