@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/hooks/useAuth';
+import { useBranding } from '@/hooks/useBranding';
 import { cn } from '@/lib/utils';
 
 interface BackofficeHeaderProps {
@@ -16,6 +17,7 @@ interface BackofficeHeaderProps {
 export function BackofficeHeader({ title, saveStatus, showBack }: BackofficeHeaderProps) {
   const { t } = useTranslation();
   const { coach } = useAuth();
+  const branding = useBranding();
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
@@ -51,10 +53,10 @@ export function BackofficeHeader({ title, saveStatus, showBack }: BackofficeHead
                        shadow-[0_0_14px_rgba(64,162,192,0.30)] flex items-center justify-center
                        font-[Cormorant_Garamond,serif] text-base font-semibold text-[#40A2C0] flex-shrink-0"
           >
-            B
+            {branding.logo_letter}
           </div>
           <span className="font-[Cormorant_Garamond,serif] text-lg text-[#202C34] tracking-tight">
-            BRENSO
+            {branding.brand_name}
           </span>
         </Link>
 

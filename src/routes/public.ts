@@ -8,6 +8,18 @@ export const publicRoutes = Router();
 // NOTE: /, /terms, /hello are now handled by the React SPA catch-all in index.ts
 // These routes only exist for the API endpoints below.
 
+publicRoutes.get('/api/branding', (req: Request, res: Response) => {
+  if (!req.coach) {
+    res.status(404).json({ error: 'Unknown tenant.' });
+    return;
+  }
+  res.json({
+    brand_name: req.coach.brand_name,
+    logo_letter: req.coach.brand_name.charAt(0).toUpperCase(),
+    accent_color: req.coach.accent_color,
+  });
+});
+
 // Submit questionnaire — tenant comes from the Host header via resolveCoach
 publicRoutes.post('/api/questionnaire', questionnaireRateLimit, async (req: Request, res: Response) => {
   try {

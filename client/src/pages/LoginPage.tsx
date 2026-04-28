@@ -2,9 +2,11 @@ import { useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { LanguageSwitcher } from '@/components/layout/LanguageSwitcher';
+import { useBranding } from '@/hooks/useBranding';
 
 export function LoginPage() {
   const { t } = useTranslation();
+  const branding = useBranding();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -51,9 +53,9 @@ export function LoginPage() {
               className="w-10 h-10 rounded-full border-[1.5px] border-[#40A2C0] flex items-center justify-center
                          font-[Cormorant_Garamond,serif] text-base text-[#40A2C0] font-medium"
             >
-              B
+              {branding.logo_letter}
             </div>
-            <span className="text-xs font-medium tracking-[3px] uppercase">BRENSO</span>
+            <span className="text-xs font-medium tracking-[3px] uppercase">{branding.brand_name}</span>
           </div>
 
           <h2 className="font-[Cormorant_Garamond,serif] text-2xl font-normal text-[#202C34] mb-8">

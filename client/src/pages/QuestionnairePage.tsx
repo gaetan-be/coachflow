@@ -1,6 +1,7 @@
 import { useState, useEffect, type FormEvent } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { useBranding } from '@/hooks/useBranding';
 import { cn } from '@/lib/utils';
 
 interface FormData {
@@ -333,14 +334,15 @@ export function QuestionnairePage() {
 
 function PageHeader() {
   const { t } = useTranslation();
+  const branding = useBranding();
   return (
     <div className="sticky top-0 z-[100] bg-white/92 backdrop-blur-[16px] border-b border-[#EAEDEF] shadow-[0_1px_8px_rgba(32,44,52,0.04)]">
       <header className="grid grid-cols-[1fr_auto_1fr] items-center gap-4 px-12 py-5 max-md:px-5">
         <Link to="/" className="flex items-center gap-2.5 justify-self-start no-underline">
           <div className="w-[34px] h-[34px] rounded-full border-2 border-[#40A2C0] bg-[rgba(64,162,192,0.12)] shadow-[0_0_14px_rgba(64,162,192,0.30)] flex items-center justify-center font-[Cormorant_Garamond,serif] text-base font-semibold text-[#40A2C0]">
-            B
+            {branding.logo_letter}
           </div>
-          <span className="font-[Cormorant_Garamond,serif] text-lg text-[#202C34] tracking-tight">BRENSO</span>
+          <span className="font-[Cormorant_Garamond,serif] text-lg text-[#202C34] tracking-tight">{branding.brand_name}</span>
         </Link>
         <div className="text-[14px] text-[#6B7580] whitespace-nowrap">
           <span className="font-[Cormorant_Garamond,serif] text-[17px] font-semibold italic text-[#EA226C]">{t('questionnaire.headerTitle')}</span>{' '}
