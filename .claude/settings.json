@@ -3,7 +3,10 @@
     "allow": [
       "Bash(npx vitest *)",
       "Bash(npm test *)",
-      "Bash(grep -E \"\\\\.ts$\")"
+      "Bash(grep -E \"\\\\.ts$\")",
+      "Bash(docker volume *)",
+      "Bash(docker system *)",
+      "Bash(docker restart *)"
     ]
   }
 }
