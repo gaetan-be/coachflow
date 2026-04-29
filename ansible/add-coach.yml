@@ -1,0 +1,87 @@
+---
+# Onboard a new coach tenant.
+#
+# Usage (required vars):
+#   ansible-playbook -i inventory.ini add-coach.yml \
+#     -e email=marie@example.com \
+#     -e password=SuperSecret \
+#     -e name="Marie Coach" \
+#     -e domain=marie.oriado.com \
+#     -e brand=MARIE \
+#     -e letter=M \
+#     -e color=#d97b45
+#
+# Optional vars:
+#   -e plan=starter             # plan.name; omitted = no plan = unlimited reports
+#   -e language=fr              # 'fr' or 'nl'; omitted = auto-detect on first request
+#   -e credits=3                # initial credit allocation (only meaningful with a plan)
+#   -e validity_days=30         # credit expiry; requires credits; omitted = no expiry
+#   -e restart_backend=true     # flush the 60s resolveCoach cache by restarting backend
+#
+# Wraps src/scripts/add-coach.ts inside the running backend container.
+
+- name: Add a new coach tenant
+  hosts: brenso
+  become: true
+  gather_facts: false
+
+  vars:
+    container: brenso-backend
+
+  pre_tasks:
+    - name: Validate required variables
+      assert:
+        that:
+          - email is defined and email | length > 0
+          - password is defined and password | length > 0
+          - name is defined and name | length > 0
+          - domain is defined and domain | length > 0
+          - brand is defined and brand | length > 0
+          - letter is defined and letter | length == 1
+          - color is defined and color is match('^#[0-9a-fA-F]{6}$')
+        fail_msg: >-
+          Required: -e email=... -e password=... -e name="..." -e domain=...
+          -e brand=... -e letter=X -e color=#rrggbb
+
+    - name: Ensure backend container is running
+      community.docker.docker_container_info:
+        name: "{{ container }}"
+      register: backend_info
+      failed_when: not backend_info.exists or backend_info.container.State.Status != 'running'
+
+  tasks:
+    - name: Build add-coach argv
+      set_fact:
+        add_coach_argv: >-
+          {{
+            ['npx', 'ts-node', 'src/scripts/add-coach.ts',
+             '--email', email,
+             '--password', password,
+             '--name', name,
+             '--domain', domain,
+             '--brand', brand,
+             '--letter', letter,
+             '--color', color]
+            + (['--plan', plan] if plan is defined else [])
+            + (['--language', language] if language is defined else [])
+            + (['--credits', credits | string] if credits is defined else [])
+            + (['--validity-days', validity_days | string] if validity_days is defined else [])
+          }}
+
+    - name: Run add-coach.ts inside backend container
+      community.docker.docker_container_exec:
+        container: "{{ container }}"
+        argv: "{{ add_coach_argv }}"
+      register: add_coach
+      no_log: true
+
+    - name: Show creation result
+      debug:
+        msg: "{{ add_coach.stdout | default(add_coach.stderr) }}"
+
+    - name: Flush resolveCoach cache by restarting backend (optional)
+      community.docker.docker_container:
+        name: "{{ container }}"
+        state: started
+        restart: true
+      when: restart_backend | default(false) | bool
