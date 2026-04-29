@@ -33,11 +33,11 @@ export async function sendReportEmail(
     from: config.smtp.from,
     to: coachEmail,
     bcc: config.smtp.bcc.length > 0 ? config.smtp.bcc : undefined,
-    subject: `Brenso — Rapport d'orientation : ${coacheeName}`,
-    text: `Bonjour,\n\nLe rapport d'orientation pour ${coacheeName} est prêt.\nVous le trouverez en pièce jointe.\n\nBrenso`,
+    subject: `Rapport d'orientation : ${coacheeName}`,
+    text: `Bonjour,\n\nLe rapport d'orientation pour ${coacheeName} est prêt.\nVous le trouverez en pièce jointe.`,
     attachments: [
       {
-        filename: `Brenso_Rapport_${coacheeName.replace(/\s+/g, '_')}.docx`,
+        filename: `Rapport_${coacheeName.replace(/\s+/g, '_')}.docx`,
         content: reportBuffer,
         contentType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
       },

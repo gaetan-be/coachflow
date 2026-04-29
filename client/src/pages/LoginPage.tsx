@@ -3,32 +3,45 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { LanguageSwitcher } from '@/components/layout/LanguageSwitcher';
 import { useBranding } from '@/hooks/useBranding';
+import { useAuth } from '@/hooks/useAuth';
 
 export function LoginPage() {
   const { t } = useTranslation();
   const branding = useBranding();
+  const { refetch } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  async function handleSubmit(e: FormEvent) {
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    if (loading) return;
     setError('');
     setLoading(true);
+
+    // Read values from the DOM so autofill/password managers can't race
+    // ahead of React state updates.
+    const data = new FormData(e.currentTarget);
+    const submittedEmail = String(data.get('email') ?? '').trim();
+    const submittedPassword = String(data.get('password') ?? '');
 
     try {
       const res = await fetch('/api/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email: submittedEmail, password: submittedPassword }),
       });
       if (!res.ok) {
         const j = await res.json();
         throw new Error(j.error ?? t('common.error'));
       }
+      // Populate AuthContext from /api/coach/me before navigating, so
+      // RequireAuth doesn't bounce us back with the stale pre-login state.
+      const me = await refetch();
+      if (!me) throw new Error(t('common.error'));
       navigate('/backoffice');
     } catch (err) {
       setError(err instanceof Error ? err.message : t('common.error'));
@@ -69,6 +82,7 @@ export function LoginPage() {
               </label>
               <input
                 type="email"
+                name="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 inputMode="email"
@@ -90,6 +104,7 @@ export function LoginPage() {
               </label>
               <input
                 type="password"
+                name="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 autoComplete="current-password"
