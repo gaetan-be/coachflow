@@ -305,7 +305,7 @@ backofficeRoutes.get('/api/coachee/:id/report/download', async (req: Request, re
     }
 
     const row = result.rows[0];
-    const filename = `Brenso_Rapport_${row.prenom}_${row.nom}.docx`;
+    const filename = `Rapport_${row.prenom}_${row.nom}.docx`;
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
     res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
     res.send(row.report_data);
