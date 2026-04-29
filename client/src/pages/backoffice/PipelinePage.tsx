@@ -6,7 +6,7 @@ import { PipelineSection } from '@/components/pipeline/PipelineSection';
 import { WordDial } from '@/components/pipeline/WordDial';
 import { TagInput } from '@/components/pipeline/TagInput';
 import { MetierBlocks } from '@/components/pipeline/MetierBlocks';
-import { ReportBadge, type ReportStatus } from '@/components/ui/badge';
+import { type ReportStatus } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import type { PipelineData, Metier } from '@/components/pipeline/types';
 
