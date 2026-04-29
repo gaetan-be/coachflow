@@ -639,26 +639,8 @@ export function PipelinePage() {
                        shadow-[0_2px_12px_rgba(64,162,192,0.06)] flex-wrap"
           >
             <div className="text-[12px] text-[#6B7580] leading-relaxed flex-1">
-              <strong className="text-[#202C34] font-medium">{t('pipeline.ctaReadyTitle')}</strong><br />
-              {t('pipeline.ctaReadyText')}
-
-              {reportStatus && (
-                <div className="mt-2">
-                  <ReportBadge status={reportStatus} />
-                </div>
-              )}
-              {reportStatus === 'done' && (
-                <div className="mt-2">
-                  <a
-                    href={`/api/coachee/${id}/report/download`}
-                    className="inline-flex items-center px-6 py-2.5 bg-[rgba(76,175,130,0.08)]
-                               border border-[rgba(76,175,130,0.25)] rounded-full text-[#4caf82] text-xs font-medium
-                               no-underline transition-all hover:bg-[rgba(76,175,130,0.15)]"
-                  >
-                    {t('pipeline.downloadReport')}
-                  </a>
-                </div>
-              )}
+              
+              
             </div>
 
             <div className="flex gap-3 flex-wrap">
@@ -666,10 +648,11 @@ export function PipelinePage() {
                 type="button"
                 onClick={saveCoachee}
                 disabled={saving}
-                className="inline-flex items-center gap-2.5 px-7 py-3.5 bg-transparent text-[#40A2C0]
-                           border-[1.5px] border-[#40A2C0] rounded-full text-[11px] font-semibold tracking-[1.5px] uppercase
-                           cursor-pointer transition-all min-h-12 hover:bg-[rgba(64,162,192,0.08)] hover:-translate-y-0.5
-                           disabled:opacity-60 disabled:cursor-not-allowed"
+                className="inline-flex items-center gap-2.5 px-8 py-3.5 bg-[#202C34] text-white
+                           border-none rounded-full text-xs font-bold tracking-[2px] uppercase
+                           cursor-pointer transition-all min-h-12 flex-shrink-0
+                           hover:bg-[#40A2C0] hover:-translate-y-0.5 hover:shadow-[0_8px_28px_rgba(64,162,192,0.35)]
+                           disabled:opacity-60 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none"
               >
                 {saving ? t('common.saving') : t('common.save')}
               </button>
