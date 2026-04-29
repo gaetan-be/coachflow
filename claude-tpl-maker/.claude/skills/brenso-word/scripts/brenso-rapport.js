@@ -788,6 +788,424 @@ function buildDocument(q, chapters) {
   });
 }
 
+// ── ASSEMBLAGE HTML (rapport magazine, design = magazine.html) ──────────────
+// Same chapter content as the DOCX, rendered into the editorial layout from
+// claude-tpl-maker/magazine.html. Returns a self-contained HTML string with
+// inline CSS; the only external resource is the Google Fonts <link>.
+
+const MAGAZINE_HTML_PATH = path.resolve(__dirname, '..', '..', '..', '..', 'magazine.html');
+
+function loadMagazineAssets() {
+  const tpl = fs.readFileSync(MAGAZINE_HTML_PATH, 'utf8');
+  const cssMatch = tpl.match(/<style>([\s\S]*?)<\/style>/);
+  const linkMatch = tpl.match(/<link[^>]+fonts\.googleapis[^>]+>/);
+  return {
+    css: cssMatch ? cssMatch[1] : '',
+    fontLink: linkMatch ? linkMatch[0] : '',
+  };
+}
+
+function escapeHtml(s) {
+  if (s == null) return '';
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+const RIASEC_NAMES = {
+  R: 'Réaliste',
+  I: 'Investigateur',
+  A: 'Artistique',
+  S: 'Social',
+  E: 'Entreprenant',
+  C: 'Conventionnel',
+};
+
+function htmlMonthYear(d) {
+  const months = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
+  return `${months[d.getMonth()].charAt(0).toUpperCase()}${months[d.getMonth()].slice(1)} ${d.getFullYear()}`;
+}
+
+function htmlFullDate(d) {
+  return d.toLocaleDateString('fr-BE', { day: '2-digit', month: 'long', year: 'numeric' });
+}
+
+function buildHtml(q, chapters) {
+  const { ch01, ch02, ch03, ch04, ch05, ch06, ch07, ch08, epilogue } = chapters;
+  const H = escapeHtml;
+  const { css, fontLink } = loadMagazineAssets();
+
+  const prenom = q.prenom;
+  const nom = q.nom || '';
+  const brandName = q.brand_name || 'BRENSO';
+  const coachName = q.coach_name || 'Bénédicte Vanden Bossche';
+  const today = new Date();
+  const dateRapport = htmlFullDate(today);
+  const monthYear = htmlMonthYear(today);
+  const initial = (prenom || '?').charAt(0).toUpperCase();
+  const enneaBase1 = q.ennea_bases?.[0] || '?';
+  const sousType = q.ennea_soustype || '';
+  const mbti = q.mbti || '';
+  const riasec = q.riasec || '';
+  const riasecLetter = riasec.charAt(0);
+  const riasecName = RIASEC_NAMES[riasecLetter] || '';
+  const trackLabel = isAdult(q) ? 'Coaching adulte' : 'Coaching jeune';
+  const reportTitle = isAdult(q) ? 'Rapport de bilan professionnel' : "Rapport d'orientation";
+
+  // ── Spread helpers ──
+  const renderBullets = (arr, liStyle = '') =>
+    (arr || []).map(b => liStyle ? `<li style="${liStyle}"><span style="color:var(--sand);font-size:1.2rem;font-weight:700;">›</span>${H(b)}</li>` : `<li>${H(b)}</li>`).join('');
+
+  const renderTableRows = (rows) =>
+    (rows || []).map(([k, v]) => `<tr><td>${H(k)}</td><td>${H(v)}</td></tr>`).join('');
+
+  const renderKeywords = (arr) =>
+    (arr || []).map(k => `<span class="keyword">${H(k)}</span>`).join('');
+
+  // ── SPREAD 00 — COVER ──
+  const sCover = `
+<section class="spread-cover">
+  <div class="cover-masthead">
+    <div>
+      <div class="cover-masthead-logo">${H(brandName)}</div>
+      <div class="cover-masthead-sub">Coaching &amp; Training · Ixelles</div>
+    </div>
+    <div class="cover-masthead-right">
+      ${H(reportTitle)}<br>
+      ${H(dateRapport)}<br>
+      Document confidentiel
+    </div>
+  </div>
+
+  <div class="cover-hero">
+    <div class="cover-bg-numeral">${H(initial)}</div>
+    <div class="cover-kicker">${H(reportTitle)} personnalisé</div>
+    <h1 class="cover-title">
+      ${isAdult(q) ? 'Rapport<br><em>de bilan</em>' : `Rapport<br><em>d'orientation</em>`}
+    </h1>
+    <div class="cover-rule"></div>
+    <div class="cover-name">
+      Préparé pour <span>${H(prenom)}</span><br>
+      Base ${H(enneaBase1)} · ${H(mbti)} · ${H(riasec)}
+    </div>
+  </div>
+
+  <div class="cover-footer">
+    <div class="cover-tags">
+      <span class="cover-tag accent">Base ${H(enneaBase1)}</span>
+      ${sousType ? `<span class="cover-tag">${H(sousType)}</span>` : ''}
+      <span class="cover-tag accent">${H(mbti)}</span>
+      ${riasecLetter ? `<span class="cover-tag accent">${H(riasecLetter)} · ${H(riasecName)}</span>` : ''}
+    </div>
+    <div class="cover-date">${H(monthYear)} · ${H(trackLabel)}</div>
+  </div>
+</section>`;
+
+  // ── SPREAD 01 — PERSONNALITÉ ──
+  const sPersonality = `
+<section class="spread-01">
+  <div class="s01-left">
+    <div>
+      <div class="chapter-index">01 — ${H(chapterTitleFor('01', q))}</div>
+      <h2 class="chapter-title-huge">${H(ch01.callout?.split(' ').slice(0, 3).join(' ') || 'Personnalité')}<br><em>${H(ch01.callout?.split(' ').slice(3, 7).join(' ') || '')}</em></h2>
+    </div>
+    <div class="callout-box"><p>${H(ch01.callout)}</p></div>
+    <div>
+      <p class="body-text">${H(ch01.para1)}</p>
+      <p class="body-text">${H(ch01.para2)}</p>
+      ${ch01.intro_bullets ? `<p class="body-text">${H(ch01.intro_bullets)}</p>` : ''}
+      <ul class="bullet-list">${renderBullets(ch01.bullets)}</ul>
+    </div>
+  </div>
+  <div class="s01-right">
+    <div class="chapter-index" style="color:rgba(245,240,232,0.3);">Enneagramme</div>
+    <table class="profile-table">
+      <tr><td>Élément</td><td>Résultat</td></tr>
+      ${renderTableRows(ch01.table_rows)}
+    </table>
+    <div class="keywords">${renderKeywords(ch01.mots_cles)}</div>
+  </div>
+</section>`;
+
+  // ── SPREAD 02 — CONTEXTE PRO ──
+  const liWarm = 'border-bottom-color:rgba(200,130,80,0.1);color:rgba(232,213,183,0.7);';
+  const sContextPro = `
+<section class="spread-02">
+  <div class="s02-header">
+    <h2 class="s02-title">${isAdult(q) ? 'Dans votre<br><em>contexte pro</em>' : 'En contexte<br><em>professionnel</em>'}</h2>
+    <div class="label" style="color:rgba(200,169,110,0.4);">02 — ${H(chapterTitleFor('02', q))}</div>
+  </div>
+  <div class="s02-body">
+    <div class="callout-box-warm"><p>${H(ch02.callout)}</p></div>
+    <p class="body-text" style="color:rgba(232,213,183,0.65);margin-top:1.5rem;">${H(ch02.forces_intro)}</p>
+    <ul class="bullet-list">${renderBullets(ch02.forces, liWarm)}</ul>
+  </div>
+  <div>
+    <div class="stat-block">
+      <span class="stat-number">${(ch02.besoins || []).length || 3}</span>
+      <span class="stat-label">besoins clés non négociables</span>
+    </div>
+    <p class="body-text" style="color:rgba(232,213,183,0.65);margin-bottom:1rem;">${H(ch02.besoins_intro)}</p>
+    <ul class="bullet-list">${renderBullets(ch02.besoins, liWarm)}</ul>
+  </div>
+</section>`;
+
+  // ── SPREAD 03 — MBTI ──
+  const liGreen = 'border-bottom-color:rgba(122,232,154,0.08);color:rgba(122,232,154,0.65);';
+  const greenChevron = '<span style="color:#7AE89A;font-size:1.2rem;font-weight:700;">›</span>';
+  const renderGreenBullets = (arr) =>
+    (arr || []).map(b => `<li style="${liGreen}">${greenChevron}${H(b)}</li>`).join('');
+  const sMbti = `
+<section class="spread-03">
+  <div class="terminal-header">
+    <span>${H(brandName)}://rapport/</span>03-mbti.profile — type: ${H(mbti)}
+  </div>
+  <div class="s03-grid">
+    <div>
+      <h2 class="terminal-title">${H(chapterTitleFor('03', q))}<br><em>MBTI</em></h2>
+      <div class="callout-terminal"><p>${H(ch03.callout)}</p></div>
+      <p class="body-text" style="color:rgba(122,232,154,0.55);">${H(ch03.para1)}</p>
+      <p class="body-text" style="color:rgba(122,232,154,0.55);">${H(ch03.para2)}</p>
+      ${ch03.apprentissage_intro || ch03.apprentissage ? `
+      <div class="s03-bullets">
+        ${ch03.apprentissage_intro ? `<p class="body-text" style="color:rgba(122,232,154,0.55);margin-top:1rem;">${H(ch03.apprentissage_intro)}</p>` : ''}
+        <ul class="bullet-list">${renderGreenBullets(ch03.apprentissage)}</ul>
+      </div>` : ''}
+    </div>
+    <div>
+      <div class="chapter-index" style="color:rgba(122,232,154,0.3);margin-bottom:2rem;">Dimensions typologiques</div>
+      <table class="dim-table">
+        <tr><td>Dimension</td><td>Préférence</td></tr>
+        ${renderTableRows(ch03.table_rows)}
+      </table>
+    </div>
+  </div>
+</section>`;
+
+  // ── SPREAD 04 — COMPÉTENCES CLÉS ──
+  const skillCells = (ch04.items || []).slice(0, 8).map(([title, desc], i) => `
+    <div class="skill-cell">
+      <div class="skill-num">${String(i + 1).padStart(2, '0')}</div>
+      <div class="skill-title">${H(title)}</div>
+      <p class="skill-desc">${H(desc)}</p>
+    </div>`).join('');
+  const sSkills = `
+<section class="spread-04">
+  <div class="s04-header">
+    <h2 class="s04-title">${H(chapterTitleFor('04', q))}<br><em>clés</em></h2>
+    <div class="label">04 — Ce que ${isAdult(q) ? 'vous faites' : 'tu fais'} naturellement bien</div>
+  </div>
+  <p class="drop-cap-intro">${H(ch04.intro)}</p>
+  <div class="skills-grid">${skillCells}</div>
+</section>`;
+
+  // ── SPREAD 05 — RIASEC ──
+  const renderRiasecRows = (rows) => {
+    return (rows || []).map((row, i) => {
+      const [labelRaw, desc] = row;
+      const m = String(labelRaw).match(/^([A-Z])\s*[·•-]\s*(.*)$/);
+      const letter = m ? m[1] : (labelRaw || '').charAt(0);
+      const name = m ? m[2].trim() : labelRaw;
+      const dim = i >= 2 ? ' dim' : '';
+      const opacity = i >= 3 ? 'style="opacity:0.4;"' : i >= 2 ? 'style="opacity:0.55;"' : '';
+      return `
+      <div class="riasec-row">
+        <span class="riasec-letter-tag${dim}">${H(letter)}</span>
+        <span class="riasec-label">${H(name)}</span>
+        <span class="riasec-desc" ${opacity}>${H(desc)}</span>
+      </div>`;
+    }).join('');
+  };
+  const liWhite = 'border-bottom-color:rgba(255,255,255,0.06);color:rgba(255,255,255,0.65);';
+  const whiteChevron = '<span style="color:rgba(255,255,255,0.4);font-size:1.2rem;font-weight:700;">›</span>';
+  const renderWhiteBullets = (arr) =>
+    (arr || []).map(b => `<li style="${liWhite}">${whiteChevron}${H(b)}</li>`).join('');
+  const sRiasec = `
+<section class="spread-05">
+  <div class="s05-left">
+    <div>
+      <div class="chapter-index" style="color:rgba(255,255,255,0.3);">05 — RIASEC</div>
+      <h2 class="s05-title">Profil<br><em>d'intérêts</em></h2>
+    </div>
+    <div class="s05-stat">
+      <span class="s05-letter">${H(riasecLetter)}</span>
+      <span class="s05-letter-sub">${H(riasecName)} · Lettre dominante</span>
+    </div>
+    <div class="callout-blue"><p>${H(ch05.callout)}</p></div>
+  </div>
+  <div class="s05-right">
+    <p class="body-text" style="color:rgba(255,255,255,0.65);">${H(ch05.para1)}</p>
+    <p class="body-text" style="color:rgba(255,255,255,0.65);">${H(ch05.para2)}</p>
+    <div class="riasec-rows">${renderRiasecRows(ch05.table_rows)}</div>
+    <div class="s05-bullets" style="margin-top:1.5rem;">
+      <p class="body-text" style="color:rgba(255,255,255,0.65);margin-bottom:0.5rem;">${H(ch05.implications_intro)}</p>
+      <ul class="bullet-list">${renderWhiteBullets(ch05.implications)}</ul>
+    </div>
+  </div>
+</section>`;
+
+  // ── SPREAD 06 — BESOINS FONDAMENTAUX ──
+  const liChecklist = 'border-bottom-color:rgba(255,255,255,0.12);color:rgba(255,255,255,0.75);';
+  const checklistChevron = '<span style="color:rgba(255,255,255,0.7);font-size:1.2rem;font-weight:700;">›</span>';
+  const renderChecklist = (arr) =>
+    (arr || []).map(b => `<li style="${liChecklist}">${checklistChevron}${H(b)}</li>`).join('');
+  const needCells = (ch06.items || []).slice(0, 6).map(([title, desc], i) => `
+    <div class="need-cell" data-n="${i + 1}">
+      <div class="need-title">${H(title)}</div>
+      <p class="need-desc">${H(desc)}</p>
+    </div>`).join('');
+  const sNeeds = `
+<section class="spread-06">
+  <div class="s06-stamp">${H(chapterTitleFor('06', q))} · Non négociables</div>
+  <h2 class="s06-title">Ce qui doit<br><em>être présent</em></h2>
+  <p class="s06-intro">${H(ch06.intro)}</p>
+  <div class="needs-grid">${needCells}</div>
+  <div class="s06-checklist">
+    <p class="body-text" style="color:rgba(255,255,255,0.8);margin-top:1.5rem;font-style:italic;font-family:'Fraunces',serif;">${H(ch06.checklist_intro)}</p>
+    <ul class="bullet-list">${renderChecklist(ch06.checklist)}</ul>
+  </div>
+</section>`;
+
+  // ── SPREAD 07 — PISTES MÉTIERS ──
+  const pisteCards = (ch07.pistes || []).map((piste) => `
+    <div class="piste-card">
+      <span class="piste-num">${H(piste.num || '')}</span>
+      <span class="piste-tag">Piste ${H(String(piste.num || '').padStart(2, '0'))}</span>
+      <h3 class="piste-title">${H(piste.metier)}</h3>
+      <p class="piste-just">${H(piste.justification)}</p>
+      <div>
+        <div class="piste-section-label">Formation &amp; Écoles</div>
+        <ul class="piste-items">${(piste.formations || []).map(f => `<li>${H(f)}</li>`).join('')}</ul>
+      </div>
+      <div>
+        <div class="piste-section-label">Argumentaire croisé</div>
+        <ul class="piste-items">
+          ${piste.argumentaire?.riasec ? `<li>RIASEC — ${H(piste.argumentaire.riasec)}</li>` : ''}
+          ${piste.argumentaire?.ennea ? `<li>Enneagramme — ${H(piste.argumentaire.ennea)}</li>` : ''}
+          ${piste.argumentaire?.mbti ? `<li>MBTI — ${H(piste.argumentaire.mbti)}</li>` : ''}
+        </ul>
+      </div>
+      <div>
+        <div class="piste-section-label">3 actions</div>
+        <ul class="piste-items">${(piste.actions || []).map(a => `<li>${H(a)}</li>`).join('')}</ul>
+      </div>
+    </div>`).join('');
+  const sPistes = `
+<section class="spread-07">
+  <div class="s07-masthead">
+    <h2 class="s07-title">${H(chapterTitleFor('07', q))}<br><em>&amp; formations</em></h2>
+    <div class="label" style="color:rgba(216,236,216,0.3);">07 — ${(ch07.pistes || []).length} pistes</div>
+  </div>
+  <p class="s07-intro">${H(ch07.intro)}</p>
+  <div class="pistes-grid">${pisteCards}</div>
+</section>`;
+
+  // ── SPREAD 08 — PLAN D'ACTION ──
+  const valuesBlock = (ch08.valeurs && ch08.valeurs.length)
+    ? `<ul class="bullet-list">${(ch08.valeurs || []).map(v => `<li>${H(v)}</li>`).join('')}</ul>`
+    : `<div class="values-empty">Les valeurs personnelles n'ont pas encore été formalisées. Elles seront identifiées et nommées lors d'une prochaine séance, en croisant ${isAdult(q) ? 'votre vécu, vos choix forts et ce qui vous met en mouvement au quotidien' : 'ton vécu, tes choix forts et ce qui te met en mouvement au quotidien'}.</div>`;
+  const sPlan = `
+<section class="spread-08">
+  <div class="s08-left">
+    <div>
+      <div class="label" style="margin-bottom:1.5rem;">08 — ${H(chapterTitleFor('08', q))}</div>
+      <h2 class="s08-title">Plan<br><em>d'action</em></h2>
+    </div>
+    <blockquote class="plan-quote">${H(ch08.texte)}</blockquote>
+    <div class="label" style="opacity:0.35;">Texte libre — transcrit mot à mot</div>
+  </div>
+  <div class="s08-right">
+    <div class="label" style="margin-bottom:2rem;color:var(--ink);">${isAdult(q) ? 'Vos' : 'Tes'} valeurs · Identifiées en séance</div>
+    ${valuesBlock}
+  </div>
+</section>`;
+
+  // ── SPREAD 09 — MOT DU COACH ──
+  const phraseFortePretty = epilogue.phrase_forte
+    ? H(epilogue.phrase_forte).replace(/—/g, '<br>—')
+    : '';
+  const sCoachWord = `
+<section class="spread-09">
+  <div class="s09-deco"></div>
+  <div class="s09-header">
+    <h2 class="s09-title">Mot du<br><em>coach</em></h2>
+    <div class="label" style="color:rgba(245,240,232,0.25);">${H(coachName)}</div>
+  </div>
+  <div class="s09-body">
+    <p class="coach-note">${H(epilogue.para1)}</p>
+    ${epilogue.para2 ? `<p class="coach-note">${H(epilogue.para2)}</p>` : ''}
+    ${phraseFortePretty ? `
+    <div class="phrase-forte-block">
+      <p class="phrase-forte-text">${phraseFortePretty}</p>
+    </div>` : ''}
+  </div>
+  <div class="s09-footer">
+    <div class="signature">
+      <strong>${H(coachName)}</strong><br>
+      Coach d'orientation · ${H(brandName)} Coaching &amp; Training
+    </div>
+    <div class="label" style="color:rgba(245,240,232,0.25);">${H(dateRapport)}</div>
+  </div>
+</section>`;
+
+  // ── SPREAD 10 — CONTACT / COLOPHON ──
+  const sColophon = `
+<section class="spread-10">
+  <div class="s10-top">
+    <div class="s10-logo">${H(brandName)}<span>Coaching &amp; Training · Ixelles</span></div>
+    <div class="s10-contact">
+      <a href="https://brenso.be">www.brenso.be</a><br>
+      <a href="mailto:contact@brenso.be">contact@brenso.be</a><br>
+      Ixelles, Belgique
+    </div>
+  </div>
+  <div class="s10-bottom">
+    <div class="confidential">
+      Ce document est confidentiel.<br>
+      Il est destiné exclusivement à ${H(prenom)} ${H(nom)}${isAdult(q) ? '.' : '<br>et à ses parents ou représentants légaux.'}
+    </div>
+    <div class="label" style="color:rgba(255,255,255,0.3);">${H(brandName)} · ${H(reportTitle)} · ${H(prenom)} · ${today.getFullYear()}</div>
+  </div>
+</section>`;
+
+  // ── ASSEMBLE ──
+  const fontFallback = `
+body, .body-text, .skill-desc, .need-desc, .piste-just, .piste-items, .keyword, .label, .cover-tag, .signature, .confidential { font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif; }
+.cover-title, .cover-name, .chapter-title-huge, .s02-title, .terminal-title, .s04-title, .s05-title, .s05-letter, .s06-title, .s07-title, .piste-title, .s08-title, .plan-quote, .s09-title, .phrase-forte-text, .s10-logo { font-family: 'Fraunces', Georgia, 'Times New Roman', serif; }
+.cover-masthead-logo, .label, .cover-kicker, .chapter-index, .terminal-header, .stat-number, .skill-num, .s05-letter-sub, .s06-stamp, .piste-num, .piste-tag, .piste-section-label { font-family: 'Space Mono', 'Courier New', monospace; }
+@media print { section { page-break-after: always; } }`;
+
+  return `<!DOCTYPE html>
+<html lang="${q.language === 'nl' ? 'nl' : 'fr'}">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>${H(brandName)} — ${H(reportTitle)} · ${H(prenom)}</title>
+${fontLink}
+<style>${css}
+${fontFallback}
+</style>
+</head>
+<body>
+${sCover}
+${sPersonality}
+${sContextPro}
+${sMbti}
+${sSkills}
+${sRiasec}
+${sNeeds}
+${sPistes}
+${sPlan}
+${sCoachWord}
+${sColophon}
+</body>
+</html>
+`;
+}
+
 // ── PRIVACY: FIRST-NAME ALIAS ──────────────────────────────────────────────
 // The real first name must never be sent to Anthropic. We substitute a random
 // alias for every AI call, then swap it back in the generated output before
@@ -821,7 +1239,8 @@ function deepReplaceAliasInStrings(node, alias, realPrenom) {
 async function main() {
   const jsonPath = process.argv[2];
   const outPath = process.argv[3] || path.join(process.cwd(), 'brenso-raport.docx');
-  if (!jsonPath) { console.error("Usage: node brenso-rapport.js <questionnaire.json> [output.docx]"); process.exit(1); }
+  const htmlPath = process.argv[4] || outPath.replace(/\.docx$/i, '.html');
+  if (!jsonPath) { console.error("Usage: node brenso-rapport.js <questionnaire.json> [output.docx] [output.html]"); process.exit(1); }
 
   const q = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
 
@@ -887,8 +1306,14 @@ async function main() {
   const doc = buildDocument(q, restored);
   const buf = await Packer.toBuffer(doc);
   fs.writeFileSync(outPath, buf);
+  console.log(`   → DOCX : ${outPath}`);
 
-  console.log(`\n✅ Rapport généré : ${outPath}`);
+  console.log("\n📄 Assemblage du rapport HTML...");
+  const html = buildHtml(q, restored);
+  fs.writeFileSync(htmlPath, html);
+  console.log(`   → HTML : ${htmlPath}`);
+
+  console.log(`\n✅ Rapport généré.`);
 }
 
 main().catch(e => { console.error("❌ Erreur:", e); process.exit(1); });

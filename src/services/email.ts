@@ -14,7 +14,8 @@ const transporter = nodemailer.createTransport({
 export async function sendReportEmail(
   coachEmail: string,
   coacheeName: string,
-  reportBuffer: Buffer
+  reportDocx: Buffer,
+  reportHtml?: Buffer,
 ): Promise<void> {
   if (!config.smtp.host) {
     console.log('SMTP not configured, skipping email send.');
@@ -29,19 +30,33 @@ export async function sendReportEmail(
     throw err;
   }
 
+  const safeName = coacheeName.replace(/\s+/g, '_');
+  const attachments = [
+    {
+      filename: `Rapport_${safeName}.docx`,
+      content: reportDocx,
+      contentType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    },
+  ];
+  if (reportHtml) {
+    attachments.push({
+      filename: `Rapport_${safeName}.html`,
+      content: reportHtml,
+      contentType: 'text/html; charset=utf-8',
+    });
+  }
+
+  const bodyLine = reportHtml
+    ? `Bonjour,\n\nLe rapport d'orientation pour ${coacheeName} est prêt.\nVous le trouverez en pièce jointe en deux formats — Word et HTML.`
+    : `Bonjour,\n\nLe rapport d'orientation pour ${coacheeName} est prêt.\nVous le trouverez en pièce jointe.`;
+
   const info = await transporter.sendMail({
     from: config.smtp.from,
     to: coachEmail,
     bcc: config.smtp.bcc.length > 0 ? config.smtp.bcc : undefined,
     subject: `Rapport d'orientation : ${coacheeName}`,
-    text: `Bonjour,\n\nLe rapport d'orientation pour ${coacheeName} est prêt.\nVous le trouverez en pièce jointe.`,
-    attachments: [
-      {
-        filename: `Rapport_${coacheeName.replace(/\s+/g, '_')}.docx`,
-        content: reportBuffer,
-        contentType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-      },
-    ],
+    text: bodyLine,
+    attachments,
   });
 
   console.log('SMTP sendMail info:', {

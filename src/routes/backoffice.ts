@@ -27,7 +27,8 @@ backofficeRoutes.get('/api/coachees', async (req: Request, res: Response) => {
   try {
     const result = await pool.query(`
       SELECT c.id, c.prenom, c.nom, c.created_at, c.profile_type,
-             (SELECT r.status FROM coachee_report r WHERE r.coachee_id = c.id ORDER BY r.created_at DESC LIMIT 1) as report_status
+             (SELECT r.status FROM coachee_report r WHERE r.coachee_id = c.id ORDER BY r.created_at DESC LIMIT 1) as report_status,
+             (SELECT (r.html_data IS NOT NULL) FROM coachee_report r WHERE r.coachee_id = c.id AND r.status = 'done' ORDER BY r.completed_at DESC LIMIT 1) as report_has_html
       FROM coachee c
       WHERE c.coach_id = $1
       ORDER BY c.created_at DESC
@@ -305,12 +306,42 @@ backofficeRoutes.get('/api/coachee/:id/report/download', async (req: Request, re
     }
 
     const row = result.rows[0];
-    const filename = `Brenso_Rapport_${row.prenom}_${row.nom}.docx`;
+    const filename = `Rapport_${row.prenom}_${row.nom}.docx`;
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
     res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
     res.send(row.report_data);
   } catch (err) {
     console.error('Download report error:', err);
+    res.status(500).json({ error: 'Erreur serveur.' });
+  }
+});
+
+// API: View / download HTML report (opens inline by default; ?download=1 forces attachment)
+backofficeRoutes.get('/api/coachee/:id/report/html', async (req: Request, res: Response) => {
+  try {
+    const result = await pool.query(`
+      SELECT r.html_data, c.prenom, c.nom
+      FROM coachee_report r
+      JOIN coachee c ON c.id = r.coachee_id
+      WHERE r.coachee_id = $1 AND c.coach_id = $2 AND r.status = 'done' AND r.html_data IS NOT NULL
+      ORDER BY r.completed_at DESC
+      LIMIT 1
+    `, [req.params.id, req.session.coachId]);
+
+    if (result.rows.length === 0) {
+      res.status(404).json({ error: 'Rapport HTML non trouvé.' });
+      return;
+    }
+
+    const row = result.rows[0];
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    if (req.query.download === '1') {
+      const filename = `Rapport_${row.prenom}_${row.nom}.html`;
+      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    }
+    res.send(row.html_data);
+  } catch (err) {
+    console.error('View HTML report error:', err);
     res.status(500).json({ error: 'Erreur serveur.' });
   }
 });

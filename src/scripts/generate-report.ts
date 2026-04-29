@@ -3,7 +3,7 @@
  *
  * Usage:  npx ts-node src/scripts/generate-report.ts <coachee_id>
  *
- * Outputs:  ./output_report.docx
+ * Outputs:  ./output_report.docx and ./output_report.html
  */
 
 import fs from 'fs';
@@ -31,12 +31,16 @@ async function main() {
   console.log(`  MBTI: ${data.mbti || '—'}  Ennea: ${data.ennea_base || '—'}  RIASEC: ${data.riasec || '—'}`);
 
   console.log('\nGenerating report via Claude CLI pipeline...');
-  const buf = await renderDocxWithClaude(data);
+  const { docx, html } = await renderDocxWithClaude(data);
 
-  const outPath = path.join(process.cwd(), 'output_report.docx');
-  fs.writeFileSync(outPath, buf);
+  const docxPath = path.join(process.cwd(), 'output_report.docx');
+  const htmlPath = path.join(process.cwd(), 'output_report.html');
+  fs.writeFileSync(docxPath, docx);
+  fs.writeFileSync(htmlPath, html);
 
-  console.log(`\nDone! Report written to: ${outPath}`);
+  console.log(`\nDone! Reports written to:`);
+  console.log(`  ${docxPath}`);
+  console.log(`  ${htmlPath}`);
   await pool.end();
 }
 
