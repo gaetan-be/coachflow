@@ -16,6 +16,12 @@
         update_cache: true
 
     # ---- Directories ----
+    - name: Ensure /srv is world-traversable
+      file:
+        path: /srv
+        state: directory
+        mode: "0755"
+
     - name: Create persistent data directories
       file:
         path: "{{ item }}"

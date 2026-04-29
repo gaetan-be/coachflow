@@ -28,9 +28,12 @@ services:
       CLAUDE_MODEL: ${CLAUDE_MODEL:-claude-sonnet-4-20250514}
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.brenso.rule=Host(`brenso.oriado.com`)"
+      - "traefik.http.routers.brenso.rule=HostRegexp(`^[a-z0-9-]+\\.oriado\\.com$`)"
       - "traefik.http.routers.brenso.entrypoints=websecure"
+      - "traefik.http.routers.brenso.tls=true"
       - "traefik.http.routers.brenso.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.brenso.tls.domains[0].main=oriado.com"
+      - "traefik.http.routers.brenso.tls.domains[0].sans=*.oriado.com"
       - "traefik.http.services.brenso.loadbalancer.server.port=3000"
     networks:
       - proxy

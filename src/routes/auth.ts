@@ -1,13 +1,8 @@
 import { Router, Request, Response } from 'express';
 import bcrypt from 'bcrypt';
 import { pool } from '../db';
-import { renderBranded } from '../util/renderBranded';
 
 export const authRoutes = Router();
-
-authRoutes.get('/coach', (req: Request, res: Response) => {
-  renderBranded(req, res, 'views/login.html');
-});
 
 authRoutes.post('/api/login', async (req: Request, res: Response) => {
   try {

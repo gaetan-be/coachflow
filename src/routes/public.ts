@@ -1,12 +1,8 @@
 import { Router, Request, Response } from 'express';
 import { pool } from '../db';
 import { questionnaireRateLimit } from '../middleware/rateLimit';
-import { renderBranded } from '../util/renderBranded';
 
 export const publicRoutes = Router();
-
-// NOTE: /, /terms, /hello are now handled by the React SPA catch-all in index.ts
-// These routes only exist for the API endpoints below.
 
 publicRoutes.get('/api/branding', (req: Request, res: Response) => {
   if (!req.coach) {
