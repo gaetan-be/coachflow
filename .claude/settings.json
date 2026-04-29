@@ -11,7 +11,8 @@
       "Bash(grep -v '^$')",
       "Bash(ssh -o StrictHostKeyChecking=no ubuntu@core 'sudo docker exec brenso-postgres psql -U brenso -d brenso -c \"SELECT id, email, name, domain, brand_name, logo_letter, accent_color FROM coach;\"')",
       "Bash(ssh -o StrictHostKeyChecking=no ubuntu@core 'sudo docker exec brenso-backend node -e \" *)",
-      "Bash(ssh -o StrictHostKeyChecking=no ubuntu@core 'sudo docker exec brenso-postgres psql -U brenso -d brenso -c \"\\\\d coach\"')"
+      "Bash(ssh -o StrictHostKeyChecking=no ubuntu@core 'sudo docker exec brenso-postgres psql -U brenso -d brenso -c \"\\\\d coach\"')",
+      "Bash(ssh -o StrictHostKeyChecking=no ubuntu@core \"sudo docker exec brenso-postgres psql -U brenso -d brenso -c \\\\\"UPDATE coach SET brand_name='Genius', logo_letter='🧞' WHERE domain='genius.oriado.com' RETURNING id, brand_name, logo_letter;\\\\\" && sudo docker restart brenso-backend\")"
     ]
   }
 }

@@ -11,7 +11,7 @@ publicRoutes.get('/api/branding', (req: Request, res: Response) => {
   }
   res.json({
     brand_name: req.coach.brand_name,
-    logo_letter: req.coach.brand_name.charAt(0).toUpperCase(),
+    logo_letter: req.coach.logo_letter,
     accent_color: req.coach.accent_color,
   });
 });

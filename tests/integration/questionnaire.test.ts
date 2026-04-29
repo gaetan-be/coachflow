@@ -155,7 +155,7 @@ describe('POST /api/questionnaire', () => {
       expect(row.rows[0].language).toBe('fr');
     });
 
-    it('persists language=nl when submitted from /welkom', async () => {
+    it('persists language=nl when submitted from /nl/hello/student', async () => {
       await seedCoach();
       const res = await request(app)
         .post('/api/questionnaire')

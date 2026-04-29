@@ -138,10 +138,7 @@ function LinkCreator() {
   const [profileType, setProfileType] = useState<'young' | 'adult'>('young');
   const [copied, setCopied] = useState(false);
 
-  const path =
-    profileType === 'adult'
-      ? lang === 'nl' ? '/pro/welkom' : '/pro/hello'
-      : lang === 'nl' ? '/welkom' : '/hello';
+  const path = `/${lang}/hello/${profileType === 'adult' ? 'pro' : 'student'}`;
   const url = `${window.location.origin}${path}`;
 
   function handleCopy() {

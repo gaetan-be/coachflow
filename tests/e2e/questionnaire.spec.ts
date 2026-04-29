@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Questionnaire public coachee journey', () => {
   test('completes all 3 steps and shows success screen', async ({ page }) => {
-    await page.goto('/hello');
+    await page.goto('/fr/hello/student');
 
     // Step 1 — Identity
     await expect(page.locator('#step-1, [data-step="1"], .step-1')).toBeVisible();
@@ -32,7 +32,7 @@ test.describe('Questionnaire public coachee journey', () => {
   });
 
   test('blocks advancing to step 2 when required fields are empty', async ({ page }) => {
-    await page.goto('/hello');
+    await page.goto('/fr/hello/student');
 
     // Do NOT fill anything — try to advance
     await page.click('[data-next="2"], button:has-text("Suivant"), #btn-next-1');
@@ -43,8 +43,8 @@ test.describe('Questionnaire public coachee journey', () => {
     await expect(page.locator('#step-2, [data-step="2"], .step-2')).not.toBeVisible();
   });
 
-  test('adult flow at /pro/hello completes all 3 steps and shows success screen', async ({ page }) => {
-    await page.goto('/pro/hello');
+  test('adult flow at /fr/hello/pro completes all 3 steps and shows success screen', async ({ page }) => {
+    await page.goto('/fr/hello/pro');
 
     // Step 1 — Identity
     await expect(page.locator('#step-1, [data-step="1"], .step-1')).toBeVisible();
@@ -71,7 +71,7 @@ test.describe('Questionnaire public coachee journey', () => {
   });
 
   test('restores step-1 fields from localStorage on reload', async ({ page }) => {
-    await page.goto('/hello');
+    await page.goto('/fr/hello/student');
 
     // Set localStorage to simulate a draft
     await page.evaluate(() => {

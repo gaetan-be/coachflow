@@ -24,8 +24,8 @@ export function QuestionnairePage() {
   const { t, i18n } = useTranslation();
   const { pathname } = useLocation();
 
-  // URL locks the language: /hello = fr, /welkom = nl
-  const lang: 'fr' | 'nl' = pathname === '/welkom' ? 'nl' : 'fr';
+  // URL locks the language: /fr/hello/student = fr, /nl/hello/student = nl
+  const lang: 'fr' | 'nl' = pathname.startsWith('/nl/') ? 'nl' : 'fr';
   useEffect(() => {
     if (i18n.resolvedLanguage !== lang) i18n.changeLanguage(lang);
   }, [lang, i18n]);

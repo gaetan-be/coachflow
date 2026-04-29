@@ -29,10 +29,10 @@ export default function App() {
             {/* Public routes */}
             <Route path="/" element={<HomePage />} />
             <Route path="/terms" element={<TermsPage />} />
-            <Route path="/hello" element={<QuestionnairePage />} />
-            <Route path="/welkom" element={<QuestionnairePage />} />
-            <Route path="/pro/hello" element={<AdultQuestionnairePage />} />
-            <Route path="/pro/welkom" element={<AdultQuestionnairePage />} />
+            <Route path="/fr/hello/student" element={<QuestionnairePage />} />
+            <Route path="/nl/hello/student" element={<QuestionnairePage />} />
+            <Route path="/fr/hello/pro" element={<AdultQuestionnairePage />} />
+            <Route path="/nl/hello/pro" element={<AdultQuestionnairePage />} />
             <Route path="/coach" element={<LoginPage />} />
 
             {/* Protected backoffice routes */}

@@ -29,8 +29,8 @@ export function AdultQuestionnairePage() {
   const { t, i18n } = useTranslation();
   const { pathname } = useLocation();
 
-  // URL locks the language: /pro/hello = fr, /pro/welkom = nl
-  const lang: 'fr' | 'nl' = pathname === '/pro/welkom' ? 'nl' : 'fr';
+  // URL locks the language: /fr/hello/pro = fr, /nl/hello/pro = nl
+  const lang: 'fr' | 'nl' = pathname.startsWith('/nl/') ? 'nl' : 'fr';
   useEffect(() => {
     if (i18n.resolvedLanguage !== lang) i18n.changeLanguage(lang);
   }, [lang, i18n]);
