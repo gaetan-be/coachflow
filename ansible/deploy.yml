@@ -8,6 +8,72 @@
     app_dir: /srv/brenso/app
     project_root: "{{ playbook_dir }}/.."
 
+  pre_tasks:
+    - name: Refuse to deploy a dirty working tree
+      delegate_to: localhost
+      become: false
+      ansible.builtin.command:
+        cmd: git status --porcelain
+        chdir: "{{ project_root }}"
+      register: git_status
+      changed_when: false
+
+    - name: Fail if working tree is dirty
+      delegate_to: localhost
+      become: false
+      ansible.builtin.fail:
+        msg: |
+          Working tree is dirty. Commit or stash before deploying.
+          Dirty files:
+          {{ git_status.stdout }}
+      when: git_status.stdout | length > 0
+
+    - name: Capture local HEAD commit
+      delegate_to: localhost
+      become: false
+      ansible.builtin.command:
+        cmd: git rev-parse HEAD
+        chdir: "{{ project_root }}"
+      register: git_head
+      changed_when: false
+
+    - name: Capture upstream HEAD commit
+      delegate_to: localhost
+      become: false
+      ansible.builtin.command:
+        cmd: git rev-parse '@{u}'
+        chdir: "{{ project_root }}"
+      register: git_upstream
+      changed_when: false
+      failed_when: false
+
+    - name: Fail if HEAD is not pushed (or branch has no upstream)
+      delegate_to: localhost
+      become: false
+      ansible.builtin.fail:
+        msg: |
+          HEAD is not pushed to its upstream — deploy would tag a commit
+          that doesn't exist on the remote.
+          Local HEAD:    {{ git_head.stdout }}
+          Upstream HEAD: {{ git_upstream.stdout | default('(no upstream set)') }}
+          Run `git push` (or `git push -u origin <branch>`) and retry.
+      when: git_upstream.rc != 0 or git_upstream.stdout != git_head.stdout
+
+    - name: Capture short SHA
+      delegate_to: localhost
+      become: false
+      ansible.builtin.command:
+        cmd: git rev-parse --short=7 HEAD
+        chdir: "{{ project_root }}"
+      register: git_short
+      changed_when: false
+
+    - name: Set deploy facts (git SHA + build time)
+      ansible.builtin.set_fact:
+        git_commit: "{{ git_head.stdout }}"
+        git_short_commit: "{{ git_short.stdout }}"
+        build_time: "{{ ansible_date_time.iso8601_basic_short | default(lookup('pipe', 'date -u +%Y%m%dT%H%M%SZ')) }}"
+
   tasks:
     - name: Ensure rsync is installed (needed for code sync)
       apt:
@@ -86,3 +152,34 @@
         build: always
         state: present
         remove_orphans: true
+      environment:
+        GIT_COMMIT: "{{ git_commit }}"
+        BUILD_TIME: "{{ build_time }}"
+
+  post_tasks:
+    - name: Tag the deployed commit locally
+      delegate_to: localhost
+      become: false
+      ansible.builtin.command:
+        cmd: git tag deploy/{{ build_time }}-{{ git_short_commit }} {{ git_commit }}
+        chdir: "{{ project_root }}"
+      register: git_tag_create
+      changed_when: git_tag_create.rc == 0
+      failed_when: false
+
+    - name: Push the deploy tag to origin
+      delegate_to: localhost
+      become: false
+      ansible.builtin.command:
+        cmd: git push origin deploy/{{ build_time }}-{{ git_short_commit }}
+        chdir: "{{ project_root }}"
+      register: git_tag_push
+      changed_when: git_tag_push.rc == 0
+      failed_when: false
+
+    - name: Report deploy tag status
+      ansible.builtin.debug:
+        msg: |
+          Deployed: {{ git_commit }}
+          Tag:      deploy/{{ build_time }}-{{ git_short_commit }}
+          Tag push: {{ 'OK' if git_tag_push.rc == 0 else 'FAILED — tag exists locally, push manually with: git push origin deploy/' + build_time + '-' + git_short_commit }}

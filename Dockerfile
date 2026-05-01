@@ -22,7 +22,12 @@ COPY client/ ./client/
 COPY claude-tpl-maker/ ./claude-tpl-maker/
 RUN cd claude-tpl-maker && npm install --production
 
-RUN npm run build
+ARG GIT_COMMIT=unknown
+ARG BUILD_TIME=unknown
+
+RUN npm run build \
+    && printf 'commit=%s\nbuilt_at=%s\n' "$GIT_COMMIT" "$BUILD_TIME" \
+        > public/dist/version.txt
 
 # Claude CLI refuses --dangerously-skip-permissions as root
 RUN addgroup -S brenso && adduser -S brenso -G brenso \

@@ -559,7 +559,7 @@ Retourne ce JSON avec exactement ${(q.metiers||[]).length || 2} pistes :
       "num": "1",
       "metier": "Nom du métier",
       "justification": "2-3 phrases — lien RIASEC + Enneagramme + MBTI + séances",
-      "formations": ["École 1 – Ville", "École 2 – Ville"],
+      "formations": ["École 1 – Ville (distance par rapport au code postal)", "École 2 – Ville (distance par rapport au code postal)", "École 3 – Ville (distance par rapport au code postal)"],
       "argumentaire": {
         "riasec": "lien lettre dominante",
         "ennea": "lien base dominante",
@@ -1155,7 +1155,7 @@ function buildHtml(q, chapters) {
   const sColophon = `
 <section class="spread-10">
   <div class="s10-top">
-    <div class="s10-logo">${H(brandName)}<span>Coaching &amp; Training · Ixelles</span></div>
+    <div class="s10-logo">${H(brandName)}<</div>
     <div class="s10-contact">
       <a href="https://brenso.be">www.brenso.be</a><br>
       <a href="mailto:contact@brenso.be">contact@brenso.be</a><br>
