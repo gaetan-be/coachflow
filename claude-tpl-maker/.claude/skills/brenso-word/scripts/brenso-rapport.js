@@ -201,16 +201,21 @@ function epilogueBand(title) {
   ];
 }
 
+function joinDot(parts) {
+  return parts.filter(Boolean).join('  ·  ');
+}
+
 function buildDocHeader(q) {
-  const brandName = q.brand_name || 'BRENSO';
+  const brandName = q.brand_name || '';
   const subtitle = isAdult(q) ? "Rapport de bilan professionnel" : "Rapport d'orientation";
+  const signature = joinDot([q.coach_name]);
   return new Header({ children:[
     new Paragraph({
       border:{bottom:{style:BorderStyle.SINGLE,size:4,color:C.blue}}, spacing:{after:60},
       tabStops:[{type:TabStopType.RIGHT,position:PAGE.cw}],
       children:[
-        r(brandName,{bold:true,size:17,color:C.blue}),
-        r("  Coaching & Training",{size:17,color:C.mid}),
+        r(brandName + "  ",{bold:true,size:17,color:C.blue}),
+        r(signature,{size:17,color:C.mid}),
         r("\t",{size:17}),
         r(subtitle,{size:16,italic:true,color:C.mid}),
       ],
@@ -219,13 +224,18 @@ function buildDocHeader(q) {
 }
 
 function buildDocFooter(q) {
-  const brandName = q.brand_name || 'BRENSO';
+  const coachInfo = joinDot([q.coach_name, q.coach_telephone, q.coach_email]);
   return new Footer({ children:[
     new Paragraph({
       border:{top:{style:BorderStyle.SINGLE,size:2,color:C.greyBorder}}, spacing:{before:60},
-      tabStops:[{type:TabStopType.RIGHT,position:PAGE.cw}],
+      tabStops:[
+        {type:TabStopType.CENTER,position:Math.round(PAGE.cw/2)},
+        {type:TabStopType.RIGHT,position:PAGE.cw},
+      ],
       children:[
-        r(`Document confidentiel  ·  ${brandName} Coaching & Training`,{size:16,color:C.mid}),
+        r("Document confidentiel",{size:16,color:C.mid}),
+        r("\t",{size:16}),
+        r(coachInfo,{size:16,color:C.mid}),
         r("\t",{size:16}),
         r("p. ",{size:16,color:C.mid}),
         new TextRun({children:[PageNumber.CURRENT],size:16,color:C.blue,bold:true,font:"Calibri"}),
@@ -319,7 +329,7 @@ function buildSystemPrompt(q, dominant, fiches, wordTarget, chapterName, context
 
   const brandName = q.brand_name || 'BRENSO';
   const coachName = q.coach_name || 'Bénédicte Vanden Bossche';
-  return `Tu es un expert en bilan d'orientation pour ${brandName} Coaching & Training (${coachName}, Ixelles).
+  return `Tu es un expert en bilan d'orientation pour la société ${brandName}, la coach est (${coachName}).
 
 Tu génères du contenu pour le chapitre "${chapterName}" d'un ${reportKind}.
 
@@ -549,17 +559,25 @@ async function genChapter07(q, fiches, context) {
 
   const user = `${adultFrame(q)}
 Prénom : ${q.prenom}
+Code postal : ${q.zip || '—'}
 Pistes du coach :\n${metiersCoach || "Non renseignées — à déduire du profil RIASEC/Enneagramme/MBTI"}
+
+Règles strictes pour le champ "formations" de chaque piste :
+1. L'ordre des pistes que tu retournes correspond exactement à l'ordre des pistes du coach.
+2. Conserve toutes les écoles fournies par le coach pour la piste, dans l'ordre, et avec les noms exacts. Tu peux uniquement enrichir chaque entrée en ajoutant la distance par rapport au code postal ${q.zip || '(non renseigné)'} entre parenthèses, ex: "ULB – Bruxelles (12 km)".
+3. Si le coach a fourni moins de 3 écoles pour une piste, complète jusqu'à 3 avec des écoles pertinentes (université, haute ecoles, promotion sociale, formation en alternance, ...) pour le métier. Les ecoles fournies doivent donner le cours en français ou en anglais.
+4. Si le coach n'a fourni aucune école pour une piste, propose 3 écoles toi-même au format "École – Ville (distance)".
+5. Ne renomme jamais et ne reformule jamais une école fournie par le coach, même si l'orthographe te paraît incomplète.
 
 Retourne ce JSON avec exactement ${(q.metiers||[]).length || 2} pistes :
 {
-  "intro": "narration intro 2-3 phrases reliant le profil global aux pistes (en tu)",
+  "intro": "narration intro 2-3 phrases reliant le profil global aux pistes",
   "pistes": [
     {
       "num": "1",
       "metier": "Nom du métier",
       "justification": "2-3 phrases — lien RIASEC + Enneagramme + MBTI + séances",
-      "formations": ["École 1 – Ville (distance par rapport au code postal)", "École 2 – Ville (distance par rapport au code postal)", "École 3 – Ville (distance par rapport au code postal)"],
+      "formations": ["École – Ville (distance)", "..."],
       "argumentaire": {
         "riasec": "lien lettre dominante",
         "ennea": "lien base dominante",
@@ -607,11 +625,20 @@ Retourne ce JSON :
 
 // ── ASSEMBLAGE WORD ──────────────────────────────────────────────────────────
 
+function formatDateFR(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  return isNaN(d) ? iso : d.toLocaleDateString('fr-BE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+}
+
 function buildDocument(q, chapters) {
   const { ch01, ch02, ch03, ch04, ch05, ch06, ch07, ch08, epilogue } = chapters;
   const prenom = q.prenom;
-  const brandName = q.brand_name || 'BRENSO';
-  const coachName = q.coach_name || 'Bénédicte Vanden Bossche';
+  const brandName = q.brand_name || '';
+  const coachName = q.coach_name || '';
+  const coachEmail = q.coach_email || '';
+  const coachTelephone = q.coach_telephone || '';
+  const coachWebsite = q.coach_website || '';
   const dateRapport = new Date().toLocaleDateString('fr-BE', {day:'2-digit',month:'long',year:'numeric'});
 
   const children = [
@@ -620,14 +647,16 @@ function buildDocument(q, chapters) {
     blank(2000),
     new Paragraph({spacing:{after:0}, children:[r(isAdult(q) ? "RAPPORT DE BILAN PROFESSIONNEL" : "RAPPORT D'ORIENTATION",{size:46,bold:true,color:C.dark})]}),
     new Paragraph({
-      border:{bottom:{style:BorderStyle.SINGLE,size:10,color:C.blue}},
+      border:{bottom:{style:BorderStyle.SINGLE,size:6,color:C.blue}},
       spacing:{before:0,after:320},
-      children:[r(brandName+" Coaching & Training",{size:22,color:C.blue})],
+      children:[r(brandName,{size:36,color:C.blue})],
     }),
     blank(280),
     p([r("Préparé pour",{size:19,color:C.mid,italic:true})],{spacing:{after:40}}),
+    
     p([r(prenom+" "+q.nom,{size:38,bold:true,color:C.blue})],{spacing:{after:120}}),
-    p([r("Date de naissance : ",{size:19,color:C.mid}),r(q.anniversaire+(q.age?" ("+q.age+" ans)":""),{size:19,bold:true})],{spacing:{after:60}}),
+    blank(280),
+    p([r("Date de naissance : ",{size:19,color:C.mid}),r(formatDateFR(q.anniversaire)+(q.age?" ("+q.age+" ans)":""),{size:19,bold:true})],{spacing:{after:60}}),
     ...(isAdult(q) ? [
       p([r("Entreprise : ",{size:19,color:C.mid}),r(q.entreprise||"—",{size:19,bold:true})],{spacing:{after:60}}),
       p([r("Rôle : ",{size:19,color:C.mid}),r(q.role||"—",{size:19,bold:true})],{spacing:{after:60}}),
@@ -639,6 +668,16 @@ function buildDocument(q, chapters) {
     p([r("RIASEC : ",{size:19,color:C.mid}),r(q.riasec,{size:19,bold:true})],{spacing:{after:60}}),
     blank(400),
     p([r("Coach : ",{size:19,color:C.mid}),r(coachName,{size:19,bold:true})],{spacing:{after:60}}),
+    ...(coachEmail ? [
+      p([r("Email : ",{size:19,color:C.mid}),r(coachEmail,{size:19,bold:true})],{spacing:{after:60}}),
+    ] : []),
+    ...(coachTelephone ? [
+      p([r("Téléphone : ",{size:19,color:C.mid}),r(coachTelephone,{size:19,bold:true})],{spacing:{after:60}}),
+    ] : []),
+    ...(coachWebsite ? [
+      p([r("Website : ",{size:19,color:C.mid}),r(coachWebsite,{size:19,bold:true})],{spacing:{after:60}}),
+    ] : []),
+    blank(400),
     p([r("Date du rapport : ",{size:19,color:C.mid}),r(dateRapport,{size:19})],{spacing:{after:60}}),
 
     // ── 01 PERSONNALITÉ
@@ -759,16 +798,18 @@ function buildDocument(q, chapters) {
       spacing:{before:0,after:320},
       children:[r(brandName,{size:36,bold:true,color:C.blue})],
     }),
-    p([r("Coaching & Training",{size:24,color:C.mid,italic:true})],{spacing:{after:60}}),
-    blank(200),
     p([r(coachName,{size:22,bold:true})],{spacing:{after:60}}),
-    // p([r("Coach d'orientation certifiée",{size:20,italic:true,color:C.mid})],{spacing:{after:60}}),
-    // p([r("Ixelles, Belgique",{size:19,color:C.mid})],{spacing:{after:60}}),
-    blank(80),
-    // new Paragraph({border:{top:{style:BorderStyle.SINGLE,size:2,color:C.greyBorder}},spacing:{before:80,after:80},children:[r("",{size:4})]}),
-    // p([r("www.brenso.be",{size:19,color:C.blue})],{spacing:{after:40}}),
-    // p([r("contact@brenso.be",{size:19,color:C.mid})],{spacing:{after:40}}),
-    // blank(400),
+    ...(coachTelephone ? [
+      p([r(coachTelephone,{size:19,color:C.mid})],{spacing:{after:60}}),
+    ] : []),
+    new Paragraph({border:{top:{style:BorderStyle.SINGLE,size:2,color:C.greyBorder}},spacing:{before:80,after:80},children:[r("",{size:4})]}),
+    ...(coachWebsite ? [
+      p([r(coachWebsite,{size:19,color:C.blue})],{spacing:{after:40}}),
+    ] : []),
+    ...(coachEmail ? [
+      p([r(coachEmail,{size:19,color:C.mid})],{spacing:{after:40}}),
+    ] : []),
+    blank(400),
     p([r("Ce document est confidentiel. Il est destiné exclusivement à ",{size:17,color:C.mid})],{spacing:{after:0}}),
     p([r(prenom+" "+q.nom+(isAdult(q) ? "." : " et à ses parents ou représentants légaux."),{size:17,color:C.mid})],{spacing:{after:0}}),
   ];
@@ -840,8 +881,11 @@ function buildHtml(q, chapters) {
 
   const prenom = q.prenom;
   const nom = q.nom || '';
-  const brandName = q.brand_name || 'BRENSO';
-  const coachName = q.coach_name || 'Bénédicte Vanden Bossche';
+  const brandName = q.brand_name || '';
+  const coachName = q.coach_name || '';
+  const coachEmail = q.coach_email || '';
+  const coachTelephone = q.coach_telephone || '';
+  const coachWebsite = q.coach_website || '';
   const today = new Date();
   const dateRapport = htmlFullDate(today);
   const monthYear = htmlMonthYear(today);
@@ -871,7 +915,7 @@ function buildHtml(q, chapters) {
   <div class="cover-masthead">
     <div>
       <div class="cover-masthead-logo">${H(brandName)}</div>
-      <div class="cover-masthead-sub">Coaching &amp; Training · Ixelles</div>
+      <div class="cover-masthead-sub">${coachName}</div>
     </div>
     <div class="cover-masthead-right">
       ${H(reportTitle)}<br>
@@ -954,29 +998,29 @@ function buildHtml(q, chapters) {
 </section>`;
 
   // ── SPREAD 03 — MBTI ──
-  const liGreen = 'border-bottom-color:rgba(122,232,154,0.08);color:rgba(122,232,154,0.65);';
-  const greenChevron = '<span style="color:#7AE89A;font-size:1.2rem;font-weight:700;">›</span>';
+  const liGreen = 'border-bottom-color:rgba(164,241,183,0.10);color:rgba(164,241,183,0.78);';
+  const greenChevron = '<span style="color:#A4F1B7;font-size:1.2rem;font-weight:700;">›</span>';
   const renderGreenBullets = (arr) =>
     (arr || []).map(b => `<li style="${liGreen}">${greenChevron}${H(b)}</li>`).join('');
   const sMbti = `
 <section class="spread-03">
   <div class="terminal-header">
-    <span>${H(brandName)}://rapport/</span>03-mbti.profile — type: ${H(mbti)}
+    <span>${H(brandName)}://rapport/ 03-mbti.profile — type: ${H(mbti)}</span>
   </div>
   <div class="s03-grid">
     <div>
       <h2 class="terminal-title">${H(chapterTitleFor('03', q))}<br><em>MBTI</em></h2>
       <div class="callout-terminal"><p>${H(ch03.callout)}</p></div>
-      <p class="body-text" style="color:rgba(122,232,154,0.55);">${H(ch03.para1)}</p>
-      <p class="body-text" style="color:rgba(122,232,154,0.55);">${H(ch03.para2)}</p>
+      <p class="body-text" style="color:rgba(164,241,183,0.55);">${H(ch03.para1)}</p>
+      <p class="body-text" style="color:rgba(164,241,183,0.55);">${H(ch03.para2)}</p>
       ${ch03.apprentissage_intro || ch03.apprentissage ? `
       <div class="s03-bullets">
-        ${ch03.apprentissage_intro ? `<p class="body-text" style="color:rgba(122,232,154,0.55);margin-top:1rem;">${H(ch03.apprentissage_intro)}</p>` : ''}
+        ${ch03.apprentissage_intro ? `<p class="body-text" style="color:rgba(164,241,183,0.65);margin-top:1rem;">${H(ch03.apprentissage_intro)}</p>` : ''}
         <ul class="bullet-list">${renderGreenBullets(ch03.apprentissage)}</ul>
       </div>` : ''}
     </div>
     <div>
-      <div class="chapter-index" style="color:rgba(122,232,154,0.3);margin-bottom:2rem;">Dimensions typologiques</div>
+      <div class="chapter-index" style="color:rgba(164,241,183,0.65);margin-bottom:2rem;">Dimensions typologiques</div>
       <table class="dim-table">
         <tr><td>Dimension</td><td>Préférence</td></tr>
         ${renderTableRows(ch03.table_rows)}
@@ -1145,29 +1189,33 @@ function buildHtml(q, chapters) {
   <div class="s09-footer">
     <div class="signature">
       <strong>${H(coachName)}</strong><br>
-      Coach d'orientation · ${H(brandName)} Coaching &amp; Training
+      ${H(brandName)} ${coachTelephone ? `<br>${H(coachTelephone)}` : ''}
     </div>
     <div class="label" style="color:rgba(245,240,232,0.25);">${H(dateRapport)}</div>
   </div>
 </section>`;
 
   // ── SPREAD 10 — CONTACT / COLOPHON ──
+  const websiteHref = coachWebsite
+    ? (/^https?:\/\//i.test(coachWebsite) ? coachWebsite : `https://${coachWebsite}`)
+    : '';
   const sColophon = `
 <section class="spread-10">
   <div class="s10-top">
-    <div class="s10-logo">${H(brandName)}<</div>
+    <div class="s10-logo">${H(brandName)}</div>
     <div class="s10-contact">
-      <a href="https://brenso.be">www.brenso.be</a><br>
-      <a href="mailto:contact@brenso.be">contact@brenso.be</a><br>
-      Ixelles, Belgique
+      <strong>${H(coachName)}</strong><br>
+      ${coachTelephone ? `${H(coachTelephone)}<br>` : ''}
+      ${coachWebsite ? `<a href="${H(websiteHref)}">${H(coachWebsite)}</a><br>` : ''}
+      ${coachEmail ? `<a href="mailto:${H(coachEmail)}">${H(coachEmail)}</a>` : ''}
     </div>
   </div>
   <div class="s10-bottom">
-    <div class="confidential">
+    <div class="confidential" style="color:rgba(255,255,255);">
       Ce document est confidentiel.<br>
       Il est destiné exclusivement à ${H(prenom)} ${H(nom)}${isAdult(q) ? '.' : '<br>et à ses parents ou représentants légaux.'}
     </div>
-    <div class="label" style="color:rgba(255,255,255,0.3);">${H(brandName)} · ${H(reportTitle)} · ${H(prenom)} · ${today.getFullYear()}</div>
+    <div class="label" style="color:rgba(255,255,255);">${H(brandName)} · ${H(reportTitle)} · ${H(prenom)} · ${today.getFullYear()}</div>
   </div>
 </section>`;
 
@@ -1244,63 +1292,78 @@ async function main() {
 
   const q = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
 
-  // Replace the real first name with an alias for the entire AI phase.
-  // The real name is restored just before docx assembly.
-  q._realPrenom = q.prenom;
-  q._alias = pickAlias(q.prenom);
-  q.prenom = q._alias;
+  // Dev iteration: cache AI chapter output to disk to skip the slow + costly
+  // AI phase when only the visual assembly is being tweaked.
+  const cachePath = process.env.BRENSO_CHAPTERS_CACHE;
+  let restored;
 
-  console.log(`\n🔵 BRENSO — Génération rapport ${q._realPrenom} ${q.nom}`);
-  console.log(`   (alias AI : ${q._alias})`);
-  console.log(`   Enneagramme : ${q.ennea_bases.join("+")} (${q.ennea_soustype})`);
-  console.log(`   MBTI : ${q.mbti} | RIASEC : ${q.riasec}`);
-  console.log(`   Word counts : Ennea=${q.words_ennea} MBTI=${q.words_mbti} RIASEC=${q.words_riasec}`);
+  if (cachePath && fs.existsSync(cachePath)) {
+    console.log(`\n♻️  Chargement des chapitres depuis le cache : ${cachePath}`);
+    restored = JSON.parse(fs.readFileSync(cachePath, 'utf8'));
+  } else {
+    // Replace the real first name with an alias for the entire AI phase.
+    // The real name is restored just before docx assembly.
+    q._realPrenom = q.prenom;
+    q._alias = pickAlias(q.prenom);
+    q.prenom = q._alias;
 
-  let context = "";
+    console.log(`\n🔵 BRENSO — Génération rapport ${q._realPrenom} ${q.nom}`);
+    console.log(`   (alias AI : ${q._alias})`);
+    console.log(`   Enneagramme : ${q.ennea_bases.join("+")} (${q.ennea_soustype})`);
+    console.log(`   MBTI : ${q.mbti} | RIASEC : ${q.riasec}`);
+    console.log(`   Word counts : Ennea=${q.words_ennea} MBTI=${q.words_mbti} RIASEC=${q.words_riasec}`);
 
-  console.log("\n📝 Génération chapitre 01 — Personnalité...");
-  const ch01 = await genChapter01(q, {}, context);
-  context += `\nCh01 Personnalité: ${ch01.callout} ${ch01.para1}`;
+    let context = "";
 
-  console.log("📝 Génération chapitre 02 — Contexte pro...");
-  const ch02 = await genChapter02(q, {}, context);
-  context += `\nCh02 Contexte pro: ${ch02.callout} Forces: ${ch02.forces.join(", ")}`;
+    console.log("\n📝 Génération chapitre 01 — Personnalité...");
+    const ch01 = await genChapter01(q, {}, context);
+    context += `\nCh01 Personnalité: ${ch01.callout} ${ch01.para1}`;
 
-  console.log("📝 Génération chapitre 03 — MBTI...");
-  const ch03 = await genChapter03(q, {}, context);
-  context += `\nCh03 MBTI: ${ch03.callout} ${ch03.para1}`;
+    console.log("📝 Génération chapitre 02 — Contexte pro...");
+    const ch02 = await genChapter02(q, {}, context);
+    context += `\nCh02 Contexte pro: ${ch02.callout} Forces: ${ch02.forces.join(", ")}`;
 
-  console.log("📝 Génération chapitre 04 — Compétences...");
-  const ch04 = await genChapter04(q, {}, context);
-  context += `\nCh04 Compétences: ${ch04.items.map(i=>i[0]).join(", ")}`;
+    console.log("📝 Génération chapitre 03 — MBTI...");
+    const ch03 = await genChapter03(q, {}, context);
+    context += `\nCh03 MBTI: ${ch03.callout} ${ch03.para1}`;
 
-  console.log("📝 Génération chapitre 05 — RIASEC...");
-  const ch05 = await genChapter05(q, {}, context);
-  context += `\nCh05 RIASEC: ${ch05.callout}`;
+    console.log("📝 Génération chapitre 04 — Compétences...");
+    const ch04 = await genChapter04(q, {}, context);
+    context += `\nCh04 Compétences: ${ch04.items.map(i=>i[0]).join(", ")}`;
 
-  console.log("📝 Génération chapitre 06 — Besoins fondamentaux...");
-  const ch06 = await genChapter06(q, {}, context);
-  context += `\nCh06 Besoins: ${ch06.items.map(i=>i[0]).join(", ")}`;
+    console.log("📝 Génération chapitre 05 — RIASEC...");
+    const ch05 = await genChapter05(q, {}, context);
+    context += `\nCh05 RIASEC: ${ch05.callout}`;
 
-  console.log("📝 Génération chapitre 07 — Pistes métiers...");
-  const ch07 = await genChapter07(q, {}, context);
-  context += `\nCh07 Pistes: ${(ch07.pistes||[]).map(p=>p.metier).join(", ")}`;
+    console.log("📝 Génération chapitre 06 — Besoins fondamentaux...");
+    const ch06 = await genChapter06(q, {}, context);
+    context += `\nCh06 Besoins: ${ch06.items.map(i=>i[0]).join(", ")}`;
 
-  console.log("📝 Assemblage chapitre 08 — Plan d'action...");
-  const ch08 = await genChapter08(q);
+    console.log("📝 Génération chapitre 07 — Pistes métiers...");
+    const ch07 = await genChapter07(q, {}, context);
+    context += `\nCh07 Pistes: ${(ch07.pistes||[]).map(p=>p.metier).join(", ")}`;
 
-  console.log("📝 Génération épilogue — Mot du coach...");
-  const epilogue = await genEpilogue(q, context);
+    console.log("📝 Assemblage chapitre 08 — Plan d'action...");
+    const ch08 = await genChapter08(q);
 
-  // AI phase complete. Swap the alias back to the real first name in every
-  // chapter and restore q.prenom so the cover/header/footer show the real name.
-  console.log(`\n🔒 Restauration du prénom (${q._alias} → ${q._realPrenom})...`);
-  const restored = deepReplaceAliasInStrings(
-    { ch01, ch02, ch03, ch04, ch05, ch06, ch07, ch08, epilogue },
-    q._alias,
-    q._realPrenom,
-  );
-  q.prenom = q._realPrenom;
+    console.log("📝 Génération épilogue — Mot du coach...");
+    const epilogue = await genEpilogue(q, context);
+
+    // AI phase complete. Swap the alias back to the real first name in every
+    // chapter and restore q.prenom so the cover/header/footer show the real name.
+    console.log(`\n🔒 Restauration du prénom (${q._alias} → ${q._realPrenom})...`);
+    restored = deepReplaceAliasInStrings(
+      { ch01, ch02, ch03, ch04, ch05, ch06, ch07, ch08, epilogue },
+      q._alias,
+      q._realPrenom,
+    );
+    q.prenom = q._realPrenom;
+
+    if (cachePath) {
+      fs.writeFileSync(cachePath, JSON.stringify(restored, null, 2));
+      console.log(`💾 Chapitres sauvegardés dans : ${cachePath}`);
+    }
+  }
 
   console.log("\n📄 Assemblage du document Word...");
   const doc = buildDocument(q, restored);

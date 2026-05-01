@@ -12,6 +12,8 @@
 #     -e color=#d97b45
 #
 # Optional vars:
+#   -e telephone="+32 470 12 34 56"  # shown on the report cover and contact page
+#   -e website="marie-coach.be"      # shown on the report cover and contact page
 #   -e plan=starter             # plan.name; omitted = no plan = unlimited reports
 #   -e language=fr              # 'fr' or 'nl'; omitted = auto-detect on first request
 #   -e credits=3                # initial credit allocation (only meaningful with a plan)
@@ -62,6 +64,8 @@
              '--brand', brand,
              '--letter', letter,
              '--color', color]
+            + (['--telephone', telephone] if telephone is defined else [])
+            + (['--website', website] if website is defined else [])
             + (['--plan', plan] if plan is defined else [])
             + (['--language', language] if language is defined else [])
             + (['--credits', credits | string] if credits is defined else [])

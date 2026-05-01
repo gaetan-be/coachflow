@@ -4,3 +4,5 @@ dist/
 *.docx
 !templates/report-template.docx
 .DS_Store
+output_report.html
+.dev-chapters-*.json

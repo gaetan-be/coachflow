@@ -20,13 +20,16 @@ interface Report {
 
 export function ProfilePage() {
   const { t } = useTranslation();
-  const { coach } = useAuth();
+  const { coach, refetch } = useAuth();
   const [currentPw, setCurrentPw] = useState('');
   const [newPw, setNewPw] = useState('');
   const [pwFeedback, setPwFeedback] = useState<{ msg: string; ok: boolean } | null>(null);
   const [reports, setReports] = useState<Report[]>([]);
   const [reportsLoading, setReportsLoading] = useState(true);
   const [coachMe, setCoachMe] = useState<CoachMe | null>(null);
+  const [telephone, setTelephone] = useState('');
+  const [website, setWebsite] = useState('');
+  const [contactFeedback, setContactFeedback] = useState<{ msg: string; ok: boolean } | null>(null);
 
   useEffect(() => {
     fetch('/api/coach/reports', { credentials: 'include' })
@@ -40,8 +43,29 @@ export function ProfilePage() {
 
   // Mirror auth-context coach into local state for UI like credits
   useEffect(() => {
-    if (coach) setCoachMe(coach);
+    if (coach) {
+      setCoachMe(coach);
+      setTelephone(coach.telephone ?? '');
+      setWebsite(coach.website ?? '');
+    }
   }, [coach]);
+
+  async function saveContact() {
+    setContactFeedback(null);
+    const res = await fetch('/api/coach/profile', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ telephone, website }),
+    });
+    if (!res.ok) {
+      const d = await res.json().catch(() => ({}));
+      setContactFeedback({ msg: d.error ?? t('profile.contactError'), ok: false });
+      return;
+    }
+    setContactFeedback({ msg: t('profile.contactSuccess'), ok: true });
+    refetch();
+  }
 
   async function changePassword() {
     setPwFeedback(null);
@@ -142,7 +166,52 @@ export function ProfilePage() {
           )}
         </PipelineSection>
 
-        {/* 2 — Préférences (langue) */}
+        {/* 2 — Mes coordonnées (telephone + website) */}
+        <PipelineSection title={t('profile.sectionContact')} accent="teal">
+          <p className="text-[12px] text-[#6B7580] leading-snug mb-4">
+            {t('profile.contactHint')}
+          </p>
+          <div className="grid grid-cols-2 gap-5 max-w-[480px] max-md:grid-cols-1">
+            <FieldGroup label={t('profile.labelTelephone')}>
+              <input
+                type="tel"
+                value={telephone}
+                onChange={(e) => setTelephone(e.target.value)}
+                placeholder={t('profile.placeholderTelephone')}
+                autoComplete="tel"
+                className={inputCls}
+              />
+            </FieldGroup>
+            <FieldGroup label={t('profile.labelWebsite')}>
+              <input
+                type="text"
+                value={website}
+                onChange={(e) => setWebsite(e.target.value)}
+                placeholder={t('profile.placeholderWebsite')}
+                autoComplete="url"
+                className={inputCls}
+              />
+            </FieldGroup>
+          </div>
+          <div className="mt-5 flex items-center gap-4 flex-wrap">
+            <button
+              type="button"
+              onClick={saveContact}
+              className="inline-flex items-center gap-2.5 px-7 py-3.5 bg-transparent text-[#40A2C0]
+                         border-[1.5px] border-[#40A2C0] rounded-full text-[11px] font-semibold tracking-[1.5px] uppercase
+                         cursor-pointer transition-all min-h-12 hover:bg-[rgba(64,162,192,0.08)] hover:-translate-y-0.5"
+            >
+              {t('profile.submitContact')}
+            </button>
+            {contactFeedback && (
+              <span className={`text-[12px] font-medium ${contactFeedback.ok ? 'text-[#4caf82]' : 'text-[#EA226C]'}`}>
+                {contactFeedback.msg}
+              </span>
+            )}
+          </div>
+        </PipelineSection>
+
+        {/* 3 — Préférences (langue) */}
         <PipelineSection title={t('profile.sectionPreferences')} accent="teal">
           <div className="flex items-start justify-between gap-6 max-md:flex-col">
             <div className="flex-1">

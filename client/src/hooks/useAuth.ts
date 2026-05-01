@@ -4,6 +4,8 @@ import i18n from '@/i18n';
 export interface CoachMe {
   name: string;
   email: string;
+  telephone: string | null;
+  website: string | null;
   language: 'fr' | 'nl';
   plan: string | null;
   plan_display_name: string | null;

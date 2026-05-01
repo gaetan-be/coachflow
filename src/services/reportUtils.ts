@@ -7,22 +7,27 @@ export function calculateAge(dateNaissance: string): number {
   return age;
 }
 
+function toIsoDate(v: unknown): string {
+  if (!v) return '';
+  if (v instanceof Date) return v.toISOString().slice(0, 10);
+  return String(v);
+}
+
 /** Map DB coachee row to the JSON format expected by make-docx.sh / brenso-word skill. */
 export function mapCoacheeToJson(data: any): Record<string, any> {
   return {
     profile_type: data.profile_type || 'young',
     coach_name: data.coach_name || '',
+    coach_email: data.coach_email || '',
+    coach_telephone: data.coach_telephone || '',
+    coach_website: data.coach_website || '',
     brand_name: data.coach_brand_name || '',
     prenom: data.prenom || '',
     nom: data.nom || '',
-    anniversaire: data.date_naissance
-      ? new Date(data.date_naissance).toLocaleDateString('fr-BE', { day: '2-digit', month: '2-digit', year: 'numeric' })
-      : '',
+    anniversaire: toIsoDate(data.date_naissance),
     age: data.date_naissance ? calculateAge(data.date_naissance) : 0,
     zip: data.code_postal || '',
-    date_seance: data.date_seance
-      ? new Date(data.date_seance).toLocaleDateString('fr-BE', { day: '2-digit', month: '2-digit', year: 'numeric' })
-      : '',
+    date_seance: toIsoDate(data.date_seance),
     ecole: data.ecole_nom || '',
     choix: data.choix || '',
     loisirs: data.loisirs || '',

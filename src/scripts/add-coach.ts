@@ -10,6 +10,8 @@
  *     --brand "MARIE" \
  *     --letter "M" \
  *     --color "#d97b45" \
+ *     [--telephone "+32 470 12 34 56"] \
+ *     [--website "marie-coach.be"] \
  *     [--plan starter] \
  *     [--language fr|nl] \
  *     [--credits 3] \
@@ -33,6 +35,8 @@ interface Args {
   brand: string;
   letter: string;
   color: string;
+  telephone?: string;
+  website?: string;
   plan?: string;
   language?: 'fr' | 'nl';
   credits?: number;
@@ -74,6 +78,8 @@ function parseArgs(): Args {
     color: raw.color,
   };
 
+  if (raw.telephone) args.telephone = raw.telephone;
+  if (raw.website) args.website = raw.website;
   if (raw.plan) args.plan = raw.plan;
   if (raw.language) args.language = raw.language as 'fr' | 'nl';
 
@@ -110,10 +116,10 @@ async function main(): Promise<void> {
     }
 
     const coachRes = await client.query<{ id: number }>(
-      `INSERT INTO coach (name, email, password_hash, domain, brand_name, logo_letter, accent_color, plan_id, language)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+      `INSERT INTO coach (name, email, password_hash, domain, brand_name, logo_letter, accent_color, plan_id, language, telephone, website)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
        RETURNING id`,
-      [a.name, a.email, hash, a.domain.toLowerCase(), a.brand, a.letter, a.color, planId, a.language ?? null],
+      [a.name, a.email, hash, a.domain.toLowerCase(), a.brand, a.letter, a.color, planId, a.language ?? null, a.telephone ?? null, a.website ?? null],
     );
     const coachId = coachRes.rows[0].id;
 

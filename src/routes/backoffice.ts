@@ -181,7 +181,7 @@ backofficeRoutes.get('/api/coach/me', async (req: Request, res: Response) => {
   try {
     const coachId = req.session.coachId!;
     const [coachResult, credits, plan] = await Promise.all([
-      pool.query('SELECT name, email, language FROM coach WHERE id = $1', [coachId]),
+      pool.query('SELECT name, email, telephone, website, language FROM coach WHERE id = $1', [coachId]),
       getCoachCredits(coachId),
       getCoachPlan(coachId),
     ]);
@@ -194,6 +194,8 @@ backofficeRoutes.get('/api/coach/me', async (req: Request, res: Response) => {
     res.json({
       name: coach.name,
       email: coach.email,
+      telephone: coach.telephone,
+      website: coach.website,
       language,
       plan: plan.plan_name,
       plan_display_name: plan.plan_display_name,
@@ -207,16 +209,54 @@ backofficeRoutes.get('/api/coach/me', async (req: Request, res: Response) => {
   }
 });
 
-// API: Update coach profile (currently only language; extend with display name, etc. later)
+// API: Update coach profile (language, telephone, website — partial updates allowed)
 backofficeRoutes.put('/api/coach/profile', async (req: Request, res: Response) => {
   try {
-    const { language } = req.body;
-    if (language !== 'fr' && language !== 'nl') {
-      res.status(400).json({ error: 'Langue invalide.' });
+    const { language, telephone, website } = req.body ?? {};
+
+    const sets: string[] = [];
+    const values: unknown[] = [];
+
+    if (language !== undefined) {
+      if (language !== 'fr' && language !== 'nl') {
+        res.status(400).json({ error: 'Langue invalide.' });
+        return;
+      }
+      values.push(language);
+      sets.push(`language = $${values.length}`);
+    }
+
+    if (telephone !== undefined) {
+      const v = typeof telephone === 'string' ? telephone.trim() : '';
+      if (v.length > 64) {
+        res.status(400).json({ error: 'Téléphone trop long.' });
+        return;
+      }
+      values.push(v.length > 0 ? v : null);
+      sets.push(`telephone = $${values.length}`);
+    }
+
+    if (website !== undefined) {
+      const v = typeof website === 'string' ? website.trim() : '';
+      if (v.length > 256) {
+        res.status(400).json({ error: 'Site web trop long.' });
+        return;
+      }
+      values.push(v.length > 0 ? v : null);
+      sets.push(`website = $${values.length}`);
+    }
+
+    if (sets.length === 0) {
+      res.status(400).json({ error: 'Aucun champ à mettre à jour.' });
       return;
     }
-    await pool.query('UPDATE coach SET language = $1 WHERE id = $2', [language, req.session.coachId]);
-    res.json({ ok: true, language });
+
+    values.push(req.session.coachId);
+    await pool.query(
+      `UPDATE coach SET ${sets.join(', ')} WHERE id = $${values.length}`,
+      values,
+    );
+    res.json({ ok: true });
   } catch (err) {
     console.error('Update coach profile error:', err);
     res.status(500).json({ error: 'Erreur serveur.' });
