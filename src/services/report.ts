@@ -79,10 +79,10 @@ export async function processReport(reportId: number): Promise<void> {
   );
 
   // Send email
-  try {
-    await sendReportEmail(data.coach_email, `${data.prenom} ${data.nom}`, docx, html);
-    console.log(`Report ${reportId} emailed to ${data.coach_email}`);
-  } catch (emailErr) {
-    console.error(`Report ${reportId} generated but email failed:`, emailErr);
-  }
+  //try {
+  //  await sendReportEmail(data.coach_email, `${data.prenom} ${data.nom}`, docx, html);
+  //  console.log(`Report ${reportId} emailed to ${data.coach_email}`);
+  //} catch (emailErr) {
+  //  console.error(`Report ${reportId} generated but email failed:`, emailErr);
+  //}
 }

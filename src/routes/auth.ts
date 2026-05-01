@@ -34,6 +34,8 @@ authRoutes.post('/api/login', async (req: Request, res: Response) => {
       return;
     }
 
+    await pool.query('UPDATE coach SET last_login_at = NOW() WHERE id = $1', [coach.id]);
+
     req.session.coachId = coach.id;
     res.json({ ok: true });
   } catch (err) {
